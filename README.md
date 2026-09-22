@@ -26,9 +26,11 @@ Expected GitHub Pages URL:
 - Import / Export Project JSON
 - ตรวจ Draft / Final readiness
 - สร้าง Markdown Package 6 ไฟล์ใน Browser
-- ไม่มี AI API และไม่มี backend ใน Phase 1
+- **Phase 2 Preview Studio:** เปิดดูและแก้ไข Markdown ก่อนดาวน์โหลด
+- ประมาณจำนวนคำ/เวลา Script และดาวน์โหลด Bundle สำรอง
+- ไม่มี AI API และไม่มี backend
 
-> Repository นี้เป็น Private การเข้าถึง GitHub Pages ขึ้นกับการตั้งค่า/สิทธิ์ Pages ของบัญชี หาก Pages ยังไม่เปิด ให้ตั้ง Source เป็น **GitHub Actions** ใน Repository Settings → Pages
+> Repository นี้เปิดเป็น **Public** แล้ว และรองรับการเผยแพร่เว็บด้วย GitHub Pages ผ่าน GitHub Actions
 
 
 ## เริ่มต้น
