@@ -1,11 +1,8 @@
 name: Deploy toolkit website to Pages
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - "web/**"
-      - ".github/workflows/pages.yml"
+  # Repository นี้ใช้ Pages แบบ Deploy from branch (main / root) เป็นค่าเริ่มต้น
+  # Workflow นี้เก็บไว้เป็นทางเลือก หากภายหลังเปลี่ยน Source เป็น GitHub Actions
   workflow_dispatch:
 
 permissions:
