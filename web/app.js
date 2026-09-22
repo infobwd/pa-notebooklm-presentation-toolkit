@@ -290,6 +290,17 @@
     return DOCUMENT_ROLES.find(item => item[0] === role)?.[1] || "Other / อื่น ๆ";
   }
 
+  function inferDocumentRole(filename) {
+    const name = String(filename || "").toLowerCase();
+    if (/sar|รายงานการประเมินตนเอง/.test(name)) return "sar_context";
+    if (/ข้อตกลง|agreement|\bpa\b/.test(name)) return "pa_agreement";
+    if (/รายงานผล|performance|ปฏิบัติงาน/.test(name)) return "performance_report";
+    if (/\bnt\b|\brt\b|assessment|ผลสอบ|ผลประเมิน/.test(name)) return "assessment_result";
+    if (/policy|นโยบาย/.test(name)) return "policy";
+    if (/award|รางวัล|เกียรติบัตร|ประกาศ/.test(name)) return "award";
+    return "other";
+  }
+
   function documentTextForSelection(doc) {
     if (!doc.pages || !Array.isArray(doc.pageTexts)) {
       doc.pageError = "";
@@ -399,7 +410,7 @@
         warning: "",
         error: "",
         include: true,
-        role: "other",
+        role: inferDocumentRole(file.name),
         pageSpec: "",
         pageError: ""
       };
@@ -1788,6 +1799,7 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
   function closeAiJsonModal() {
     aiJsonModal.classList.add("hidden");
     document.body.style.overflow = "";
+    lastConflictCount = 0;
   }
 
   document.getElementById("closeAiJsonBtn").addEventListener("click", closeAiJsonModal);
@@ -1811,6 +1823,9 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
   document.getElementById("loadAiJsonExampleBtn").addEventListener("click", () => {
     aiJsonInput.value = buildAiJsonExample();
     validatedAiJson = null;
+    importReviewDecisions = {};
+    lastConflictCount = 0;
+    aiImportReview.classList.add("hidden");
     importAiJsonBtn.disabled = true;
     aiJsonStatus.className = "json-status neutral";
     aiJsonStatus.textContent = "โหลดตัวอย่างสมมติแล้ว กด “ตรวจ JSON” เพื่อทดลอง workflow";
@@ -1827,6 +1842,9 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
       const data = await response.json();
       aiJsonInput.value = JSON.stringify(data, null, 2);
       validatedAiJson = null;
+      importReviewDecisions = {};
+      lastConflictCount = 0;
+      aiImportReview.classList.add("hidden");
       importAiJsonBtn.disabled = true;
       aiJsonStatus.className = "json-status neutral";
       aiJsonStatus.textContent = "โหลด Owner Test Data แล้ว กด “ตรวจ JSON” ก่อน Import";
@@ -1844,6 +1862,9 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
     if (!file) return;
     aiJsonInput.value = await file.text();
     validatedAiJson = null;
+    importReviewDecisions = {};
+    lastConflictCount = 0;
+    aiImportReview.classList.add("hidden");
     importAiJsonBtn.disabled = true;
     aiJsonStatus.className = "json-status neutral";
     aiJsonStatus.textContent = "โหลดไฟล์แล้ว กรุณากด “ตรวจ JSON”";
