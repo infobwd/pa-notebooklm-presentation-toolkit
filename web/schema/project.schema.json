@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infobwd.github.io/pa-notebooklm-presentation-toolkit/web/schema/project.schema.json",
+  "title": "PA NotebookLM Toolkit Project",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "version",
+    "indicators"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "pa-toolkit/project/3.1"
+    },
+    "version": {
+      "const": 3
+    },
+    "duration": {
+      "type": "string",
+      "enum": [
+        "5",
+        "7"
+      ]
+    },
+    "indicators": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "target": {
+            "type": "string"
+          },
+          "actual": {
+            "type": "string"
+          },
+          "evidence": {
+            "type": "string"
+          },
+          "actualNumerator": {
+            "type": "string"
+          },
+          "actualDenominator": {
+            "type": "string"
+          },
+          "sourceFile": {
+            "type": "string"
+          },
+          "sourcePage": {
+            "type": "string"
+          },
+          "period": {
+            "type": "string"
+          },
+          "population": {
+            "type": "string"
+          },
+          "cohortId": {
+            "type": "string"
+          },
+          "verification": {
+            "type": "string",
+            "enum": [
+              "unverified",
+              "verified"
+            ]
+          }
+        },
+        "required": [
+          "title",
+          "target",
+          "actual",
+          "evidence",
+          "actualNumerator",
+          "actualDenominator",
+          "sourceFile",
+          "sourcePage",
+          "period",
+          "population",
+          "cohortId",
+          "verification"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "evidenceTypes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "selectedFileNames": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "currentStep": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 7
+    }
+  },
+  "additionalProperties": true
+}
