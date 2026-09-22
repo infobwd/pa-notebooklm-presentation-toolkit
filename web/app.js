@@ -1415,6 +1415,29 @@ ${r.missing.length ? r.missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่ม�
     aiJsonStatus.textContent = "โหลดตัวอย่างสมมติแล้ว กด “ตรวจ JSON” เพื่อทดลอง workflow";
   });
 
+  document.getElementById("loadOwnerTestDataBtn").addEventListener("click", async e => {
+    const btn = e.currentTarget;
+    const original = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = "กำลังโหลด...";
+    try {
+      const response = await fetch("./test-data/owner-pa-2569.ai-intake.json", {cache:"no-store"});
+      if (!response.ok) throw new Error("HTTP " + response.status);
+      const data = await response.json();
+      aiJsonInput.value = JSON.stringify(data, null, 2);
+      validatedAiJson = null;
+      importAiJsonBtn.disabled = true;
+      aiJsonStatus.className = "json-status neutral";
+      aiJsonStatus.textContent = "โหลด Owner Test Data แล้ว กด “ตรวจ JSON” ก่อน Import";
+    } catch (err) {
+      aiJsonStatus.className = "json-status error";
+      aiJsonStatus.textContent = "โหลด Owner Test Data ไม่สำเร็จ: " + (err?.message || "ไม่ทราบสาเหตุ");
+    } finally {
+      btn.disabled = false;
+      btn.textContent = original;
+    }
+  });
+
   document.getElementById("aiJsonFileInput").addEventListener("change", async e => {
     const file = e.target.files?.[0];
     if (!file) return;
