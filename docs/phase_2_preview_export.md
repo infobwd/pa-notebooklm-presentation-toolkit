@@ -86,3 +86,65 @@ Phase 1 มี Import/Export JSON อยู่แล้ว และ Phase 2 ใ
 ใช้ **Kanit** เป็น font หลักผ่าน Google Fonts และมี system font fallback หากโหลด font ภายนอกไม่ได้
 
 ไม่มีข้อมูลฟอร์มถูกส่งไป Google Fonts; browser เพียงร้องขอไฟล์ CSS/font เพื่อการแสดงผล
+
+
+---
+
+# Phase 2.2 — Field Examples & External AI JSON Bridge
+
+สถานะ: **Implemented**
+
+## 1. ตัวอย่างในทุกช่องสำคัญ
+ระบบเพิ่มข้อความ “ตัวอย่าง:” ใต้ field หลักโดยอัตโนมัติ เช่น:
+- ชื่อ/ตำแหน่ง/วิทยฐานะ/สังกัด
+- รอบ PA และช่วงผลการปฏิบัติงาน
+- ประเด็นท้าทาย/Model/Baseline
+- ปัญหา/Context/Process
+- ผลเชิงคุณภาพ
+- Student / Service Journey
+- ระบบ/นวัตกรรม/การมีส่วนร่วม
+- รางวัล/การขยายผล/Policy
+
+Indicator card มีตัวอย่างแยกสำหรับ:
+- ชื่อตัวชี้วัด
+- TARGET
+- ACTUAL
+- หลักฐาน
+
+## 2. External AI JSON Prompt
+ปุ่ม **AI JSON Assistant** สร้าง Prompt มาตรฐานสำหรับใช้กับ AI ภายนอก โดยกำหนด:
+- schema_version = `pa-toolkit/intake/2.2`
+- JSON only
+- ห้าม Markdown fence
+- ห้ามเดา ACTUAL
+- ห้ามเปลี่ยน CONTEXT เป็นผลจริง
+- ข้อมูลไม่พอให้ใช้ค่าว่างหรือ PENDING
+- รองรับ indicators หลายรายการ
+- รองรับ evidenceTypes เฉพาะค่าที่ Toolkit รู้จัก
+
+## 3. JSON Validation
+ก่อน Import ระบบตรวจ:
+- JSON syntax
+- object shape
+- schema version warning
+- duration 5/7
+- indicators array
+- field type
+- evidenceTypes allowlist
+
+## 4. Import Modes
+- **Fill blanks**: เติมเฉพาะช่องที่ยังว่าง (ค่าเริ่มต้น)
+- **Replace**: ใช้ JSON แทนข้อมูลในฟอร์ม
+
+Import เป็นเพียงการช่วยกรอกข้อมูล ไม่ถือเป็นการ verify หลักฐาน
+
+## 5. Project JSON
+Project export เพิ่ม:
+- `schema_version: pa-toolkit/project/2.2`
+- `version: 2`
+
+ยังคงรองรับ Project JSON เดิมในระดับ field ที่ระบบรู้จัก
+
+## Security / Privacy
+External AI เป็นบริการนอก Toolkit ผู้ใช้ต้องพิจารณานโยบายข้อมูลของบริการที่เลือกเอง
+Toolkit ไม่ส่งข้อมูลไป AI ภายนอกโดยอัตโนมัติ; ผู้ใช้เป็นผู้ Copy Prompt/แนบเอกสาร/วาง JSON กลับเข้าระบบด้วยตนเอง
