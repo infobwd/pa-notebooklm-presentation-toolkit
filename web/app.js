@@ -207,6 +207,65 @@ JSON ที่ต้องตอบ:
 ก่อนตอบ ให้ตรวจ JSON syntax ให้ถูกต้อง และตอบ JSON object เพียงอย่างเดียว`;
   }
 
+  function buildAiJsonExample() {
+    return JSON.stringify({
+      schema_version: AI_SCHEMA_VERSION,
+      presenterName: "นายตัวอย่าง การศึกษา",
+      position: "ผู้อำนวยการสถานศึกษา",
+      academicRank: "ชำนาญการพิเศษ",
+      organization: "โรงเรียนตัวอย่างพัฒนา",
+      affiliation: "สำนักงานเขตพื้นที่การศึกษาประถมศึกษาตัวอย่าง เขต 1",
+      paCycle: "1 ต.ค. 2569 – 30 ก.ย. 2570",
+      evaluationPeriod: "1 เม.ย. 2570 – 30 ก.ย. 2570",
+      duration: "5",
+      challengeTitle: "การพัฒนาทักษะการอ่านเพื่อความเข้าใจด้วย READ Model",
+      managementModel: "READ Model",
+      baselineSource: "แบบประเมินก่อนพัฒนา",
+      developmentNeed: "ผู้เรียนบางส่วนยังไม่ผ่านเกณฑ์การอ่านเพื่อความเข้าใจ",
+      contextNotes: "ก่อนเริ่มรอบ ผู้เรียนผ่านเกณฑ์ 62%",
+      processNotes: "วิเคราะห์ข้อมูลรายบุคคล\nตั้งเป้าหมาย\nจัดกิจกรรม\nPLC สะท้อนผล\nประเมินซ้ำ",
+      indicators: [
+        {
+          title: "นักเรียนกลุ่มเป้าหมายผ่านเกณฑ์การอ่าน",
+          target: "≥75%",
+          actual: "24/30 = 80%",
+          evidence: "แบบประเมินปลายรอบ + ตารางสรุปผล"
+        },
+        {
+          title: "ผู้เรียนที่ไม่ผ่านได้รับการซ่อมเสริม",
+          target: "100%",
+          actual: "6/6 = 100%",
+          evidence: "บันทึกการซ่อมเสริม"
+        }
+      ],
+      learnerOutcome: "ผู้เรียนอธิบายใจความสำคัญได้ชัดขึ้น",
+      staffOutcome: "ครูใช้ข้อมูลรายบุคคลวางแผนซ่อมเสริมได้เป็นระบบ",
+      workOutcome: "เกิดวงจรติดตามก่อน–หลัง",
+      organizationOutcome: "มีข้อมูลภาพรวมเพื่อกำกับติดตาม",
+      journeyBefore: "นักเรียน A ได้ 8/20",
+      journeyAction: "ใช้ graphic organizer และ feedback รายกลุ่ม",
+      journeyAfter: "นักเรียน A ได้ 14/20",
+      journeyEvidence: "แบบประเมินก่อน–หลังและชิ้นงานปกปิดชื่อ",
+      systems: "Reading Tracker — ติดตามข้อมูลรายบุคคล\nPLC Reflection — ปรับการสอนจากหลักฐาน",
+      participationStaff: "ครูร่วม PLC ทุก 2 สัปดาห์",
+      participationLearners: "ผู้เรียนทำภาระงานและสะท้อนผล",
+      participationParents: "PENDING",
+      participationNetwork: "PENDING",
+      recognition: "",
+      recognitionEvidence: "",
+      expansionLevel: "ภายในสถานศึกษา/หน่วยงาน",
+      expansionEvidence: "บันทึกประชุมกลุ่มงาน",
+      policyNotes: "PENDING",
+      evidenceTypes: [
+        "ภาพกิจกรรมจริง",
+        "PLC / Reflection",
+        "กราฟผล ACTUAL",
+        "Student / Service Journey"
+      ],
+      importNotes: "ตัวอย่างสมมติสำหรับอธิบายรูปแบบ JSON เท่านั้น"
+    }, null, 2);
+  }
+
   function parseExternalAiJson(raw) {
     let text = String(raw || "").trim();
     if (!text) throw new Error("ยังไม่ได้วาง JSON");
@@ -1027,6 +1086,14 @@ ${r.missing.length ? r.missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่ม�
     await copyText(prompt);
     e.currentTarget.textContent = "คัดลอกแล้ว";
     setTimeout(() => e.currentTarget.textContent = "คัดลอก Prompt", 1100);
+  });
+
+  document.getElementById("loadAiJsonExampleBtn").addEventListener("click", () => {
+    aiJsonInput.value = buildAiJsonExample();
+    validatedAiJson = null;
+    importAiJsonBtn.disabled = true;
+    aiJsonStatus.className = "json-status neutral";
+    aiJsonStatus.textContent = "โหลดตัวอย่างสมมติแล้ว กด “ตรวจ JSON” เพื่อทดลอง workflow";
   });
 
   document.getElementById("aiJsonFileInput").addEventListener("change", async e => {
