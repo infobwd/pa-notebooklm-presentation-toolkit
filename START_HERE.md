@@ -4,6 +4,17 @@
 
 คุณไม่จำเป็นต้องเข้าใจทุกไฟล์ใน Repository ก่อนเริ่มใช้งาน ให้เลือกเพียงหนึ่งโหมดตามความต้องการ
 
+## ทางที่ง่ายที่สุด: ใช้ Website Wizard
+
+เมื่อ GitHub Pages เปิดใช้งาน ให้เข้า:
+
+`https://infobwd.github.io/pa-notebooklm-presentation-toolkit/`
+
+เว็บจะพาคุณทำทีละขั้นและสร้าง Markdown Package ให้อัตโนมัติใน Browser
+
+> ถ้ายังเข้าเว็บไม่ได้ ให้ใช้ Easy Mode แบบ Markdown ด้านล่าง หรือเปิด Repository Settings → Pages → Source: GitHub Actions
+
+
 ---
 
 # 🟢 EASY MODE — แนะนำสำหรับผู้ใช้ทั่วไป
