@@ -43,7 +43,7 @@
         <button class="step-link" data-goto="4"><span>5</span>ผลงานและการขยายผล</button>
         <button class="step-link" data-goto="5"><span>6</span>Visual Evidence</button>
         <button class="step-link" data-goto="6"><span>7</span>ตรวจความพร้อม</button>
-        <button class="step-link" data-goto="7"><span>8</span>สร้างชุดไฟล์</button>
+        <button class="step-link" data-goto="7"><span>8</span>Preview & Export</button>
       </nav>
 
       <div class="sidebar-card">
@@ -244,8 +244,8 @@
           <div class="panel-heading">
             <div>
               <p class="eyebrow">STEP 8</p>
-              <h2>สร้างชุดไฟล์</h2>
-              <p>สร้าง Markdown Package สำหรับ NotebookLM จากข้อมูลที่กรอก</p>
+              <h2>Preview & Export</h2>
+              <p>สร้าง ตรวจ แก้ไข และส่งออก Markdown Package สำหรับ NotebookLM</p>
             </div>
           </div>
 
@@ -257,9 +257,35 @@
           <div class="generate-actions">
             <button class="btn btn-primary btn-large" id="generateBtn" type="button">สร้าง NotebookLM Package</button>
             <button class="btn btn-secondary" id="copyQaPromptBtn" type="button">คัดลอก Chat QA Prompt</button>
+            <button class="btn btn-secondary hidden" id="downloadBundleBtn" type="button">ดาวน์โหลด Bundle สำรอง</button>
+            <button class="btn btn-ghost hidden" id="resetGeneratedBtn" type="button">สร้างใหม่จากฟอร์ม</button>
           </div>
 
           <div id="generatedSummary" class="generated-summary hidden"></div>
+
+          <section id="previewStudio" class="preview-studio hidden" aria-label="Preview Studio">
+            <div class="preview-studio-head">
+              <div>
+                <p class="eyebrow">PHASE 2 · PREVIEW STUDIO</p>
+                <h3>ตรวจไฟล์ก่อนดาวน์โหลด</h3>
+                <p>เลือกไฟล์ด้านล่างเพื่อดูและแก้ข้อความได้ การแก้ไขใน Preview จะถูกใช้ตอนกดดาวน์โหลดไฟล์นั้น</p>
+              </div>
+              <div id="scriptMetrics" class="script-metrics"></div>
+            </div>
+            <div id="previewTabs" class="preview-tabs" role="tablist"></div>
+            <div class="preview-editor-wrap">
+              <div class="preview-toolbar">
+                <span id="previewFileName">เลือกไฟล์เพื่อ Preview</span>
+                <div>
+                  <button type="button" class="btn btn-ghost" id="copyPreviewBtn">คัดลอก</button>
+                  <button type="button" class="btn btn-secondary" id="downloadPreviewBtn">ดาวน์โหลดไฟล์นี้</button>
+                </div>
+              </div>
+              <textarea id="previewEditor" class="preview-editor" spellcheck="false" aria-label="Markdown preview editor"></textarea>
+              <div class="editor-note">แก้ไขได้เฉพาะชุดไฟล์ที่สร้างครั้งนี้ หากกด “สร้างใหม่จากฟอร์ม” การแก้ไขใน Preview จะถูกแทนที่</div>
+            </div>
+          </section>
+
           <div id="generatedFiles" class="generated-files"></div>
         </section>
 
