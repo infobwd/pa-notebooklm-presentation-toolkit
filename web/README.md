@@ -1,4 +1,4 @@
-# Web App — Phase 3
+# Web App — Phase 3.1
 
 Static web app สำหรับ Easy Mode ของ PA NotebookLM Presentation Toolkit
 
@@ -22,6 +22,12 @@ Static web app สำหรับ Easy Mode ของ PA NotebookLM Presentation
 - **External AI JSON Bridge**: คัดลอก Prompt → ให้ AI ตอบ JSON → ตรวจ JSON → Import เข้าฟอร์ม
 - รองรับ Import แบบเติมเฉพาะช่องว่างหรือแทนข้อมูลเดิม
 - ตรวจ schema, duration, indicators และ evidenceTypes ก่อน Import
+- **Evidence Trace ต่อ ACTUAL**: source file / page / period / population / cohort / verification
+- คำนวณร้อยละจาก numerator / denominator ได้ใน Indicator Card
+- **Document Role** และเลือกหน้า PDF ที่จะส่งให้ AI
+- **Conflict Detector + Pre-Import Review** ก่อนเขียนทับข้อมูลเดิม
+- รองรับ migration จาก JSON รุ่น 2.2 → 3.1
+- Automated reliability tests ใน GitHub Actions
 - Preview Studio สำหรับตรวจ/แก้ไขไฟล์ก่อนดาวน์โหลด
 - Script word count + ประมาณเวลาอ่าน
 - Preview tabs สำหรับ Results / Storyboard / Script / Manifest / Prompts / QA
@@ -31,7 +37,7 @@ Static web app สำหรับ Easy Mode ของ PA NotebookLM Presentation
 
 ## Privacy
 
-โค้ด Phase 3 ไม่ส่งข้อมูลที่กรอกไปยัง API ภายนอก ข้อมูลฟอร์มอยู่ใน Browser ของผู้ใช้
+โค้ด Phase 3.1 ไม่ส่งข้อมูลที่กรอกไปยัง API ภายนอก ข้อมูลฟอร์มอยู่ใน Browser ของผู้ใช้
 
 > หมายเหตุ: หากเผยแพร่เว็บผ่าน GitHub Pages ตัวเว็บเองอาจเข้าถึงได้ตามการตั้งค่า Pages ของ Repository ดังนั้นไม่ควรกรอกข้อมูลส่วนบุคคลที่ไม่จำเป็นหรือข้อมูลลับ
 
@@ -69,3 +75,13 @@ Toolkit ดาวน์โหลดเฉพาะ library code จาก CDN; d
 ใน AI JSON Assistant มีปุ่ม **Owner Test Data** เพื่อโหลด fixture แรกเข้าสู่ช่อง JSON โดยตรง
 
 ข้อมูลนี้ตั้งใจให้ ACTUAL ของตัวชี้วัด PA ยังเป็น PENDING เพื่อทดสอบว่าระบบไม่ควรขึ้นสถานะ Final โดยไม่มีหลักฐานจริง
+
+
+## Phase 3.1 schemas
+
+- AI Intake: `pa-toolkit/intake/3.1`
+- Project: `pa-toolkit/project/3.1`
+- `web/schema/ai-intake.schema.json`
+- `web/schema/project.schema.json`
+
+ACTUAL จะนับเป็น Final-ready เมื่อมี Evidence Trace ครบและผู้ใช้เลือก **ตรวจต้นฉบับแล้ว**
