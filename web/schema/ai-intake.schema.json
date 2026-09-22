@@ -3,55 +3,176 @@
   "$id": "https://infobwd.github.io/pa-notebooklm-presentation-toolkit/web/schema/ai-intake.schema.json",
   "title": "PA NotebookLM Toolkit External AI Intake",
   "type": "object",
-  "required": ["schema_version"],
+  "required": [
+    "schema_version"
+  ],
   "properties": {
-    "schema_version": {"const": "pa-toolkit/intake/2.2"},
-    "presenterName": {"type": "string"},
-    "position": {"type": "string"},
-    "academicRank": {"type": "string"},
-    "organization": {"type": "string"},
-    "affiliation": {"type": "string"},
-    "paCycle": {"type": "string"},
-    "evaluationPeriod": {"type": "string"},
-    "duration": {"type": "string", "enum": ["5", "7"]},
-    "challengeTitle": {"type": "string"},
-    "managementModel": {"type": "string"},
-    "baselineSource": {"type": "string"},
-    "developmentNeed": {"type": "string"},
-    "contextNotes": {"type": "string"},
-    "processNotes": {"type": "string"},
+    "schema_version": {
+      "const": "pa-toolkit/intake/3.1"
+    },
+    "presenterName": {
+      "type": "string"
+    },
+    "position": {
+      "type": "string"
+    },
+    "academicRank": {
+      "type": "string"
+    },
+    "organization": {
+      "type": "string"
+    },
+    "affiliation": {
+      "type": "string"
+    },
+    "paCycle": {
+      "type": "string"
+    },
+    "evaluationPeriod": {
+      "type": "string"
+    },
+    "duration": {
+      "type": "string",
+      "enum": [
+        "5",
+        "7"
+      ]
+    },
+    "challengeTitle": {
+      "type": "string"
+    },
+    "managementModel": {
+      "type": "string"
+    },
+    "baselineSource": {
+      "type": "string"
+    },
+    "developmentNeed": {
+      "type": "string"
+    },
+    "contextNotes": {
+      "type": "string"
+    },
+    "processNotes": {
+      "type": "string"
+    },
     "indicators": {
       "type": "array",
       "items": {
         "type": "object",
         "properties": {
-          "title": {"type": "string"},
-          "target": {"type": "string"},
-          "actual": {"type": "string"},
-          "evidence": {"type": "string"}
+          "title": {
+            "type": "string"
+          },
+          "target": {
+            "type": "string"
+          },
+          "actual": {
+            "type": "string"
+          },
+          "evidence": {
+            "type": "string"
+          },
+          "actualNumerator": {
+            "type": "string"
+          },
+          "actualDenominator": {
+            "type": "string"
+          },
+          "sourceFile": {
+            "type": "string"
+          },
+          "sourcePage": {
+            "type": "string"
+          },
+          "period": {
+            "type": "string"
+          },
+          "population": {
+            "type": "string"
+          },
+          "cohortId": {
+            "type": "string"
+          },
+          "verification": {
+            "type": "string",
+            "enum": [
+              "unverified",
+              "verified"
+            ]
+          }
         },
-        "required": ["title", "target", "actual", "evidence"],
+        "required": [
+          "title",
+          "target",
+          "actual",
+          "evidence",
+          "actualNumerator",
+          "actualDenominator",
+          "sourceFile",
+          "sourcePage",
+          "period",
+          "population",
+          "cohortId",
+          "verification"
+        ],
         "additionalProperties": false
       }
     },
-    "learnerOutcome": {"type": "string"},
-    "staffOutcome": {"type": "string"},
-    "workOutcome": {"type": "string"},
-    "organizationOutcome": {"type": "string"},
-    "journeyBefore": {"type": "string"},
-    "journeyAction": {"type": "string"},
-    "journeyAfter": {"type": "string"},
-    "journeyEvidence": {"type": "string"},
-    "systems": {"type": "string"},
-    "participationStaff": {"type": "string"},
-    "participationLearners": {"type": "string"},
-    "participationParents": {"type": "string"},
-    "participationNetwork": {"type": "string"},
-    "recognition": {"type": "string"},
-    "recognitionEvidence": {"type": "string"},
-    "expansionLevel": {"type": "string"},
-    "expansionEvidence": {"type": "string"},
-    "policyNotes": {"type": "string"},
+    "learnerOutcome": {
+      "type": "string"
+    },
+    "staffOutcome": {
+      "type": "string"
+    },
+    "workOutcome": {
+      "type": "string"
+    },
+    "organizationOutcome": {
+      "type": "string"
+    },
+    "journeyBefore": {
+      "type": "string"
+    },
+    "journeyAction": {
+      "type": "string"
+    },
+    "journeyAfter": {
+      "type": "string"
+    },
+    "journeyEvidence": {
+      "type": "string"
+    },
+    "systems": {
+      "type": "string"
+    },
+    "participationStaff": {
+      "type": "string"
+    },
+    "participationLearners": {
+      "type": "string"
+    },
+    "participationParents": {
+      "type": "string"
+    },
+    "participationNetwork": {
+      "type": "string"
+    },
+    "recognition": {
+      "type": "string"
+    },
+    "recognitionEvidence": {
+      "type": "string"
+    },
+    "expansionLevel": {
+      "type": "string"
+    },
+    "expansionEvidence": {
+      "type": "string"
+    },
+    "policyNotes": {
+      "type": "string"
+    },
     "evidenceTypes": {
       "type": "array",
       "items": {
@@ -72,7 +193,9 @@
         ]
       }
     },
-    "importNotes": {"type": "string"}
+    "importNotes": {
+      "type": "string"
+    }
   },
   "additionalProperties": true
 }
