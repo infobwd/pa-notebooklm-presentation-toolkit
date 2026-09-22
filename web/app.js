@@ -666,14 +666,7 @@ ${r.missing.length ? r.missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่ม�
 ` + files.map(f => `\n\n---\n\n# FILE: ${f.name}\n\n${f.content}\n`).join("");
   }
 
-  function renderPreview(index = 0) {
-    if (!generatedCache.length) return;
-    activePreviewIndex = Math.max(0, Math.min(index, generatedCache.length - 1));
-    const file = generatedCache[activePreviewIndex];
-    document.getElementById("previewFileName").textContent = file.name;
-    document.getElementById("previewEditor").value = file.content;
-    document.querySelectorAll(".preview-tab").forEach((tab,i) => tab.classList.toggle("active", i === activePreviewIndex));
-
+  function updateScriptMetrics() {
     const script = generatedCache.find(f => f.name.startsWith("presentation_script_"));
     const words = script ? countThaiWords(script.content) : 0;
     const estimatedMinutes = words ? (words / 120) : 0;
@@ -683,6 +676,16 @@ ${r.missing.length ? r.missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่ม�
     document.getElementById("scriptMetrics").innerHTML = `
       <div class="metric-chip"><strong>${words.toLocaleString()}</strong><span>คำใน Script</span></div>
       <div class="metric-chip"><strong>${estimatedMinutes ? estimatedMinutes.toFixed(1) : "—"} นาที</strong><span>ประมาณการ · ${timingText}</span></div>`;
+  }
+
+  function renderPreview(index = 0) {
+    if (!generatedCache.length) return;
+    activePreviewIndex = Math.max(0, Math.min(index, generatedCache.length - 1));
+    const file = generatedCache[activePreviewIndex];
+    document.getElementById("previewFileName").textContent = file.name;
+    document.getElementById("previewEditor").value = file.content;
+    document.querySelectorAll(".preview-tab").forEach((tab,i) => tab.classList.toggle("active", i === activePreviewIndex));
+    updateScriptMetrics();
   }
 
   function renderPreviewStudio() {
@@ -797,7 +800,7 @@ ${r.missing.length ? r.missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่ม�
   document.getElementById("previewEditor").addEventListener("input", e => {
     if (!generatedCache.length) return;
     generatedCache[activePreviewIndex].content = e.target.value;
-    renderPreview(activePreviewIndex);
+    updateScriptMetrics();
   });
 
   document.getElementById("copyPreviewBtn").addEventListener("click", async e => {
