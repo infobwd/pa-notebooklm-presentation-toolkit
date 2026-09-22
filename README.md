@@ -15,13 +15,20 @@ Toolkit นี้ออกแบบให้ใช้กับข้อมูล
 ## เริ่มต้น
 
 1. อ่าน `QUICK_START.md`
-2. กรอก `templates/01_profile_template.md`
-3. สร้าง Presentation Results Source จาก `templates/02_presentation_results_template.md`
-4. วางแผนภาพด้วย `templates/03_visual_storyboard_template.md`
-5. เลือก Script 5 หรือ 7 นาที
-6. จัด Sources ตาม `templates/07_source_manifest_template.md`
-7. ใช้ Prompt จาก `templates/06_notebooklm_prompts_template.md`
-8. ตรวจงานด้วย `templates/10_final_qa_checklist.md`
+2. ถ้าต้องการดูตัวอย่างที่กรอกครบแล้ว ให้เปิด `examples/sample_generic/README.md`
+3. กรอก `templates/01_profile_template.md`
+4. สร้าง Presentation Results Source จาก `templates/02_presentation_results_template.md`
+5. วางแผนภาพด้วย `templates/03_visual_storyboard_template.md`
+6. เลือก Script 5 หรือ 7 นาที
+7. จัด Sources ตาม `templates/07_source_manifest_template.md`
+8. ใช้ Prompt จาก `templates/06_notebooklm_prompts_template.md`
+9. ตรวจงานด้วย `templates/10_final_qa_checklist.md`
+
+### ตัวอย่าง End-to-End
+
+โฟลเดอร์ `examples/sample_generic/` เป็น **ตัวอย่างสมมติที่กรอกครบตั้งแต่ Profile → Results Source → Storyboard → Script → ACTUAL → Source Manifest → NotebookLM Prompts → Final QA** เพื่อให้ผู้ใช้เห็นภาพว่าชุดงานที่เสร็จแล้วควรมีหน้าตาอย่างไร
+
+> ตัวอย่างนี้เป็น FICTIONAL SAMPLE เท่านั้น ห้ามนำชื่อ ตัวเลข หรือเนื้อหาตัวอย่างไปใช้เป็นข้อมูลจริง
 
 ## Data Isolation Rule
 
