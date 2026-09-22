@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#102a43">
+  <meta name="description" content="เครื่องมือช่วยเตรียมชุดข้อมูล PA Presentation สำหรับ NotebookLM">
+  <title>PA NotebookLM Presentation Toolkit</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">PA</div>
+      <div>
+        <strong>PA NotebookLM Toolkit</strong>
+        <span>กรอก → แนบ → สร้าง → ตรวจ → นำเสนอ</span>
+      </div>
+    </div>
+    <div class="top-actions">
+      <span class="local-badge" title="ข้อมูลฟอร์มถูกเก็บในเบราว์เซอร์เครื่องนี้">● Local only</span>
+      <button class="btn btn-ghost" id="exportProjectBtn" type="button">ส่งออกโปรเจกต์</button>
+      <label class="btn btn-ghost file-label">
+        นำเข้าโปรเจกต์
+        <input id="importProjectInput" type="file" accept=".json,application/json" hidden>
+      </label>
+    </div>
+  </header>
+
+  <main class="app-shell">
+    <aside class="sidebar">
+      <div class="intro">
+        <p class="eyebrow">EASY MODE</p>
+        <h1>สร้างชุด Sources สำหรับ NotebookLM</h1>
+        <p>ไม่ต้องกรอก Template หลายไฟล์ ระบบจะช่วยประกอบไฟล์ Markdown จากข้อมูลที่คุณกรอก</p>
+      </div>
+
+      <nav class="step-nav" aria-label="ขั้นตอน">
+        <button class="step-link active" data-goto="0"><span>1</span>ข้อมูลพื้นฐาน</button>
+        <button class="step-link" data-goto="1"><span>2</span>ประเด็นท้าทาย</button>
+        <button class="step-link" data-goto="2"><span>3</span>TARGET & ACTUAL</button>
+        <button class="step-link" data-goto="3"><span>4</span>ผลเชิงคุณภาพ</button>
+        <button class="step-link" data-goto="4"><span>5</span>ผลงานและการขยายผล</button>
+        <button class="step-link" data-goto="5"><span>6</span>Visual Evidence</button>
+        <button class="step-link" data-goto="6"><span>7</span>ตรวจความพร้อม</button>
+        <button class="step-link" data-goto="7"><span>8</span>สร้างชุดไฟล์</button>
+      </nav>
+
+      <div class="sidebar-card">
+        <strong>กฎข้อมูล</strong>
+        <div class="status-grid">
+          <span class="tag fact">FACT</span>
+          <span class="tag target">TARGET</span>
+          <span class="tag actual">ACTUAL</span>
+          <span class="tag context">CONTEXT</span>
+          <span class="tag pending">PENDING</span>
+        </div>
+        <small>ถ้าไม่มีหลักฐาน ให้ใช้ PENDING แทนการคาดเดา</small>
+      </div>
+
+      <a class="advanced-link" href="../START_HERE.md">เปิดคู่มือ / Advanced Mode →</a>
+    </aside>
+
+    <section class="workspace">
+      <div class="progress-wrap">
+        <div class="progress-meta">
+          <span id="stepLabel">ขั้นที่ 1 จาก 8</span>
+          <span id="saveState">บันทึกอัตโนมัติ</span>
+        </div>
+        <div class="progress-track"><div id="progressBar" class="progress-bar"></div></div>
+      </div>
+
+      <form id="wizardForm" novalidate>
+        <section class="panel step-panel active" data-step="0">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">STEP 1</p>
+              <h2>ข้อมูลผู้รับการประเมิน</h2>
+              <p>กรอกข้อมูลที่จะปรากฏบน Slide Deck และ Video Overview</p>
+            </div>
+          </div>
+
+          <div class="grid two">
+            <label>ชื่อ-นามสกุล <input name="presenterName" autocomplete="name" placeholder="เช่น นาย..." required></label>
+            <label>ตำแหน่ง <input name="position" placeholder="เช่น ผู้อำนวยการสถานศึกษา" required></label>
+            <label>วิทยฐานะ <input name="academicRank" placeholder="เช่น ชำนาญการพิเศษ"></label>
+            <label>สถานศึกษา/หน่วยงาน <input name="organization" required></label>
+            <label>สังกัด <input name="affiliation"></label>
+            <label>รอบ PA / รอบประเมิน <input name="paCycle" placeholder="เช่น 1 ต.ค. 2569 – 30 ก.ย. 2570"></label>
+            <label>ช่วงผลการปฏิบัติงาน <input name="evaluationPeriod"></label>
+            <fieldset>
+              <legend>เวลานำเสนอ</legend>
+              <div class="segmented">
+                <label><input type="radio" name="duration" value="5" checked><span>5 นาที</span></label>
+                <label><input type="radio" name="duration" value="7"><span>7 นาที</span></label>
+              </div>
+            </fieldset>
+          </div>
+
+          <div class="tip"><strong>แนะนำ:</strong> ถ้าไม่แน่ใจ เริ่มที่ 5 นาที แล้วเก็บ 7 นาทีเป็นเวอร์ชันสำรอง</div>
+        </section>
+
+        <section class="panel step-panel" data-step="1">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">STEP 2</p>
+              <h2>ประเด็นท้าทายและบริบท</h2>
+              <p>เขียนเป็นภาษาธรรมดาได้ ระบบจะช่วยจัดโครงให้ภายหลัง</p>
+            </div>
+          </div>
+          <div class="grid two">
+            <label class="wide">ชื่อประเด็นท้าทาย / ข้อตกลง <textarea name="challengeTitle" rows="2" required></textarea></label>
+            <label>Model / แนวทางหลัก <input name="managementModel" placeholder="ถ้าไม่มีให้เขียน PENDING"></label>
+            <label>แหล่งข้อมูลตั้งต้น <input name="baselineSource" placeholder="เช่น SAR / แบบประเมิน / ข้อมูลรายบุคคล"></label>
+            <label class="wide">ปัญหา / ความต้องการจำเป็น <textarea name="developmentNeed" rows="4" required></textarea></label>
+            <label class="wide">ข้อมูลบริบทสำคัญ <textarea name="contextNotes" rows="5" placeholder="หนึ่งประเด็นต่อหนึ่งบรรทัด"></textarea></label>
+            <label class="wide">ขั้นตอน / กระบวนการที่ใช้ <textarea name="processNotes" rows="5" placeholder="หนึ่งขั้นตอนต่อหนึ่งบรรทัด"></textarea></label>
+          </div>
+        </section>
+
+        <section class="panel step-panel" data-step="2">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">STEP 3</p>
+              <h2>TARGET & ACTUAL</h2>
+              <p>แยก “เป้าหมาย” ออกจาก “ผลจริง” ให้ชัดที่สุด</p>
+            </div>
+          </div>
+          <div id="indicatorCards" class="indicator-list"></div>
+          <button class="btn btn-secondary" id="addIndicatorBtn" type="button">+ เพิ่มตัวชี้วัด</button>
+          <div class="warning-box"><strong>สำคัญ:</strong> ถ้ายังไม่มีผลจริง ให้เว้น ACTUAL ว่างหรือเขียน PENDING ห้ามกรอกค่าคาดการณ์</div>
+        </section>
+
+        <section class="panel step-panel" data-step="3">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">STEP 4</p>
+              <h2>ผลเชิงคุณภาพและ Journey</h2>
+              <p>ช่วยให้การนำเสนอเห็นการเปลี่ยนแปลง ไม่ใช่มีแต่ตัวเลข</p>
+            </div>
+          </div>
+
+          <div class="grid two">
+            <label>ผลต่อผู้เรียน/ผู้รับบริการ <textarea name="learnerOutcome" rows="4"></textarea></label>
+            <label>ผลต่อครู/บุคลากร <textarea name="staffOutcome" rows="4"></textarea></label>
+            <label>ผลต่อห้องเรียน/งาน <textarea name="workOutcome" rows="4"></textarea></label>
+            <label>ผลต่อสถานศึกษา/องค์กร <textarea name="organizationOutcome" rows="4"></textarea></label>
+          </div>
+
+          <h3 class="section-title">Student / Service Journey</h3>
+          <div class="journey">
+            <label><span class="journey-num">1</span> ก่อนพัฒนา <textarea name="journeyBefore" rows="3"></textarea></label>
+            <label><span class="journey-num">2</span> ดำเนินการอะไร <textarea name="journeyAction" rows="3"></textarea></label>
+            <label><span class="journey-num">3</span> หลังพัฒนา <textarea name="journeyAfter" rows="3"></textarea></label>
+          </div>
+          <label>หลักฐาน Journey <input name="journeyEvidence" placeholder="เช่น แบบประเมินก่อน–หลัง / ชิ้นงาน / log"></label>
+          <div class="tip"><strong>Privacy:</strong> หากเป็นผู้เรียน ให้ใช้นามสมมติหรือปกปิดข้อมูลส่วนบุคคลเมื่อไม่จำเป็น</div>
+        </section>
+
+        <section class="panel step-panel" data-step="4">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">STEP 5</p>
+              <h2>ผลงาน ระบบ การมีส่วนร่วม และการขยายผล</h2>
+              <p>เลือกเฉพาะสิ่งที่ช่วยอธิบายผลลัพธ์ ไม่ต้องใส่ทุกผลงาน</p>
+            </div>
+          </div>
+
+          <div class="grid two">
+            <label class="wide">ระบบ / นวัตกรรม / เครื่องมือ <textarea name="systems" rows="5" placeholder="ชื่อ — บทบาท (หนึ่งรายการต่อหนึ่งบรรทัด)"></textarea></label>
+            <label>การมีส่วนร่วมของครู/บุคลากร <textarea name="participationStaff" rows="3"></textarea></label>
+            <label>การมีส่วนร่วมของผู้เรียน <textarea name="participationLearners" rows="3"></textarea></label>
+            <label>ผู้ปกครอง/ชุมชน <textarea name="participationParents" rows="3"></textarea></label>
+            <label>เครือข่าย/หน่วยงานอื่น <textarea name="participationNetwork" rows="3"></textarea></label>
+            <label>รางวัล / การยอมรับ <textarea name="recognition" rows="3" placeholder="ถ้าไม่ใช้ ให้เว้นว่าง"></textarea></label>
+            <label>หลักฐานรางวัล <textarea name="recognitionEvidence" rows="3"></textarea></label>
+            <label>ระดับการขยายผล
+              <select name="expansionLevel">
+                <option value="">ยังไม่มี / PENDING</option>
+                <option>ภายในสถานศึกษา/หน่วยงาน</option>
+                <option>เครือข่าย</option>
+                <option>เขตพื้นที่</option>
+                <option>หน่วยงานต้นสังกัด</option>
+                <option>ระดับประเทศ</option>
+                <option>อื่น ๆ</option>
+              </select>
+            </label>
+            <label>หลักฐานการขยายผล <textarea name="expansionEvidence" rows="3"></textarea></label>
+            <label class="wide">นโยบายที่ต้องการเชื่อมโยง <textarea name="policyNotes" rows="3" placeholder="ถ้ายังไม่ตรวจเอกสารทางการ ให้เขียน PENDING"></textarea></label>
+          </div>
+        </section>
+
+        <section class="panel step-panel" data-step="5">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">STEP 6</p>
+              <h2>Visual Evidence</h2>
+              <p>ติ๊กประเภทภาพที่มี และเลือกไฟล์ในเครื่องเพื่อเก็บ “ชื่อไฟล์” ไว้ใน Source Manifest</p>
+            </div>
+          </div>
+
+          <div id="evidenceChecks" class="evidence-grid"></div>
+
+          <div class="upload-zone">
+            <input id="evidenceFiles" type="file" multiple accept="image/*,.pdf,.png,.jpg,.jpeg,.webp">
+            <div>
+              <strong>เลือกไฟล์หลักฐานจากเครื่อง</strong>
+              <p>ไฟล์จะไม่ถูกอัปโหลดขึ้นเซิร์ฟเวอร์โดยเว็บไซต์นี้ ระบบจะบันทึกเฉพาะชื่อไฟล์ใน session ปัจจุบัน</p>
+            </div>
+          </div>
+          <div id="selectedFileList" class="file-list"></div>
+
+          <div class="tip"><strong>ลำดับภาพ:</strong> ภาพจริง → Screenshot จริง → Infographic จากเอกสาร → กราฟข้อมูลจริง → AI conceptual</div>
+        </section>
+
+        <section class="panel step-panel" data-step="6">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">STEP 7</p>
+              <h2>ตรวจความพร้อม</h2>
+              <p>ระบบตรวจความครบถ้วน ไม่ได้ตัดสินคุณภาพผลงาน</p>
+            </div>
+          </div>
+
+          <div class="readiness-grid">
+            <article class="score-card">
+              <span>พร้อมสำหรับ Draft</span>
+              <strong id="draftScore">0%</strong>
+              <div class="mini-track"><div id="draftBar"></div></div>
+            </article>
+            <article class="score-card accent">
+              <span>พร้อมสำหรับ Final</span>
+              <strong id="finalScore">0%</strong>
+              <div class="mini-track"><div id="finalBar"></div></div>
+            </article>
+          </div>
+
+          <div id="readinessState" class="readiness-state"></div>
+          <div id="statusSummary" class="status-summary"></div>
+          <div id="missingList" class="missing-list"></div>
+        </section>
+
+        <section class="panel step-panel" data-step="7">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">STEP 8</p>
+              <h2>สร้างชุดไฟล์</h2>
+              <p>สร้าง Markdown Package สำหรับ NotebookLM จากข้อมูลที่กรอก</p>
+            </div>
+          </div>
+
+          <div class="privacy-note">
+            <strong>การทำงานของ Phase 1</strong>
+            <p>เว็บนี้ไม่เรียก AI API และไม่ส่งข้อมูลฟอร์มไปยังบริการภายนอกจากโค้ดของ Toolkit การสร้างไฟล์เกิดขึ้นในเบราว์เซอร์ของคุณ</p>
+          </div>
+
+          <div class="generate-actions">
+            <button class="btn btn-primary btn-large" id="generateBtn" type="button">สร้าง NotebookLM Package</button>
+            <button class="btn btn-secondary" id="copyQaPromptBtn" type="button">คัดลอก Chat QA Prompt</button>
+          </div>
+
+          <div id="generatedSummary" class="generated-summary hidden"></div>
+          <div id="generatedFiles" class="generated-files"></div>
+        </section>
+
+        <div class="wizard-actions">
+          <button class="btn btn-ghost" id="prevBtn" type="button">← ย้อนกลับ</button>
+          <button class="btn btn-primary" id="nextBtn" type="button">ถัดไป →</button>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <footer>
+    <span>PA NotebookLM Presentation Toolkit · Phase 1 Static Web App</span>
+    <span>ข้อมูลฟอร์มบันทึกใน localStorage ของเบราว์เซอร์</span>
+  </footer>
+
+  <script src="./app.js"></script>
+</body>
+</html>
