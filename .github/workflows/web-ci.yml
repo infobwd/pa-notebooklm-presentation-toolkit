@@ -34,7 +34,10 @@ jobs:
           test -f web/app.js
           grep -q 'fonts.googleapis.com/css2?family=Kanit' web/index.html
           grep -q 'data-fill-target="position"' web/index.html
-          grep -q 'Phase 2.2 AI JSON Import' web/index.html
+          grep -q 'Phase 3 Local Document Reader' web/index.html
+          grep -q 'openDocumentReaderBtn' web/index.html
+          grep -q 'pdfjs-dist@3.11.174' web/app.js
+          grep -q 'mammoth@1.8.0' web/app.js
           grep -q 'AI JSON Assistant' web/index.html
           grep -q 'pa-toolkit/intake/2.2' web/app.js
           grep -q 'FIELD_EXAMPLES' web/app.js
