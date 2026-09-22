@@ -14,6 +14,18 @@ Toolkit นี้ออกแบบให้ใช้กับข้อมูล
 
 ## เริ่มต้น
 
+**เปิด `START_HERE.md` ก่อน** แล้วเลือกโหมดที่เหมาะกับคุณ
+
+### 🟢 Easy Mode
+สำหรับผู้ใช้ทั่วไป: **กรอก → แนบ → สร้าง → ตรวจ → นำเสนอ**
+
+ใช้โฟลเดอร์ `EASY_MODE/`
+
+### 🔵 Advanced Mode
+สำหรับผู้ที่ต้องการควบคุม Source, Storyboard, Script, Prompt และ QA อย่างละเอียด
+
+จากนั้นจึงใช้:
+
 1. อ่าน `QUICK_START.md`
 2. ถ้าต้องการดูตัวอย่างที่กรอกครบแล้ว ให้เปิด `examples/sample_generic/README.md`
 3. กรอก `templates/01_profile_template.md`
@@ -26,7 +38,9 @@ Toolkit นี้ออกแบบให้ใช้กับข้อมูล
 
 ### ตัวอย่าง End-to-End
 
-โฟลเดอร์ `examples/sample_generic/` เป็น **ตัวอย่างสมมติที่กรอกครบตั้งแต่ Profile → Results Source → Storyboard → Script → ACTUAL → Source Manifest → NotebookLM Prompts → Final QA** เพื่อให้ผู้ใช้เห็นภาพว่าชุดงานที่เสร็จแล้วควรมีหน้าตาอย่างไร
+โฟลเดอร์ `examples/sample_generic/` เป็น **ตัวอย่าง Advanced แบบครบวงจร**
+
+โฟลเดอร์ `examples/sample_easy_mode/` เป็น **ตัวอย่าง Easy Mode** ที่แสดงว่าผู้ใช้กรอกเพียง Input Form แล้ว AI ควรสร้างอะไรต่อให้
 
 > ตัวอย่างนี้เป็น FICTIONAL SAMPLE เท่านั้น ห้ามนำชื่อ ตัวเลข หรือเนื้อหาตัวอย่างไปใช้เป็นข้อมูลจริง
 
