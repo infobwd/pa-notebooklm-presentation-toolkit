@@ -6,7 +6,10 @@
   <meta name="theme-color" content="#102a43">
   <meta name="description" content="เครื่องมือช่วยเตรียมชุดข้อมูล PA Presentation สำหรับ NotebookLM">
   <title>PA NotebookLM Presentation Toolkit</title>
-  <link rel="stylesheet" href="./styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css?v=2.1">
 </head>
 <body>
   <header class="topbar">
@@ -82,10 +85,42 @@
 
           <div class="grid two">
             <label>ชื่อ-นามสกุล <input name="presenterName" autocomplete="name" placeholder="เช่น นาย..." required></label>
-            <label>ตำแหน่ง <input name="position" placeholder="เช่น ผู้อำนวยการสถานศึกษา" required></label>
-            <label>วิทยฐานะ <input name="academicRank" placeholder="เช่น ชำนาญการพิเศษ"></label>
-            <label>สถานศึกษา/หน่วยงาน <input name="organization" required></label>
-            <label>สังกัด <input name="affiliation"></label>
+
+            <div class="field-group">
+              <label>ตำแหน่ง
+                <input name="position" list="positionOptions" autocomplete="off" placeholder="เลือกจากรายการ หรือพิมพ์เพิ่มเติม" required>
+              </label>
+              <div class="quick-picks" aria-label="ตำแหน่งที่ใช้บ่อย">
+                <button type="button" class="quick-pick" data-fill-target="position" data-fill-value="ครู">ครู</button>
+                <button type="button" class="quick-pick" data-fill-target="position" data-fill-value="รองผู้อำนวยการสถานศึกษา">รอง ผอ.</button>
+                <button type="button" class="quick-pick" data-fill-target="position" data-fill-value="ผู้อำนวยการสถานศึกษา">ผอ.สถานศึกษา</button>
+                <button type="button" class="quick-pick" data-fill-target="position" data-fill-value="ศึกษานิเทศก์">ศึกษานิเทศก์</button>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label>วิทยฐานะ
+                <input name="academicRank" list="academicRankOptions" autocomplete="off" placeholder="เลือกจากรายการ">
+              </label>
+              <div class="quick-picks" aria-label="วิทยฐานะที่ใช้บ่อย">
+                <button type="button" class="quick-pick" data-fill-target="academicRank" data-fill-value="ชำนาญการ">ชำนาญการ</button>
+                <button type="button" class="quick-pick" data-fill-target="academicRank" data-fill-value="ชำนาญการพิเศษ">ชำนาญการพิเศษ</button>
+                <button type="button" class="quick-pick" data-fill-target="academicRank" data-fill-value="เชี่ยวชาญ">เชี่ยวชาญ</button>
+              </div>
+            </div>
+
+            <label>สถานศึกษา/หน่วยงาน <input name="organization" placeholder="เช่น โรงเรียน..." required></label>
+
+            <div class="field-group">
+              <label>สังกัด
+                <input name="affiliation" list="affiliationOptions" autocomplete="off" placeholder="เลือกประเภทสังกัด หรือพิมพ์ชื่อเต็ม">
+              </label>
+              <div class="quick-picks" aria-label="สังกัดที่ใช้บ่อย">
+                <button type="button" class="quick-pick" data-fill-target="affiliation" data-fill-value="สำนักงานคณะกรรมการการศึกษาขั้นพื้นฐาน (สพฐ.)">สพฐ.</button>
+                <button type="button" class="quick-pick" data-fill-target="affiliation" data-fill-value="สำนักงานเขตพื้นที่การศึกษาประถมศึกษา (สพป.)">สพป.</button>
+                <button type="button" class="quick-pick" data-fill-target="affiliation" data-fill-value="สำนักงานเขตพื้นที่การศึกษามัธยมศึกษา (สพม.)">สพม.</button>
+              </div>
+            </div>
             <label>รอบ PA / รอบประเมิน <input name="paCycle" placeholder="เช่น 1 ต.ค. 2569 – 30 ก.ย. 2570"></label>
             <label>ช่วงผลการปฏิบัติงาน <input name="evaluationPeriod"></label>
             <fieldset>
@@ -110,8 +145,12 @@
           </div>
           <div class="grid two">
             <label class="wide">ชื่อประเด็นท้าทาย / ข้อตกลง <textarea name="challengeTitle" rows="2" required></textarea></label>
-            <label>Model / แนวทางหลัก <input name="managementModel" placeholder="ถ้าไม่มีให้เขียน PENDING"></label>
-            <label>แหล่งข้อมูลตั้งต้น <input name="baselineSource" placeholder="เช่น SAR / แบบประเมิน / ข้อมูลรายบุคคล"></label>
+            <label>Model / แนวทางหลัก
+              <input name="managementModel" list="modelOptions" autocomplete="off" placeholder="เลือกแนวทางที่ใกล้เคียง หรือพิมพ์ชื่อ Model ของตนเอง">
+            </label>
+            <label>แหล่งข้อมูลตั้งต้น
+              <input name="baselineSource" list="baselineSourceOptions" autocomplete="off" placeholder="เลือกแหล่งข้อมูล หรือพิมพ์เพิ่มเติม">
+            </label>
             <label class="wide">ปัญหา / ความต้องการจำเป็น <textarea name="developmentNeed" rows="4" required></textarea></label>
             <label class="wide">ข้อมูลบริบทสำคัญ <textarea name="contextNotes" rows="5" placeholder="หนึ่งประเด็นต่อหนึ่งบรรทัด"></textarea></label>
             <label class="wide">ขั้นตอน / กระบวนการที่ใช้ <textarea name="processNotes" rows="5" placeholder="หนึ่งขั้นตอนต่อหนึ่งบรรทัด"></textarea></label>
@@ -297,11 +336,63 @@
     </section>
   </main>
 
+  <datalist id="positionOptions">
+    <option value="ครูผู้ช่วย"></option>
+    <option value="ครู"></option>
+    <option value="รองผู้อำนวยการสถานศึกษา"></option>
+    <option value="ผู้อำนวยการสถานศึกษา"></option>
+    <option value="ศึกษานิเทศก์"></option>
+    <option value="รองผู้อำนวยการสำนักงานเขตพื้นที่การศึกษา"></option>
+    <option value="ผู้อำนวยการสำนักงานเขตพื้นที่การศึกษา"></option>
+    <option value="ผู้บริหารการศึกษา"></option>
+    <option value="บุคลากรทางการศึกษาอื่นตามมาตรา 38 ค. (2)"></option>
+  </datalist>
+
+  <datalist id="academicRankOptions">
+    <option value="ไม่มีวิทยฐานะ"></option>
+    <option value="ชำนาญการ"></option>
+    <option value="ชำนาญการพิเศษ"></option>
+    <option value="เชี่ยวชาญ"></option>
+    <option value="เชี่ยวชาญพิเศษ"></option>
+  </datalist>
+
+  <datalist id="affiliationOptions">
+    <option value="สำนักงานคณะกรรมการการศึกษาขั้นพื้นฐาน (สพฐ.)"></option>
+    <option value="สำนักงานเขตพื้นที่การศึกษาประถมศึกษา (สพป.)"></option>
+    <option value="สำนักงานเขตพื้นที่การศึกษามัธยมศึกษา (สพม.)"></option>
+    <option value="สำนักงานคณะกรรมการส่งเสริมการศึกษาเอกชน (สช.)"></option>
+    <option value="กรมส่งเสริมการเรียนรู้ (สกร.)"></option>
+    <option value="องค์กรปกครองส่วนท้องถิ่น"></option>
+    <option value="กรุงเทพมหานคร"></option>
+  </datalist>
+
+  <datalist id="modelOptions">
+    <option value="PDCA"></option>
+    <option value="PLC"></option>
+    <option value="Coaching & Mentoring"></option>
+    <option value="Data-Driven Management"></option>
+    <option value="School-Based Management"></option>
+    <option value="Design Thinking"></option>
+    <option value="Active Learning"></option>
+  </datalist>
+
+  <datalist id="baselineSourceOptions">
+    <option value="SAR"></option>
+    <option value="ผลสัมฤทธิ์ทางการเรียน"></option>
+    <option value="ผลการทดสอบระดับชาติ"></option>
+    <option value="แบบประเมินก่อนเรียน / หลังเรียน"></option>
+    <option value="ข้อมูลรายบุคคลของผู้เรียน"></option>
+    <option value="ข้อมูลจาก PLC"></option>
+    <option value="ข้อมูลการนิเทศ"></option>
+    <option value="แบบสังเกต / แบบประเมิน"></option>
+    <option value="ข้อมูลระบบดูแลช่วยเหลือนักเรียน"></option>
+  </datalist>
+
   <footer>
-    <span>PA NotebookLM Presentation Toolkit · Phase 1 Static Web App</span>
+    <span>PA NotebookLM Presentation Toolkit · Phase 2.1 Responsive UX</span>
     <span>ข้อมูลฟอร์มบันทึกใน localStorage ของเบราว์เซอร์</span>
   </footer>
 
-  <script src="./app.js"></script>
+  <script src="./app.js?v=2.1"></script>
 </body>
 </html>
