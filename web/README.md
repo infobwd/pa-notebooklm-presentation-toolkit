@@ -56,3 +56,16 @@ Expected URL:
 - Mammoth `1.8.0` ผ่าน jsDelivr
 
 Toolkit ดาวน์โหลดเฉพาะ library code จาก CDN; document bytes ถูกประมวลผลใน Browser และไม่ได้ถูกส่งไป CDN โดยโค้ดของ Toolkit
+
+
+## Owner Test Data
+
+มีข้อมูลทดสอบจริงของเจ้าของ repo สำหรับตรวจ workflow โดยเฉพาะ:
+
+- `web/test-data/owner-pa-2569.ai-intake.json` — ใช้กับ AI JSON Assistant
+- `web/test-data/owner-pa-2569.project.json` — ใช้กับ Import Project
+- `web/test-data/README.md` — อธิบายขอบเขตและ guardrails
+
+ใน AI JSON Assistant มีปุ่ม **Owner Test Data** เพื่อโหลด fixture แรกเข้าสู่ช่อง JSON โดยตรง
+
+ข้อมูลนี้ตั้งใจให้ ACTUAL ของตัวชี้วัด PA ยังเป็น PENDING เพื่อทดสอบว่าระบบไม่ควรขึ้นสถานะ Final โดยไม่มีหลักฐานจริง
