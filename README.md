@@ -12,6 +12,25 @@
 
 Toolkit นี้ออกแบบให้ใช้กับข้อมูลของแต่ละบุคคลโดยไม่ผูกกับชื่อ โรงเรียน นวัตกรรม หรือระบบใดเป็นพิเศษ
 
+## 🌐 Website — Easy Mode Wizard
+
+มีเว็บแบบ Static Wizard อยู่ใน `web/` เพื่อให้ผู้ใช้ทั่วไปทำงานได้ง่ายขึ้น โดยไม่ต้องเปิด Template หลายไฟล์
+
+Expected GitHub Pages URL:
+
+`https://infobwd.github.io/pa-notebooklm-presentation-toolkit/`
+
+ฟังก์ชันหลัก:
+- Wizard 8 ขั้นตอน
+- บันทึกอัตโนมัติใน Browser
+- Import / Export Project JSON
+- ตรวจ Draft / Final readiness
+- สร้าง Markdown Package 6 ไฟล์ใน Browser
+- ไม่มี AI API และไม่มี backend ใน Phase 1
+
+> Repository นี้เป็น Private การเข้าถึง GitHub Pages ขึ้นกับการตั้งค่า/สิทธิ์ Pages ของบัญชี หาก Pages ยังไม่เปิด ให้ตั้ง Source เป็น **GitHub Actions** ใน Repository Settings → Pages
+
+
 ## เริ่มต้น
 
 **เปิด `START_HERE.md` ก่อน** แล้วเลือกโหมดที่เหมาะกับคุณ
@@ -50,7 +69,9 @@ Toolkit นี้ออกแบบให้ใช้กับข้อมูล
 
 ## โครงสร้าง
 
-- `QUICK_START.md` — เริ่มใช้งานเร็ว
+- `web/` — Website / Easy Mode Wizard
+- `START_HERE.md` — ทางเข้าหลักของผู้ใช้
+- `QUICK_START.md` — เริ่มใช้งาน Advanced Mode
 - `MASTER_GUIDE.md` — คู่มือฉบับเต็ม
 - `templates/` — Template สำหรับสร้างชุด Sources
 - `docs/` — หลักการและ workflow รายส่วน
