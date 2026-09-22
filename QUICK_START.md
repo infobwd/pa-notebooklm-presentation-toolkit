@@ -1,4 +1,7 @@
-# Quick Start — PA Presentation with NotebookLM
+# Quick Start — Advanced Mode
+
+> หากต้องการวิธีที่ง่ายที่สุด ให้เริ่มจาก `START_HERE.md` แล้วเลือก **EASY MODE**  
+> ไฟล์นี้เป็น Quick Start สำหรับผู้ใช้ที่ต้องการควบคุมโครงสร้าง Sources ด้วยตนเอง
 
 คู่มือย่อสำหรับเริ่มใช้งานภายใน 15–30 นาที
 
