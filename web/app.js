@@ -368,7 +368,7 @@
               </label>
               ${doc.pages ? `<label>หน้าที่ใช้กับ AI
                 <input class="document-pages" value="${esc(doc.pageSpec || "")}" placeholder="ทั้งหมด หรือ 1-3,5">
-                ${doc.pageError ? `<span class="page-error">${esc(doc.pageError)}</span>` : ""}
+                <span class="page-error">${esc(doc.pageError || "")}</span>
               </label>` : ""}
             </div>
           </div>
@@ -1326,8 +1326,17 @@ Journey สำคัญ: ก่อนพัฒนา ${safe(value("journeyBefore
 
 ## DOCUMENT SOURCES — Local Extraction
 ${selectedExtractedDocuments().length
-  ? selectedExtractedDocuments().map(doc => `- [x] ${doc.name} — อ่านข้อความใน Browser${doc.pages ? ` · ${doc.pages} หน้า` : ""}`).join("\n")
+  ? selectedExtractedDocuments().map(doc => {
+      const pages = doc.pages ? (doc.pageSpec ? ` · ใช้หน้า ${doc.pageSpec}` : ` · ${doc.pages} หน้า (ทั้งหมด)`) : "";
+      return `- [x] ${doc.name} — ROLE: ${documentRoleLabel(doc.role)}${pages}`;
+    }).join("\n")
   : "- [ ] ไม่มีเอกสารที่อ่านใน session นี้"}
+
+## ACTUAL EVIDENCE TRACE
+${indicators.map((item,i) => {
+  const trace = R.validateIndicatorTrace(item);
+  return `- [${trace.ready ? "x" : " "}] Indicator ${i+1}: ${safe(item.title)} | Source: ${safe(item.sourceFile)}${item.sourcePage ? " p./ตำแหน่ง " + item.sourcePage : ""} | Period: ${safe(item.period)} | Population: ${safe(item.population)} | ${item.verification === "verified" ? "VERIFIED" : "UNVERIFIED"}`;
+}).join("\n")}
 
 ## VISUAL EVIDENCE
 ${[...document.querySelectorAll('input[name="evidenceType"]:checked')].map(x=>"- [x] "+x.value).join("\n") || "- [ ] PENDING"}
@@ -1387,6 +1396,7 @@ ${files}
 
   function buildQa() {
     const r = getReadiness();
+    const missing = [...new Set([...r.missing, ...r.traceIssues])];
     return `# Final QA Checklist
 
 ## Identity
@@ -1395,11 +1405,19 @@ ${files}
 - [ ] หน่วยงานและสังกัดถูกต้อง
 - [ ] รอบประเมินถูกต้อง
 
-## Evidence
+## Evidence & Traceability
 - [ ] ทุก ACTUAL มีหลักฐาน
+- [ ] ทุก ACTUAL ระบุ Source file และหน้า/ตำแหน่งเมื่อมี
+- [ ] ทุก ACTUAL ระบุ Period และ Population
+- [ ] ผู้ใช้ตรวจต้นฉบับและตั้ง Verification = VERIFIED
 - [ ] TARGET ไม่ถูกเรียกว่า ACTUAL
 - [ ] CONTEXT ไม่ถูกเรียกว่า “ผลสำเร็จ” โดยอัตโนมัติ
 - [ ] PENDING ไม่ถูกเติมด้วยการคาดเดา
+- [ ] Before/After ใช้ cohort/population ที่เปรียบเทียบกันได้
+
+## Import Integrity
+- [ ] ไม่มี conflict จาก AI Import ค้าง
+- [ ] ตรวจค่าที่ AI เสนอเทียบกับค่าปัจจุบันแล้ว
 
 ## Storyline
 - [ ] ปัญหา/ความต้องการชัด
@@ -1421,10 +1439,13 @@ ${files}
 ## Auto Check
 - Draft readiness: ${r.draft}%
 - Final readiness: ${r.final}%
-- Status: ${r.finalReady ? "READY FOR FINAL" : "DRAFT — ยังมี PENDING"}
+- Verified ACTUAL: ${r.actualCount}/${indicators.length}
+- Trace incomplete: ${r.tracePendingCount}
+- Import conflicts: ${r.conflictCount}
+- Status: ${r.finalReady ? "READY FOR FINAL" : "DRAFT — ยังมี PENDING/TRACE/CONFLICT"}
 
 ## รายการที่ยังขาด
-${r.missing.length ? r.missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีรายการหลักค้างตาม checklist อัตโนมัติ"}
+${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีรายการหลักค้างตาม checklist อัตโนมัติ"}
 `;
   }
 
@@ -1568,7 +1589,50 @@ ${r.missing.length ? r.missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่ม�
     renderIndicators(); save();
   });
 
-  indicatorCards.addEventListener("input", () => { syncIndicatorsFromDom(); save(); });
+  function refreshIndicatorCard(card, changedField = "") {
+    if (!card) return;
+    const item = indicators.find(x => x.id === card.dataset.id);
+    if (!item) return;
+    card.querySelectorAll("[data-field]").forEach(el => item[el.dataset.field] = el.value.trim());
+
+    if (["actualNumerator","actualDenominator"].includes(changedField)) {
+      const calculated = R.formatCalculatedActual(item.actualNumerator, item.actualDenominator, 2);
+      const actualInput = card.querySelector('[data-field="actual"]');
+      if (calculated) {
+        const currentActual = String(item.actual || "").trim();
+        const looksCalculated = /^\s*\d+(?:\.\d+)?\s*\/\s*\d+(?:\.\d+)?\s*=/.test(currentActual);
+        if (!R.isMeaningful(currentActual) || looksCalculated) {
+          item.actual = calculated;
+          if (actualInput) actualInput.value = calculated;
+        }
+      }
+      const output = card.querySelector("[data-calc-output]");
+      if (output) output.textContent = calculated || "ยังไม่คำนวณ";
+    }
+
+    const trace = R.validateIndicatorTrace(item);
+    const status = card.querySelector("[data-trace-status]");
+    if (status) {
+      status.className = "trace-status " + (trace.ready ? "ok" : "warn");
+      status.textContent = trace.ready
+        ? "ACTUAL มี trace ครบและผู้ใช้ยืนยันต้นฉบับแล้ว"
+        : trace.issues.join(" · ");
+    }
+  }
+
+  indicatorCards.addEventListener("input", e => {
+    const field = e.target.closest("[data-field]");
+    const card = e.target.closest(".indicator-card");
+    refreshIndicatorCard(card, field?.dataset.field || "");
+    save();
+  });
+
+  indicatorCards.addEventListener("change", e => {
+    const field = e.target.closest("[data-field]");
+    const card = e.target.closest(".indicator-card");
+    refreshIndicatorCard(card, field?.dataset.field || "");
+    save();
+  });
 
   form.addEventListener("input", () => save());
   form.addEventListener("change", () => save());
@@ -1617,11 +1681,34 @@ ${r.missing.length ? r.missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่ม�
   document.getElementById("extractDocumentsBtn").addEventListener("click", extractPendingDocuments);
 
   documentList.addEventListener("change", e => {
-    const checkbox = e.target.closest(".document-include");
-    if (!checkbox) return;
-    const card = checkbox.closest("[data-doc-id]");
+    const card = e.target.closest("[data-doc-id]");
     const doc = extractedDocuments.find(x => x.id === card?.dataset.docId);
-    if (doc) doc.include = checkbox.checked;
+    if (!doc) return;
+
+    const checkbox = e.target.closest(".document-include");
+    if (checkbox) doc.include = checkbox.checked;
+
+    const role = e.target.closest(".document-role");
+    if (role) {
+      doc.role = role.value;
+      const badge = card.querySelector(".document-role-badge");
+      if (badge) badge.textContent = documentRoleLabel(doc.role);
+    }
+
+    updateDocumentPreview();
+  });
+
+  documentList.addEventListener("input", e => {
+    const pagesInput = e.target.closest(".document-pages");
+    if (!pagesInput) return;
+    const card = pagesInput.closest("[data-doc-id]");
+    const doc = extractedDocuments.find(x => x.id === card?.dataset.docId);
+    if (!doc) return;
+    doc.pageSpec = pagesInput.value.trim();
+    const parsed = R.parsePageSpec(doc.pageSpec, doc.pages);
+    doc.pageError = parsed.error;
+    const errorEl = card.querySelector(".page-error");
+    if (errorEl) errorEl.textContent = parsed.error;
     updateDocumentPreview();
   });
 
