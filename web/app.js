@@ -240,19 +240,19 @@
     const pdfjs = await ensurePdfJs();
     const bytes = await file.arrayBuffer();
     const pdf = await pdfjs.getDocument({data: bytes}).promise;
-    const pages = [];
+    const pageTexts = [];
     for (let pageNo = 1; pageNo <= pdf.numPages; pageNo += 1) {
       const page = await pdf.getPage(pageNo);
       const content = await page.getTextContent();
       const text = content.items.map(item => item.str || "").join(" ").replace(/\s+/g, " ").trim();
-      pages.push(`--- หน้า ${pageNo} ---\n${text}`);
+      pageTexts.push({page:pageNo, text:text});
     }
-    const text = pages.join("\n\n").trim();
+    const text = pageTexts.map(item => `--- หน้า ${item.page} ---\n${item.text}`).join("\n\n").trim();
     const compactLength = text.replace(/\s/g, "").length;
     const warning = compactLength < Math.max(40, pdf.numPages * 25)
       ? "พบข้อความน้อยมาก เอกสารอาจเป็น PDF สแกน/รูปภาพ ซึ่ง Phase 3 ยังไม่มี OCR"
       : "";
-    return {text, pages: pdf.numPages, warning};
+    return {text, pages: pdf.numPages, pageTexts, warning};
   }
 
   async function extractDocxText(file) {
@@ -286,11 +286,32 @@
     return extractedDocuments.filter(doc => doc.include && doc.status === "ready" && doc.text);
   }
 
+  function documentRoleLabel(role) {
+    return DOCUMENT_ROLES.find(item => item[0] === role)?.[1] || "Other / อื่น ๆ";
+  }
+
+  function documentTextForSelection(doc) {
+    if (!doc.pages || !Array.isArray(doc.pageTexts)) {
+      doc.pageError = "";
+      return doc.text;
+    }
+    const parsed = R.parsePageSpec(doc.pageSpec || "", doc.pages);
+    doc.pageError = parsed.error;
+    if (parsed.error) return doc.text;
+    const wanted = new Set(parsed.pages);
+    return doc.pageTexts
+      .filter(item => wanted.has(item.page))
+      .map(item => `--- หน้า ${item.page} ---\n${item.text}`)
+      .join("\n\n");
+  }
+
   function buildCombinedDocumentText() {
     const docs = selectedExtractedDocuments();
     if (!docs.length) return "";
     return docs.map((doc, index) => {
-      return `===== SOURCE ${index + 1}: ${doc.name} =====\n${doc.text}`;
+      const selection = documentTextForSelection(doc);
+      const pageNote = doc.pages && doc.pageSpec ? ` | PAGES: ${doc.pageSpec}` : "";
+      return `===== SOURCE ${index + 1}: ${doc.name} | ROLE: ${documentRoleLabel(doc.role)}${pageNote} =====\n${selection}`;
     }).join("\n\n");
   }
 
@@ -330,13 +351,26 @@
       ].filter(Boolean).join(" · ");
       const noteClass = doc.status === "error" ? "document-error" : doc.warning ? "document-warning" : "";
       const note = doc.status === "error" ? doc.error : doc.warning;
+      const roleOptions = DOCUMENT_ROLES.map(([value,label]) =>
+        `<option value="${value}" ${doc.role === value ? "selected" : ""}>${esc(label)}</option>`
+      ).join("");
       return `
         <article class="document-item" data-doc-id="${doc.id}">
           <input type="checkbox" class="document-include" ${doc.include && doc.status === "ready" ? "checked" : ""} ${doc.status !== "ready" ? "disabled" : ""} aria-label="ใช้ ${esc(doc.name)} กับ AI">
           <div class="document-main">
             <strong>${esc(doc.name)}</strong>
             <small>${esc(meta || doc.status)}</small>
+            <span class="document-role-badge">${esc(documentRoleLabel(doc.role))}</span>
             ${note ? `<small class="${noteClass}">${esc(note)}</small>` : ""}
+            <div class="document-controls">
+              <label>บทบาทเอกสาร
+                <select class="document-role">${roleOptions}</select>
+              </label>
+              ${doc.pages ? `<label>หน้าที่ใช้กับ AI
+                <input class="document-pages" value="${esc(doc.pageSpec || "")}" placeholder="ทั้งหมด หรือ 1-3,5">
+                ${doc.pageError ? `<span class="page-error">${esc(doc.pageError)}</span>` : ""}
+              </label>` : ""}
+            </div>
           </div>
           <button type="button" class="document-remove" aria-label="ลบเอกสาร">ลบ</button>
         </article>`;
@@ -364,7 +398,10 @@
         status: "reading",
         warning: "",
         error: "",
-        include: true
+        include: true,
+        role: "other",
+        pageSpec: "",
+        pageError: ""
       };
       try {
         const result = await extractOneDocument(file);
