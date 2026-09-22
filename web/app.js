@@ -66,6 +66,12 @@
   const evidenceChecks = document.getElementById("evidenceChecks");
   const evidenceFiles = document.getElementById("evidenceFiles");
   const selectedFileList = document.getElementById("selectedFileList");
+  const documentReaderModal = document.getElementById("documentReaderModal");
+  const sourceDocumentsInput = document.getElementById("sourceDocumentsInput");
+  const documentReaderStatus = document.getElementById("documentReaderStatus");
+  const documentList = document.getElementById("documentList");
+  const documentStats = document.getElementById("documentStats");
+  const documentTextPreview = document.getElementById("documentTextPreview");
   const aiJsonModal = document.getElementById("aiJsonModal");
   const aiPromptPreview = document.getElementById("aiPromptPreview");
   const aiJsonInput = document.getElementById("aiJsonInput");
@@ -78,6 +84,9 @@
   let selectedFileNames = [];
   let generatedCache = [];
   let activePreviewIndex = 0;
+  let pendingSourceFiles = [];
+  let extractedDocuments = [];
+  let externalSourceText = "";
 
   const defaultIndicators = () => [1,2,3].map(n => ({
     id: cryptoId(),
@@ -131,6 +140,209 @@
       hint.textContent = example;
       label.appendChild(hint);
     });
+  }
+
+  function formatBytes(bytes) {
+    const n = Number(bytes || 0);
+    if (n < 1024) return n + " B";
+    if (n < 1024 * 1024) return (n / 1024).toFixed(1) + " KB";
+    return (n / (1024 * 1024)).toFixed(1) + " MB";
+  }
+
+  function loadScriptOnce(src, globalName) {
+    if (globalName && window[globalName]) return Promise.resolve(window[globalName]);
+    return new Promise((resolve, reject) => {
+      const existing = [...document.scripts].find(s => s.src === src);
+      if (existing) {
+        existing.addEventListener("load", () => resolve(globalName ? window[globalName] : true), {once:true});
+        existing.addEventListener("error", () => reject(new Error("โหลด library ไม่สำเร็จ")), {once:true});
+        return;
+      }
+      const script = document.createElement("script");
+      script.src = src;
+      script.async = true;
+      script.onload = () => resolve(globalName ? window[globalName] : true);
+      script.onerror = () => reject(new Error("โหลด library ไม่สำเร็จ: " + src));
+      document.head.appendChild(script);
+    });
+  }
+
+  async function ensurePdfJs() {
+    const lib = await loadScriptOnce(
+      "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js",
+      "pdfjsLib"
+    );
+    lib.GlobalWorkerOptions.workerSrc =
+      "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
+    return lib;
+  }
+
+  async function ensureMammoth() {
+    return loadScriptOnce(
+      "https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js",
+      "mammoth"
+    );
+  }
+
+  async function extractPdfText(file) {
+    const pdfjs = await ensurePdfJs();
+    const bytes = await file.arrayBuffer();
+    const pdf = await pdfjs.getDocument({data: bytes}).promise;
+    const pages = [];
+    for (let pageNo = 1; pageNo <= pdf.numPages; pageNo += 1) {
+      const page = await pdf.getPage(pageNo);
+      const content = await page.getTextContent();
+      const text = content.items.map(item => item.str || "").join(" ").replace(/\s+/g, " ").trim();
+      pages.push(`--- หน้า ${pageNo} ---\n${text}`);
+    }
+    const text = pages.join("\n\n").trim();
+    const compactLength = text.replace(/\s/g, "").length;
+    const warning = compactLength < Math.max(40, pdf.numPages * 25)
+      ? "พบข้อความน้อยมาก เอกสารอาจเป็น PDF สแกน/รูปภาพ ซึ่ง Phase 3 ยังไม่มี OCR"
+      : "";
+    return {text, pages: pdf.numPages, warning};
+  }
+
+  async function extractDocxText(file) {
+    const mammothLib = await ensureMammoth();
+    const arrayBuffer = await file.arrayBuffer();
+    const result = await mammothLib.extractRawText({arrayBuffer});
+    const text = String(result.value || "").trim();
+    const warning = text ? "" : "ไม่พบข้อความใน DOCX";
+    return {text, pages: null, warning};
+  }
+
+  async function extractOneDocument(file) {
+    const lower = file.name.toLowerCase();
+    if (file.size > 25 * 1024 * 1024) {
+      throw new Error("ไฟล์ใหญ่กว่า 25 MB");
+    }
+    if (lower.endsWith(".pdf") || file.type === "application/pdf") {
+      return extractPdfText(file);
+    }
+    if (lower.endsWith(".docx") || file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
+      return extractDocxText(file);
+    }
+    if (lower.endsWith(".txt") || lower.endsWith(".md") || file.type.startsWith("text/")) {
+      const text = (await file.text()).trim();
+      return {text, pages: null, warning: text ? "" : "ไฟล์ไม่มีข้อความ"};
+    }
+    throw new Error("ยังไม่รองรับไฟล์ชนิดนี้");
+  }
+
+  function selectedExtractedDocuments() {
+    return extractedDocuments.filter(doc => doc.include && doc.status === "ready" && doc.text);
+  }
+
+  function buildCombinedDocumentText() {
+    const docs = selectedExtractedDocuments();
+    if (!docs.length) return "";
+    return docs.map((doc, index) => {
+      return `===== SOURCE ${index + 1}: ${doc.name} =====\n${doc.text}`;
+    }).join("\n\n");
+  }
+
+  function updateDocumentPreview() {
+    const selected = selectedExtractedDocuments();
+    const text = buildCombinedDocumentText();
+    documentTextPreview.value = text;
+    externalSourceText = text;
+
+    const totalChars = selected.reduce((sum, doc) => sum + doc.text.length, 0);
+    const totalPages = selected.reduce((sum, doc) => sum + (doc.pages || 0), 0);
+    documentStats.innerHTML = [
+      `<span class="document-stat">${selected.length} ไฟล์ที่เลือก</span>`,
+      `<span class="document-stat">${totalChars.toLocaleString()} ตัวอักษร</span>`,
+      totalPages ? `<span class="document-stat">${totalPages} หน้า PDF</span>` : ""
+    ].join("");
+
+    const enabled = Boolean(text);
+    document.getElementById("copyExtractedTextBtn").disabled = !enabled;
+    document.getElementById("downloadExtractedTextBtn").disabled = !enabled;
+    document.getElementById("copyDocumentAiPackageBtn").disabled = !enabled;
+    document.getElementById("openJsonAssistantFromDocsBtn").disabled = !enabled;
+  }
+
+  function renderExtractedDocuments() {
+    if (!extractedDocuments.length) {
+      documentList.innerHTML = '<div class="empty-state">เมื่อเลือกและอ่านข้อความ รายการเอกสารจะปรากฏที่นี่</div>';
+      updateDocumentPreview();
+      return;
+    }
+
+    documentList.innerHTML = extractedDocuments.map(doc => {
+      const meta = [
+        formatBytes(doc.size),
+        doc.pages ? doc.pages + " หน้า" : "",
+        doc.status === "ready" ? doc.text.length.toLocaleString() + " ตัวอักษร" : ""
+      ].filter(Boolean).join(" · ");
+      const noteClass = doc.status === "error" ? "document-error" : doc.warning ? "document-warning" : "";
+      const note = doc.status === "error" ? doc.error : doc.warning;
+      return `
+        <article class="document-item" data-doc-id="${doc.id}">
+          <input type="checkbox" class="document-include" ${doc.include && doc.status === "ready" ? "checked" : ""} ${doc.status !== "ready" ? "disabled" : ""} aria-label="ใช้ ${esc(doc.name)} กับ AI">
+          <div class="document-main">
+            <strong>${esc(doc.name)}</strong>
+            <small>${esc(meta || doc.status)}</small>
+            ${note ? `<small class="${noteClass}">${esc(note)}</small>` : ""}
+          </div>
+          <button type="button" class="document-remove" aria-label="ลบเอกสาร">ลบ</button>
+        </article>`;
+    }).join("");
+    updateDocumentPreview();
+  }
+
+  async function extractPendingDocuments() {
+    if (!pendingSourceFiles.length) return;
+    documentReaderStatus.className = "json-status neutral";
+    documentReaderStatus.textContent = "กำลังอ่านข้อความจากเอกสาร...";
+    document.getElementById("extractDocumentsBtn").disabled = true;
+
+    const docs = [];
+    for (let i = 0; i < pendingSourceFiles.length; i += 1) {
+      const file = pendingSourceFiles[i];
+      documentReaderStatus.textContent = `กำลังอ่าน ${i + 1}/${pendingSourceFiles.length}: ${file.name}`;
+      const base = {
+        id: cryptoId(),
+        name: file.name,
+        type: file.type || file.name.split(".").pop() || "",
+        size: file.size,
+        pages: null,
+        text: "",
+        status: "reading",
+        warning: "",
+        error: "",
+        include: true
+      };
+      try {
+        const result = await extractOneDocument(file);
+        docs.push({...base, ...result, status: "ready"});
+      } catch (err) {
+        docs.push({...base, status: "error", include: false, error: err?.message || "อ่านไฟล์ไม่สำเร็จ"});
+      }
+    }
+
+    extractedDocuments = docs;
+    pendingSourceFiles = [];
+    sourceDocumentsInput.value = "";
+    renderExtractedDocuments();
+
+    const ready = docs.filter(x => x.status === "ready").length;
+    const failed = docs.length - ready;
+    documentReaderStatus.className = "json-status " + (failed ? "warn" : "ok");
+    documentReaderStatus.textContent = failed
+      ? `อ่านได้ ${ready} ไฟล์ · มีปัญหา ${failed} ไฟล์ กรุณาตรวจรายการด้านล่าง`
+      : `อ่านสำเร็จ ${ready} ไฟล์ ข้อความยังอยู่เฉพาะใน session นี้`;
+  }
+
+  function buildExternalAiPromptWithSources() {
+    const sourceText = buildCombinedDocumentText();
+    return `${buildExternalAiPrompt()}
+
+ต่อไปนี้คือข้อความที่ Toolkit ดึงจากเอกสารใน Browser
+ให้ถือ SOURCE แต่ละส่วนเป็นเอกสารต้นทาง และห้ามข้ามข้อจำกัดเรื่อง TARGET/ACTUAL/CONTEXT/PENDING ข้างต้น
+
+${sourceText}`;
   }
 
   function buildExternalAiPrompt() {
@@ -801,6 +1013,11 @@ Journey สำคัญ: ก่อนพัฒนา ${safe(value("journeyBefore
 - [ ] เอกสารข้อตกลง/PA ฉบับจริง
 - [ ] Policy Alignment (ถ้ามีและตรวจสอบแล้ว)
 
+## DOCUMENT SOURCES — Local Extraction
+${selectedExtractedDocuments().length
+  ? selectedExtractedDocuments().map(doc => `- [x] ${doc.name} — อ่านข้อความใน Browser${doc.pages ? ` · ${doc.pages} หน้า` : ""}`).join("\n")
+  : "- [ ] ไม่มีเอกสารที่อ่านใน session นี้"}
+
 ## VISUAL EVIDENCE
 ${[...document.querySelectorAll('input[name="evidenceType"]:checked')].map(x=>"- [x] "+x.value).join("\n") || "- [ ] PENDING"}
 
@@ -1057,6 +1274,106 @@ ${r.missing.length ? r.missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่ม�
     target.focus();
   });
 
+  document.getElementById("openDocumentReaderBtn").addEventListener("click", () => {
+    documentReaderModal.classList.remove("hidden");
+    document.body.style.overflow = "hidden";
+    renderExtractedDocuments();
+  });
+
+  function closeDocumentReaderModal() {
+    documentReaderModal.classList.add("hidden");
+    if (aiJsonModal.classList.contains("hidden")) document.body.style.overflow = "";
+  }
+
+  document.getElementById("closeDocumentReaderBtn").addEventListener("click", closeDocumentReaderModal);
+  documentReaderModal.addEventListener("click", e => {
+    if (e.target === documentReaderModal) closeDocumentReaderModal();
+  });
+
+  sourceDocumentsInput.addEventListener("change", e => {
+    const files = [...(e.target.files || [])];
+    const accepted = files.slice(0, 10);
+    pendingSourceFiles = accepted;
+    extractedDocuments = [];
+    renderExtractedDocuments();
+    document.getElementById("extractDocumentsBtn").disabled = !accepted.length;
+    documentReaderStatus.className = "json-status " + (files.length > 10 ? "warn" : "neutral");
+    documentReaderStatus.textContent = files.length > 10
+      ? `เลือก ${files.length} ไฟล์ ระบบจะอ่าน 10 ไฟล์แรก`
+      : `เลือกแล้ว ${accepted.length} ไฟล์ กด “อ่านข้อความ” เพื่อเริ่ม`;
+  });
+
+  document.getElementById("extractDocumentsBtn").addEventListener("click", extractPendingDocuments);
+
+  documentList.addEventListener("change", e => {
+    const checkbox = e.target.closest(".document-include");
+    if (!checkbox) return;
+    const card = checkbox.closest("[data-doc-id]");
+    const doc = extractedDocuments.find(x => x.id === card?.dataset.docId);
+    if (doc) doc.include = checkbox.checked;
+    updateDocumentPreview();
+  });
+
+  documentList.addEventListener("click", e => {
+    const remove = e.target.closest(".document-remove");
+    if (!remove) return;
+    const card = remove.closest("[data-doc-id]");
+    extractedDocuments = extractedDocuments.filter(x => x.id !== card?.dataset.docId);
+    renderExtractedDocuments();
+  });
+
+  documentTextPreview.addEventListener("input", () => {
+    externalSourceText = documentTextPreview.value;
+    const enabled = Boolean(documentTextPreview.value.trim());
+    document.getElementById("copyExtractedTextBtn").disabled = !enabled;
+    document.getElementById("downloadExtractedTextBtn").disabled = !enabled;
+    document.getElementById("copyDocumentAiPackageBtn").disabled = !enabled;
+    document.getElementById("openJsonAssistantFromDocsBtn").disabled = !enabled;
+  });
+
+  document.getElementById("copyExtractedTextBtn").addEventListener("click", async e => {
+    await copyText(documentTextPreview.value);
+    e.currentTarget.textContent = "คัดลอกแล้ว";
+    setTimeout(() => e.currentTarget.textContent = "คัดลอกข้อความ", 1100);
+  });
+
+  document.getElementById("downloadExtractedTextBtn").addEventListener("click", () => {
+    const name = slugName(value("presenterName") || "pa-sources") + "-extracted-sources.txt";
+    download(name, documentTextPreview.value, "text/plain;charset=utf-8");
+  });
+
+  document.getElementById("copyDocumentAiPackageBtn").addEventListener("click", async e => {
+    const prompt = buildExternalAiPrompt() + "\n\n" +
+      "ต่อไปนี้คือข้อความจากเอกสารต้นทางที่ผู้ใช้เลือก กรุณาใช้เฉพาะข้อมูลที่มีหลักฐานในข้อความนี้:\n\n" +
+      documentTextPreview.value;
+    await copyText(prompt);
+    e.currentTarget.textContent = "คัดลอกแล้ว";
+    setTimeout(() => e.currentTarget.textContent = "คัดลอก Prompt + Sources", 1200);
+  });
+
+  document.getElementById("openJsonAssistantFromDocsBtn").addEventListener("click", () => {
+    externalSourceText = documentTextPreview.value;
+    closeDocumentReaderModal();
+    aiPromptPreview.value = buildExternalAiPrompt() + "\n\n" +
+      "ข้อความจากเอกสารที่ Toolkit อ่านใน Browser:\n\n" + externalSourceText;
+    validatedAiJson = null;
+    importAiJsonBtn.disabled = true;
+    aiJsonStatus.className = "json-status neutral";
+    aiJsonStatus.textContent = "Prompt มีข้อความจากเอกสารแล้ว คัดลอกไปถาม AI ภายนอก จากนั้นนำ JSON กลับมาวาง";
+    aiJsonModal.classList.remove("hidden");
+    document.body.style.overflow = "hidden";
+  });
+
+  document.getElementById("clearDocumentsBtn").addEventListener("click", () => {
+    pendingSourceFiles = [];
+    extractedDocuments = [];
+    externalSourceText = "";
+    sourceDocumentsInput.value = "";
+    documentReaderStatus.className = "json-status neutral";
+    documentReaderStatus.textContent = "ล้างเอกสารแล้ว";
+    renderExtractedDocuments();
+  });
+
   document.getElementById("openAiJsonBtn").addEventListener("click", () => {
     aiPromptPreview.value = buildExternalAiPrompt();
     validatedAiJson = null;
@@ -1077,7 +1394,9 @@ ${r.missing.length ? r.missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่ม�
     if (e.target === aiJsonModal) closeAiJsonModal();
   });
   document.addEventListener("keydown", e => {
-    if (e.key === "Escape" && !aiJsonModal.classList.contains("hidden")) closeAiJsonModal();
+    if (e.key !== "Escape") return;
+    if (!aiJsonModal.classList.contains("hidden")) closeAiJsonModal();
+    if (!documentReaderModal.classList.contains("hidden")) closeDocumentReaderModal();
   });
 
   document.getElementById("copyAiPromptBtn").addEventListener("click", async e => {
