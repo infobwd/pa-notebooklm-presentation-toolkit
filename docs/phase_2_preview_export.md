@@ -49,3 +49,40 @@ Phase 1 มี Import/Export JSON อยู่แล้ว และ Phase 2 ใ
 - สร้าง Slide/Video โดยตรง
 
 สิ่งเหล่านี้หากทำ จะอยู่ใน Phase 3 หรือภายหลัง และต้องพิจารณา privacy/data handling ก่อน
+
+
+---
+
+# Phase 2.1 — Easier Choices & Responsive UX
+
+สถานะ: **Implemented**
+
+## การเลือกข้อมูล
+เพิ่มตัวเลือกสำเร็จรูปโดยยังคงเปิดให้พิมพ์ค่าเฉพาะของแต่ละบุคคลได้:
+- ตำแหน่ง
+- วิทยฐานะ
+- สังกัด
+- Model / แนวทาง
+- แหล่งข้อมูลตั้งต้น
+
+ตำแหน่ง/วิทยฐานะ/สังกัดมีทั้ง Datalist และ Quick Pick สำหรับรายการที่ใช้บ่อย จึงลดการพิมพ์ซ้ำบนมือถือ
+
+## Responsive
+ปรับ breakpoint สำหรับ:
+- Desktop
+- Tablet 721–1180 px
+- Mobile ≤720 px
+- Small mobile ≤390 px
+
+บนมือถือ:
+- Navigation เปลี่ยนเป็นแนวนอนเลื่อนได้
+- Form เป็น 1 column
+- ปุ่ม Next/Back ติดด้านล่าง
+- ปุ่ม Export/Import จัดเป็น 2 column
+- Quick Pick เลื่อนแนวนอนได้
+- Input ใช้ 16px เพื่อลดการ zoom อัตโนมัติบน mobile browser
+
+## Typography
+ใช้ **Kanit** เป็น font หลักผ่าน Google Fonts และมี system font fallback หากโหลด font ภายนอกไม่ได้
+
+ไม่มีข้อมูลฟอร์มถูกส่งไป Google Fonts; browser เพียงร้องขอไฟล์ CSS/font เพื่อการแสดงผล
