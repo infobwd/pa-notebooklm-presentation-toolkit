@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css?v=2.2">
+  <link rel="stylesheet" href="./styles.css?v=3.1">
 </head>
 <body>
   <header class="topbar">
@@ -278,6 +278,7 @@
 
           <div id="readinessState" class="readiness-state"></div>
           <div id="statusSummary" class="status-summary"></div>
+          <div id="integritySummary" class="integrity-summary"></div>
           <div id="missingList" class="missing-list"></div>
         </section>
 
@@ -474,6 +475,17 @@
           </div>
 
           <div id="aiJsonStatus" class="json-status neutral">ยังไม่ได้ตรวจ JSON</div>
+
+          <section id="aiImportReview" class="import-review hidden">
+            <div class="import-review-head">
+              <div>
+                <strong>Pre-Import Review</strong>
+                <p>ตรวจค่าปัจจุบันเทียบกับค่าจาก AI ก่อน Import โดยเฉพาะรายการที่มี CONFLICT</p>
+              </div>
+              <span id="aiConflictBadge" class="conflict-badge">0 conflicts</span>
+            </div>
+            <div id="aiImportReviewRows" class="import-review-rows"></div>
+          </section>
         </article>
       </div>
 
@@ -537,10 +549,12 @@
   </datalist>
 
   <footer>
-    <span>PA NotebookLM Presentation Toolkit · Phase 3 Local Document Reader</span>
+    <span>PA NotebookLM Presentation Toolkit · Phase 3.1 Evidence & Reliability</span>
     <span>ข้อมูลฟอร์มบันทึกใน localStorage ของเบราว์เซอร์</span>
   </footer>
 
-  <script src="./app.js?v=2.2"></script>
+  <script src="./js/reliability.js?v=3.1"></script>
+  <script src="./js/migrations.js?v=3.1"></script>
+  <script src="./app.js?v=3.1"></script>
 </body>
 </html>
