@@ -22,6 +22,7 @@
     </div>
     <div class="top-actions">
       <span class="local-badge" title="ข้อมูลฟอร์มถูกเก็บในเบราว์เซอร์เครื่องนี้">● Local only</span>
+      <button class="btn btn-doc" id="openDocumentReaderBtn" type="button">อ่านเอกสาร</button>
       <button class="btn btn-ai" id="openAiJsonBtn" type="button">AI JSON Assistant</button>
       <button class="btn btn-ghost" id="exportProjectBtn" type="button">ส่งออกโปรเจกต์</button>
       <label class="btn btn-ghost file-label">
@@ -337,6 +338,85 @@
     </section>
   </main>
 
+  <div class="modal-backdrop hidden" id="documentReaderModal" role="dialog" aria-modal="true" aria-labelledby="documentReaderTitle">
+    <section class="modal-card document-modal-card">
+      <div class="modal-head">
+        <div>
+          <p class="eyebrow">PHASE 3 · LOCAL DOCUMENT READER</p>
+          <h2 id="documentReaderTitle">อ่าน PDF / DOCX / TXT / MD ใน Browser</h2>
+          <p>ดึงข้อความจากเอกสารในเครื่องเพื่อใช้ตรวจทานหรือส่งต่อให้ AI JSON Assistant โดยไม่อัปโหลดไฟล์ผ่าน Toolkit</p>
+        </div>
+        <button class="modal-close" id="closeDocumentReaderBtn" type="button" aria-label="ปิด">×</button>
+      </div>
+
+      <div class="document-workflow">
+        <article class="document-upload-card">
+          <div class="document-upload-main">
+            <div>
+              <span class="step-badge">1</span>
+              <strong>เลือกเอกสาร</strong>
+              <p>รองรับ PDF ที่มี text layer, DOCX, TXT และ Markdown · สูงสุด 10 ไฟล์ · แนะนำไม่เกิน 25 MB ต่อไฟล์</p>
+            </div>
+            <div class="document-upload-actions">
+              <label class="btn btn-secondary file-label">
+                เลือกไฟล์
+                <input id="sourceDocumentsInput" type="file" multiple accept=".pdf,.docx,.txt,.md,text/plain,text/markdown,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" hidden>
+              </label>
+              <button class="btn btn-primary" id="extractDocumentsBtn" type="button" disabled>อ่านข้อความ</button>
+            </div>
+          </div>
+          <div id="documentReaderStatus" class="json-status neutral">ยังไม่ได้เลือกเอกสาร</div>
+        </article>
+
+        <section>
+          <div class="document-section-head">
+            <div>
+              <span class="step-badge">2</span>
+              <strong>ตรวจเอกสารที่อ่านได้</strong>
+            </div>
+            <div id="documentStats" class="document-stats"></div>
+          </div>
+          <div id="documentList" class="document-list">
+            <div class="empty-state">เมื่อเลือกและอ่านข้อความ รายการเอกสารจะปรากฏที่นี่</div>
+          </div>
+        </section>
+
+        <section>
+          <div class="document-section-head">
+            <div>
+              <span class="step-badge">3</span>
+              <strong>ตรวจข้อความรวม</strong>
+            </div>
+            <div class="document-preview-actions">
+              <button class="btn btn-ghost" id="copyExtractedTextBtn" type="button" disabled>คัดลอกข้อความ</button>
+              <button class="btn btn-ghost" id="downloadExtractedTextBtn" type="button" disabled>ดาวน์โหลด .txt</button>
+            </div>
+          </div>
+          <textarea id="documentTextPreview" class="code-box document-text-preview" spellcheck="false" placeholder="ข้อความที่อ่านจากเอกสารจะแสดงที่นี่"></textarea>
+          <div class="tip compact"><strong>PDF สแกน:</strong> Phase 3 ยังไม่มี OCR หาก PDF เป็นภาพสแกนและไม่มี text layer ระบบจะแจ้งเตือนและไม่เดาเนื้อหา</div>
+        </section>
+
+        <section class="document-to-ai">
+          <div>
+            <span class="step-badge">4</span>
+            <strong>ใช้กับ AI ภายนอก</strong>
+            <p>เลือกเฉพาะเอกสารที่ต้องการ แล้วคัดลอก Prompt + ข้อความเอกสารไปยัง AI ภายนอก เพื่อให้ตอบกลับเป็น JSON สำหรับ Import</p>
+          </div>
+          <div class="document-ai-actions">
+            <button class="btn btn-ai" id="copyDocumentAiPackageBtn" type="button" disabled>คัดลอก Prompt + Sources</button>
+            <button class="btn btn-secondary" id="openJsonAssistantFromDocsBtn" type="button" disabled>เปิด JSON Assistant</button>
+            <button class="btn btn-ghost" id="clearDocumentsBtn" type="button">ล้างเอกสาร</button>
+          </div>
+        </section>
+      </div>
+
+      <div class="privacy-note">
+        <strong>Local-first</strong>
+        <p>Toolkit ประมวลผลไฟล์ใน Browser ของคุณ โค้ด parser ถูกโหลดจาก CDN แต่ไฟล์เอกสารไม่ได้ถูกส่งไป CDN โดย Toolkit การส่งข้อความ/เอกสารให้ AI ภายนอกจะเกิดขึ้นเมื่อคุณ Copy หรือแนบให้บริการนั้นด้วยตนเองเท่านั้น</p>
+      </div>
+    </section>
+  </div>
+
   <div class="modal-backdrop hidden" id="aiJsonModal" role="dialog" aria-modal="true" aria-labelledby="aiJsonTitle">
     <section class="modal-card">
       <div class="modal-head">
@@ -456,7 +536,7 @@
   </datalist>
 
   <footer>
-    <span>PA NotebookLM Presentation Toolkit · Phase 2.2 AI JSON Import</span>
+    <span>PA NotebookLM Presentation Toolkit · Phase 3 Local Document Reader</span>
     <span>ข้อมูลฟอร์มบันทึกใน localStorage ของเบราว์เซอร์</span>
   </footer>
 
