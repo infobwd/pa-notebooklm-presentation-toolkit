@@ -1775,6 +1775,9 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
   document.getElementById("openAiJsonBtn").addEventListener("click", () => {
     aiPromptPreview.value = buildExternalAiPrompt();
     validatedAiJson = null;
+    importReviewDecisions = {};
+    lastConflictCount = 0;
+    aiImportReview.classList.add("hidden");
     importAiJsonBtn.disabled = true;
     aiJsonStatus.className = "json-status neutral";
     aiJsonStatus.textContent = "วาง JSON ที่ AI ตอบกลับ แล้วกด “ตรวจ JSON”";
@@ -1849,9 +1852,24 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
 
   aiJsonInput.addEventListener("input", () => {
     validatedAiJson = null;
+    importReviewDecisions = {};
+    lastConflictCount = 0;
+    aiImportReview.classList.add("hidden");
     importAiJsonBtn.disabled = true;
     aiJsonStatus.className = "json-status neutral";
     aiJsonStatus.textContent = "JSON มีการเปลี่ยนแปลง กรุณาตรวจอีกครั้ง";
+  });
+
+  aiImportReviewRows.addEventListener("change", e => {
+    const select = e.target.closest("[data-review-decision]");
+    if (!select) return;
+    importReviewDecisions[select.dataset.reviewDecision] = select.value;
+  });
+
+  document.getElementById("aiImportMode").addEventListener("change", () => {
+    if (!validatedAiJson) return;
+    const {out} = normalizeAiJson(validatedAiJson);
+    renderImportReview(out, document.getElementById("aiImportMode").value);
   });
 
   document.getElementById("validateAiJsonBtn").addEventListener("click", () => {
@@ -1859,15 +1877,21 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
       const parsed = parseExternalAiJson(aiJsonInput.value);
       const {out, warnings} = normalizeAiJson(parsed);
       validatedAiJson = parsed;
+      const review = renderImportReview(out, document.getElementById("aiImportMode").value);
       const filled = Object.entries(out).filter(([k,v]) => !["indicators","evidenceTypes","importNotes"].includes(k) && String(v || "").trim()).length;
       const indicatorCount = out.indicators.length;
       importAiJsonBtn.disabled = false;
-      aiJsonStatus.className = "json-status " + (warnings.length ? "warn" : "ok");
-      aiJsonStatus.innerHTML = `<strong>JSON ใช้งานได้</strong> · พบข้อมูล ${filled} ช่อง · ตัวชี้วัด ${indicatorCount} รายการ`
+      const hasWarnings = warnings.length || review.conflicts.length;
+      aiJsonStatus.className = "json-status " + (hasWarnings ? "warn" : "ok");
+      aiJsonStatus.innerHTML = `<strong>JSON ใช้งานได้</strong> · พบข้อมูล ${filled} ช่อง · ตัวชี้วัด ${indicatorCount} รายการ · conflicts ${review.conflicts.length}`
         + (warnings.length ? `<br>คำเตือน: ${esc(warnings.join(" · "))}` : "")
+        + (review.conflicts.length ? "<br>กรุณาตรวจแถว CONFLICT ก่อน Import; ค่าเริ่มต้นจะเก็บข้อมูลเดิม" : "")
         + (out.importNotes ? `<br>หมายเหตุจาก AI: ${esc(out.importNotes)}` : "");
     } catch (err) {
       validatedAiJson = null;
+      importReviewDecisions = {};
+      lastConflictCount = 0;
+      aiImportReview.classList.add("hidden");
       importAiJsonBtn.disabled = true;
       aiJsonStatus.className = "json-status error";
       aiJsonStatus.textContent = "JSON ไม่ถูกต้อง: " + (err?.message || "ไม่ทราบสาเหตุ");
@@ -1877,13 +1901,15 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
   importAiJsonBtn.addEventListener("click", () => {
     if (!validatedAiJson) return;
     const mode = document.getElementById("aiImportMode").value;
-    const result = applyAiImport(validatedAiJson, mode);
+    const reviewedConflictCount = lastConflictCount;
+    const result = applyAiImport(validatedAiJson, mode, importReviewDecisions);
     closeAiJsonModal();
     const extra = [
+      reviewedConflictCount ? `ตรวจพบ conflict ${reviewedConflictCount} จุด และใช้ตัวเลือกจาก Pre-Import Review แล้ว` : "",
       result.warnings.length ? "มีคำเตือน: " + result.warnings.join(" · ") : "",
       result.importNotes ? "หมายเหตุจาก AI: " + result.importNotes : ""
     ].filter(Boolean).join("\n");
-    alert("Import JSON เข้าระบบเรียบร้อย" + (extra ? "\n\n" + extra : "") + "\n\nกรุณาตรวจข้อมูลกับเอกสารจริงก่อนใช้เป็น Final");
+    alert("Import JSON เข้าระบบเรียบร้อย" + (extra ? "\n\n" + extra : "") + "\n\nACTUAL จาก AI ยังเป็น UNVERIFIED จนกว่าคุณจะตรวจต้นฉบับและกดยืนยันใน Evidence Trace");
   });
 
   evidenceFiles.addEventListener("change", () => {
