@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infobwd.github.io/pa-notebooklm-presentation-toolkit/web/schema/ai-intake.schema.json",
+  "title": "PA NotebookLM Toolkit External AI Intake",
+  "type": "object",
+  "required": ["schema_version"],
+  "properties": {
+    "schema_version": {"const": "pa-toolkit/intake/2.2"},
+    "presenterName": {"type": "string"},
+    "position": {"type": "string"},
+    "academicRank": {"type": "string"},
+    "organization": {"type": "string"},
+    "affiliation": {"type": "string"},
+    "paCycle": {"type": "string"},
+    "evaluationPeriod": {"type": "string"},
+    "duration": {"type": "string", "enum": ["5", "7"]},
+    "challengeTitle": {"type": "string"},
+    "managementModel": {"type": "string"},
+    "baselineSource": {"type": "string"},
+    "developmentNeed": {"type": "string"},
+    "contextNotes": {"type": "string"},
+    "processNotes": {"type": "string"},
+    "indicators": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": {"type": "string"},
+          "target": {"type": "string"},
+          "actual": {"type": "string"},
+          "evidence": {"type": "string"}
+        },
+        "required": ["title", "target", "actual", "evidence"],
+        "additionalProperties": false
+      }
+    },
+    "learnerOutcome": {"type": "string"},
+    "staffOutcome": {"type": "string"},
+    "workOutcome": {"type": "string"},
+    "organizationOutcome": {"type": "string"},
+    "journeyBefore": {"type": "string"},
+    "journeyAction": {"type": "string"},
+    "journeyAfter": {"type": "string"},
+    "journeyEvidence": {"type": "string"},
+    "systems": {"type": "string"},
+    "participationStaff": {"type": "string"},
+    "participationLearners": {"type": "string"},
+    "participationParents": {"type": "string"},
+    "participationNetwork": {"type": "string"},
+    "recognition": {"type": "string"},
+    "recognitionEvidence": {"type": "string"},
+    "expansionLevel": {"type": "string"},
+    "expansionEvidence": {"type": "string"},
+    "policyNotes": {"type": "string"},
+    "evidenceTypes": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "ภาพผู้รับการประเมิน",
+          "ภาพสถานศึกษา/หน่วยงาน",
+          "Model / Framework",
+          "ภาพกิจกรรมจริง",
+          "ห้องเรียน / งานปฏิบัติจริง",
+          "PLC / Reflection",
+          "การนิเทศ / สังเกต",
+          "การซ่อมเสริม / ช่วยเหลือ",
+          "Screenshot ระบบ",
+          "กราฟผล ACTUAL",
+          "Student / Service Journey",
+          "รางวัล / การยอมรับ",
+          "การขยายผล"
+        ]
+      }
+    },
+    "importNotes": {"type": "string"}
+  },
+  "additionalProperties": true
+}
