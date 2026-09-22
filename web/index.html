@@ -368,10 +368,13 @@
               <span class="step-badge">2</span>
               <strong>วาง JSON ที่ AI ตอบกลับ</strong>
             </div>
-            <label class="btn btn-ghost file-label">
-              เปิดไฟล์ JSON
-              <input id="aiJsonFileInput" type="file" accept=".json,application/json" hidden>
-            </label>
+            <div class="file-actions">
+              <button class="btn btn-ghost" id="loadAiJsonExampleBtn" type="button">ตัวอย่าง JSON</button>
+              <label class="btn btn-ghost file-label">
+                เปิดไฟล์ JSON
+                <input id="aiJsonFileInput" type="file" accept=".json,application/json" hidden>
+              </label>
+            </div>
           </div>
 
           <textarea id="aiJsonInput" class="code-box import-box" spellcheck="false" placeholder='วาง JSON ที่นี่ เช่น {"schema_version":"pa-toolkit/intake/2.2", ...}'></textarea>
