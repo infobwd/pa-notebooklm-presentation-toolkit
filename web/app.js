@@ -34,6 +34,8 @@
   let currentStep = 0;
   let indicators = [];
   let selectedFileNames = [];
+  let generatedCache = [];
+  let activePreviewIndex = 0;
 
   const defaultIndicators = () => [1,2,3].map(n => ({
     id: cryptoId(),
@@ -639,6 +641,64 @@ ${r.missing.length ? r.missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่ม�
     ];
   }
 
+  function countThaiWords(text) {
+    const raw = String(text || "");
+    try {
+      const segmenter = new Intl.Segmenter("th", {granularity:"word"});
+      return [...segmenter.segment(raw)].filter(x => x.isWordLike).length;
+    } catch {
+      return raw.trim() ? raw.trim().split(/\s+/).length : 0;
+    }
+  }
+
+  function buildBundle(files) {
+    const presenter = safe(value("presenterName"), "PA Project");
+    const stamp = new Date().toISOString();
+    return `# NotebookLM Package Bundle
+
+> สำเนารวมสำหรับตรวจทาน/สำรองข้อมูล
+> สำหรับ NotebookLM แนะนำให้อัปโหลดไฟล์ Markdown แยกตาม Source Manifest เพื่อควบคุมบทบาทของ Source ได้ชัดกว่า
+
+- Presenter: ${presenter}
+- Generated: ${stamp}
+- Files: ${files.length}
+
+` + files.map(f => `\n\n---\n\n# FILE: ${f.name}\n\n${f.content}\n`).join("");
+  }
+
+  function renderPreview(index = 0) {
+    if (!generatedCache.length) return;
+    activePreviewIndex = Math.max(0, Math.min(index, generatedCache.length - 1));
+    const file = generatedCache[activePreviewIndex];
+    document.getElementById("previewFileName").textContent = file.name;
+    document.getElementById("previewEditor").value = file.content;
+    document.querySelectorAll(".preview-tab").forEach((tab,i) => tab.classList.toggle("active", i === activePreviewIndex));
+
+    const script = generatedCache.find(f => f.name.startsWith("presentation_script_"));
+    const words = script ? countThaiWords(script.content) : 0;
+    const estimatedMinutes = words ? (words / 120) : 0;
+    const targetMinutes = Number(value("duration") || 5);
+    const delta = estimatedMinutes - targetMinutes;
+    const timingText = !words ? "—" : (Math.abs(delta) <= 0.5 ? "ใกล้เป้าหมาย" : delta > 0 ? "อาจยาวเกิน" : "อาจสั้น");
+    document.getElementById("scriptMetrics").innerHTML = `
+      <div class="metric-chip"><strong>${words.toLocaleString()}</strong><span>คำใน Script</span></div>
+      <div class="metric-chip"><strong>${estimatedMinutes ? estimatedMinutes.toFixed(1) : "—"} นาที</strong><span>ประมาณการ · ${timingText}</span></div>`;
+  }
+
+  function renderPreviewStudio() {
+    const studio = document.getElementById("previewStudio");
+    const tabs = document.getElementById("previewTabs");
+    if (!generatedCache.length) {
+      studio.classList.add("hidden");
+      return;
+    }
+    studio.classList.remove("hidden");
+    tabs.innerHTML = generatedCache.map((f,i) =>
+      `<button type="button" class="preview-tab ${i===activePreviewIndex ? "active" : ""}" data-preview-index="${i}">${esc(f.desc)}</button>`
+    ).join("");
+    renderPreview(activePreviewIndex);
+  }
+
   function download(name, content, type="text/markdown;charset=utf-8") {
     const blob = new Blob([content], {type});
     const url = URL.createObjectURL(blob);
@@ -652,32 +712,44 @@ ${r.missing.length ? r.missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่ม�
   }
 
   function renderGeneratedFiles() {
-    const files = buildFiles();
+    generatedCache = buildFiles();
+    activePreviewIndex = 0;
     const r = getReadiness();
     const summary = document.getElementById("generatedSummary");
     summary.classList.remove("hidden");
     summary.innerHTML = `<strong>${r.finalReady ? "พร้อมสำหรับ Final candidate" : "สร้างเป็น Draft Package"}</strong><br>
-      สร้าง ${files.length} ไฟล์ · Final readiness ${r.final}% · กรุณาตรวจข้อมูลก่อนนำไปใช้จริง`;
+      สร้าง ${generatedCache.length} ไฟล์ · Final readiness ${r.final}% · Preview และแก้ไขข้อความก่อนดาวน์โหลดได้
+      <div class="bundle-note">Bundle เป็นไฟล์รวมสำหรับสำรอง/ตรวจทาน; สำหรับ NotebookLM แนะนำใช้ไฟล์แยกตาม Source Manifest</div>`;
+
+    document.getElementById("downloadBundleBtn").classList.remove("hidden");
+    document.getElementById("resetGeneratedBtn").classList.remove("hidden");
 
     const wrap = document.getElementById("generatedFiles");
-    wrap.innerHTML = files.map((f,i) => `
+    wrap.innerHTML = generatedCache.map((f,i) => `
       <article class="file-card">
         <div><strong>${esc(f.name)}</strong><small>${esc(f.desc)}</small></div>
         <div class="file-actions">
+          <button type="button" class="btn btn-ghost preview-generated" data-index="${i}">Preview</button>
           <button type="button" class="btn btn-ghost copy-generated" data-index="${i}">คัดลอก</button>
           <button type="button" class="btn btn-secondary download-generated" data-index="${i}">ดาวน์โหลด</button>
         </div>
       </article>`).join("");
 
+    wrap.querySelectorAll(".preview-generated").forEach(btn => btn.addEventListener("click", () => {
+      renderPreview(Number(btn.dataset.index));
+      document.getElementById("previewStudio").scrollIntoView({behavior:"smooth", block:"start"});
+    }));
     wrap.querySelectorAll(".copy-generated").forEach(btn => btn.addEventListener("click", async () => {
-      await copyText(files[Number(btn.dataset.index)].content);
+      await copyText(generatedCache[Number(btn.dataset.index)].content);
       btn.textContent = "คัดลอกแล้ว";
       setTimeout(()=>btn.textContent="คัดลอก",1000);
     }));
     wrap.querySelectorAll(".download-generated").forEach(btn => btn.addEventListener("click", () => {
-      const f=files[Number(btn.dataset.index)];
+      const f=generatedCache[Number(btn.dataset.index)];
       download(f.name,f.content);
     }));
+
+    renderPreviewStudio();
   }
 
   document.getElementById("addIndicatorBtn").addEventListener("click", () => {
@@ -713,6 +785,41 @@ ${r.missing.length ? r.missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่ม�
 
   document.getElementById("generateBtn").addEventListener("click", () => {
     save();
+    renderGeneratedFiles();
+  });
+
+  document.getElementById("previewTabs").addEventListener("click", e => {
+    const btn = e.target.closest("[data-preview-index]");
+    if (!btn) return;
+    renderPreview(Number(btn.dataset.previewIndex));
+  });
+
+  document.getElementById("previewEditor").addEventListener("input", e => {
+    if (!generatedCache.length) return;
+    generatedCache[activePreviewIndex].content = e.target.value;
+    renderPreview(activePreviewIndex);
+  });
+
+  document.getElementById("copyPreviewBtn").addEventListener("click", async e => {
+    if (!generatedCache.length) return;
+    await copyText(generatedCache[activePreviewIndex].content);
+    e.currentTarget.textContent = "คัดลอกแล้ว";
+    setTimeout(()=>e.currentTarget.textContent="คัดลอก",1000);
+  });
+
+  document.getElementById("downloadPreviewBtn").addEventListener("click", () => {
+    if (!generatedCache.length) return;
+    const f = generatedCache[activePreviewIndex];
+    download(f.name, f.content);
+  });
+
+  document.getElementById("downloadBundleBtn").addEventListener("click", () => {
+    if (!generatedCache.length) return;
+    const name = slugName(value("presenterName")) + "-notebooklm-package-bundle.md";
+    download(name, buildBundle(generatedCache));
+  });
+
+  document.getElementById("resetGeneratedBtn").addEventListener("click", () => {
     renderGeneratedFiles();
   });
 
