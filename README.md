@@ -27,6 +27,8 @@ Expected GitHub Pages URL:
 - ตรวจ Draft / Final readiness
 - สร้าง Markdown Package 6 ไฟล์ใน Browser
 - **Phase 2 Preview Studio:** เปิดดูและแก้ไข Markdown ก่อนดาวน์โหลด
+- **Phase 2.2 External AI JSON Bridge:** Copy Prompt → ให้ AI ภายนอกตอบ JSON → Validate → Import เข้าฟอร์ม
+- มีตัวอย่างประกอบทุกช่องสำคัญเพื่อช่วยผู้ใช้กรอกข้อมูล
 - ประมาณจำนวนคำ/เวลา Script และดาวน์โหลด Bundle สำรอง
 - ไม่มี AI API และไม่มี backend
 
