@@ -435,7 +435,7 @@ ${sourceText}`;
   }
 
   function buildExternalAiPrompt() {
-    return `คุณกำลังช่วยเตรียมข้อมูลสำหรับ PA NotebookLM Presentation Toolkit
+    return `คุณกำลังช่วยเตรียมข้อมูลสำหรับ PA NotebookLM Presentation Toolkit — Evidence & Reliability 3.1
 
 งานของคุณ:
 1) อ่านเฉพาะเอกสาร/ข้อความ/หลักฐานที่ฉันแนบในบทสนทนานี้
@@ -443,10 +443,22 @@ ${sourceText}`;
 3) แยก TARGET กับ ACTUAL อย่างเคร่งครัด
 4) CONTEXT หรือข้อมูลคนละรอบ/คนละกลุ่ม ห้ามเขียนเป็น ACTUAL ของรอบปัจจุบัน
 5) ถ้าเอกสารไม่รองรับข้อมูล ให้ใช้สตริงว่าง "" หรือ "PENDING" ห้ามคาดเดา
-6) ถ้าข้อมูลขัดกัน ให้เลือกค่าที่ตรวจสอบไม่ได้เป็น "PENDING" และอธิบายความขัดแย้งใน importNotes
+6) ถ้าข้อมูลขัดกัน ให้คงค่าที่ตรวจสอบไม่ได้เป็น "PENDING" และอธิบายใน importNotes
 7) ห้ามสร้างชื่อรางวัล ตัวเลข ผลสอบ นโยบาย หนังสือราชการ หรือหลักฐานที่ไม่มีในเอกสาร
 8) ปกปิดชื่อผู้เรียนหรือข้อมูลส่วนบุคคลที่ไม่จำเป็น
-9) ตอบกลับเป็น JSON object เท่านั้น ห้ามมี Markdown code fence ห้ามมีคำอธิบายก่อนหรือหลัง JSON
+9) ACTUAL ทุกค่าที่ไม่ใช่ PENDING ต้องระบุ sourceFile, sourcePage (ถ้าทราบ), period และ population
+10) Before/After หรือคำว่าเพิ่มขึ้น/ลดลง ต้องเป็น cohort/population ที่เปรียบเทียบกันได้ มิฉะนั้นให้แยกเป็น CONTEXT
+11) verification ต้องเป็น "unverified" เสมอ AI ห้ามยืนยันหลักฐานแทนผู้ใช้
+12) ตอบกลับเป็น JSON object เท่านั้น ห้ามมี Markdown code fence ห้ามมีคำอธิบายก่อนหรือหลัง JSON
+
+ความหมายของบทบาทเอกสารเมื่อ SOURCE header มี ROLE:
+- PA Agreement / ข้อตกลง: ใช้ยืนยัน TARGET/ข้อตกลง ไม่ถือเป็น ACTUAL
+- Performance Report / รายงานผล: อาจเป็นแหล่ง ACTUAL ถ้าช่วงเวลาและประชากรตรง
+- SAR / CONTEXT: ใช้เป็นบริบท เว้นแต่มีหลักฐานชัดว่าเป็น ACTUAL ของรอบเดียวกัน
+- Assessment Result / ผลประเมิน: ใช้ผลประเมินตามช่วงเวลาและ population ที่ระบุ
+- Policy / นโยบาย: ใช้เฉพาะ policy alignment
+- Award / Recognition: ใช้เฉพาะรางวัล/การยอมรับ
+- Evidence / หลักฐานประกอบ: ใช้สนับสนุนข้อความที่ตรวจสอบได้
 
 JSON ที่ต้องตอบ:
 {
@@ -470,7 +482,15 @@ JSON ที่ต้องตอบ:
       "title": "",
       "target": "",
       "actual": "",
-      "evidence": ""
+      "evidence": "",
+      "actualNumerator": "",
+      "actualDenominator": "",
+      "sourceFile": "",
+      "sourcePage": "",
+      "period": "",
+      "population": "",
+      "cohortId": "",
+      "verification": "unverified"
     }
   ],
   "learnerOutcome": "",
@@ -498,12 +518,13 @@ JSON ที่ต้องตอบ:
 กติกาเพิ่มเติม:
 - duration ใช้ได้เฉพาะ "5" หรือ "7"
 - indicators เพิ่มได้ตามจำนวนตัวชี้วัดจริง
+- actualNumerator/actualDenominator ใส่เฉพาะเมื่อเอกสารมีจำนวนที่ชัดเจน
+- cohortId ใช้รหัสอธิบายกลุ่มเดียวกัน เช่น "P3-2570"; ถ้าไม่แน่ใจให้เว้นว่าง
 - evidenceTypes เลือกได้เฉพาะค่าที่เกี่ยวข้องจากรายการนี้:
   ${EVIDENCE_OPTIONS.map(x => '"'+x+'"').join(", ")}
 - contextNotes, processNotes และ systems ถ้ามีหลายรายการ ให้คั่นแต่ละรายการด้วยขึ้นบรรทัดใหม่
-- expansionLevel ใช้ข้อความที่สอดคล้องกับหลักฐาน เช่น "ภายในสถานศึกษา/หน่วยงาน", "เครือข่าย", "เขตพื้นที่", "หน่วยงานต้นสังกัด", "ระดับประเทศ" หรือเว้นว่าง
-- ACTUAL ต้องมีหลักฐานรองรับ ถ้ามีค่า ACTUAL แต่ไม่พบหลักฐาน ให้ใส่ evidence เป็น "PENDING" และอธิบายใน importNotes
-- อย่านำข้อมูลจากความรู้ทั่วไปหรือบุคคลอื่นมาเติม
+- ACTUAL ต้องมีหลักฐานรองรับ ถ้าพบตัวเลขแต่ยังระบุแหล่ง/ช่วงเวลา/กลุ่มไม่ได้ ให้ actual เป็น PENDING และอธิบายใน importNotes
+- อย่านำข้อมูลจากความรู้ทั่วไป บุคคลอื่น หรือไฟล์ตัวอย่างมาเติม
 
 ก่อนตอบ ให้ตรวจ JSON syntax ให้ถูกต้อง และตอบ JSON object เพียงอย่างเดียว`;
   }
@@ -530,13 +551,29 @@ JSON ที่ต้องตอบ:
           title: "นักเรียนกลุ่มเป้าหมายผ่านเกณฑ์การอ่าน",
           target: "≥75%",
           actual: "24/30 = 80%",
-          evidence: "แบบประเมินปลายรอบ + ตารางสรุปผล"
+          evidence: "แบบประเมินปลายรอบ + ตารางสรุปผล",
+          actualNumerator: "24",
+          actualDenominator: "30",
+          sourceFile: "assessment-results.pdf",
+          sourcePage: "4",
+          period: "1 เม.ย. 2570 – 30 ก.ย. 2570",
+          population: "นักเรียนกลุ่มเป้าหมาย 30 คน",
+          cohortId: "P3-2570",
+          verification: "unverified"
         },
         {
           title: "ผู้เรียนที่ไม่ผ่านได้รับการซ่อมเสริม",
           target: "100%",
           actual: "6/6 = 100%",
-          evidence: "บันทึกการซ่อมเสริม"
+          evidence: "บันทึกการซ่อมเสริม",
+          actualNumerator: "6",
+          actualDenominator: "6",
+          sourceFile: "remediation-log.pdf",
+          sourcePage: "2",
+          period: "1 เม.ย. 2570 – 30 ก.ย. 2570",
+          population: "ผู้เรียนที่ไม่ผ่านเกณฑ์ 6 คน",
+          cohortId: "P3-2570",
+          verification: "unverified"
         }
       ],
       learnerOutcome: "ผู้เรียนอธิบายใจความสำคัญได้ชัดขึ้น",
@@ -563,7 +600,7 @@ JSON ที่ต้องตอบ:
         "กราฟผล ACTUAL",
         "Student / Service Journey"
       ],
-      importNotes: "ตัวอย่างสมมติสำหรับอธิบายรูปแบบ JSON เท่านั้น"
+      importNotes: "FICTIONAL SAMPLE — verification จงใจเป็น unverified จนกว่าผู้ใช้จะตรวจต้นฉบับ"
     }, null, 2);
   }
 
@@ -578,6 +615,8 @@ JSON ที่ต้องตอบ:
 
   function normalizeAiJson(data) {
     const warnings = [];
+    const sourceSchema = data?.schema_version || "";
+    const migrated = M.migrateIntake(data);
     const allowedFields = [
       "presenterName","position","academicRank","organization","affiliation","paCycle","evaluationPeriod",
       "challengeTitle","managementModel","baselineSource","developmentNeed","contextNotes","processNotes",
@@ -587,58 +626,158 @@ JSON ที่ต้องตอบ:
       "recognition","recognitionEvidence","expansionLevel","expansionEvidence","policyNotes"
     ];
     const out = {};
-    if (data.schema_version && data.schema_version !== AI_SCHEMA_VERSION) {
-      warnings.push(`schema_version เป็น ${data.schema_version}; ระบบจะพยายามนำเข้าค่าที่รู้จัก`);
+
+    if (sourceSchema && sourceSchema !== AI_SCHEMA_VERSION) {
+      warnings.push(`schema_version ${sourceSchema} ถูก migrate เป็น ${AI_SCHEMA_VERSION}`);
     }
+
     allowedFields.forEach(key => {
-      const v = data[key];
+      const v = migrated[key];
       out[key] = typeof v === "string" ? v.trim() : "";
       if (v != null && typeof v !== "string") warnings.push(`${key} ไม่ใช่ string จึงไม่ได้นำเข้า`);
     });
-    out.duration = ["5","7"].includes(String(data.duration)) ? String(data.duration) : "5";
-    if (data.duration != null && !["5","7"].includes(String(data.duration))) warnings.push("duration ไม่ใช่ 5 หรือ 7 จึงใช้ 5 นาที");
-    const rawIndicators = Array.isArray(data.indicators) ? data.indicators : [];
-    out.indicators = rawIndicators.map(item => ({
-      id: cryptoId(),
-      title: typeof item?.title === "string" ? item.title.trim() : "",
-      target: typeof item?.target === "string" ? item.target.trim() : "",
-      actual: typeof item?.actual === "string" ? item.actual.trim() : "",
-      evidence: typeof item?.evidence === "string" ? item.evidence.trim() : ""
-    })).filter(x => x.title || x.target || x.actual || x.evidence);
+
+    out.duration = ["5","7"].includes(String(migrated.duration)) ? String(migrated.duration) : "5";
+    if (migrated.duration != null && !["5","7"].includes(String(migrated.duration))) {
+      warnings.push("duration ไม่ใช่ 5 หรือ 7 จึงใช้ 5 นาที");
+    }
+
+    const rawIndicators = Array.isArray(migrated.indicators) ? migrated.indicators : [];
+    out.indicators = rawIndicators.map(item => {
+      const normalized = R.normalizeIndicator({...item, id:item.id || cryptoId()});
+      if (normalized.verification === "verified") {
+        warnings.push(`AI ส่ง verification=verified สำหรับ "${normalized.title || "indicator"}"; ระบบปรับเป็น unverified เพื่อให้ผู้ใช้ตรวจเอง`);
+        normalized.verification = "unverified";
+      }
+      return normalized;
+    }).filter(x => x.title || x.target || x.actual || x.evidence);
+
     if (!out.indicators.length) warnings.push("ไม่พบ indicators ที่นำเข้าได้");
-    const requestedEvidence = Array.isArray(data.evidenceTypes) ? data.evidenceTypes : [];
+
+    const requestedEvidence = Array.isArray(migrated.evidenceTypes) ? migrated.evidenceTypes : [];
     out.evidenceTypes = requestedEvidence.filter(x => EVIDENCE_OPTIONS.includes(x));
     const dropped = requestedEvidence.filter(x => !EVIDENCE_OPTIONS.includes(x));
     if (dropped.length) warnings.push("ตัด evidenceTypes ที่ไม่รู้จัก: " + dropped.join(", "));
-    out.importNotes = typeof data.importNotes === "string" ? data.importNotes.trim() : "";
+
+    out.importNotes = typeof migrated.importNotes === "string" ? migrated.importNotes.trim() : "";
     return {out, warnings};
   }
 
-  function applyAiImport(data, mode = "fill") {
+  function summarizeIndicators(list) {
+    if (!Array.isArray(list) || !list.length) return "—";
+    return list.map((item,i) => {
+      const x = R.normalizeIndicator(item);
+      return `${i+1}. ${x.title || "(ไม่มีชื่อ)"} | TARGET ${x.target || "—"} | ACTUAL ${x.actual || "—"}`;
+    }).join("\n");
+  }
+
+  function renderImportReview(out, mode = "fill") {
+    const current = collectState();
+    const rows = [];
+    const fieldKeys = Object.keys(REVIEW_FIELD_LABELS);
+    const conflicts = R.detectFieldConflicts(current, out, fieldKeys);
+    const conflictKeys = new Set(conflicts.map(x => x.key));
+
+    importReviewDecisions = {};
+
+    fieldKeys.forEach(key => {
+      const incoming = String(out[key] || "").trim();
+      if (!incoming) return;
+      const existing = String(current[key] || "").trim();
+      const conflict = conflictKeys.has(key);
+      let decision = "incoming";
+      if (conflict) decision = "current";
+      else if (mode === "fill" && R.isMeaningful(existing)) decision = "current";
+      importReviewDecisions[key] = decision;
+      rows.push({
+        key,
+        label:REVIEW_FIELD_LABELS[key] || key,
+        current:existing || "—",
+        incoming,
+        conflict
+      });
+    });
+
+    const indicatorConflicts = R.detectIndicatorConflicts(current.indicators || [], out.indicators || []);
+    const hasCurrentIndicators = (current.indicators || []).some(x =>
+      R.isMeaningful(x.title) || R.isMeaningful(x.target) || R.isMeaningful(x.actual)
+    );
+    if (out.indicators?.length) {
+      const conflict = indicatorConflicts.length > 0;
+      importReviewDecisions.indicators = conflict ? "current" : (mode === "fill" && hasCurrentIndicators ? "current" : "incoming");
+      rows.push({
+        key:"indicators",
+        label:"ตัวชี้วัด",
+        current:summarizeIndicators(current.indicators),
+        incoming:summarizeIndicators(out.indicators),
+        conflict,
+        detail:indicatorConflicts.map(x => `${x.title}: ${x.key} "${x.current}" ≠ "${x.incoming}"`).join(" · ")
+      });
+    }
+
+    if (out.evidenceTypes?.length) {
+      importReviewDecisions.evidenceTypes = mode === "replace" ? "incoming" : "merge";
+      rows.push({
+        key:"evidenceTypes",
+        label:"Visual Evidence",
+        current:(current.evidenceTypes || []).join(", ") || "—",
+        incoming:out.evidenceTypes.join(", "),
+        conflict:false,
+        evidence:true
+      });
+    }
+
+    lastConflictCount = conflicts.length + indicatorConflicts.length;
+    aiConflictBadge.textContent = `${lastConflictCount} conflicts`;
+    aiConflictBadge.classList.toggle("has-conflict", lastConflictCount > 0);
+
+    aiImportReviewRows.innerHTML = rows.map(row => {
+      const options = row.evidence
+        ? `<option value="merge" ${importReviewDecisions[row.key] === "merge" ? "selected" : ""}>รวมรายการ</option>
+           <option value="incoming" ${importReviewDecisions[row.key] === "incoming" ? "selected" : ""}>ใช้จาก AI</option>
+           <option value="current">เก็บค่าเดิม</option>`
+        : `<option value="incoming" ${importReviewDecisions[row.key] === "incoming" ? "selected" : ""}>ใช้จาก AI</option>
+           <option value="current" ${importReviewDecisions[row.key] === "current" ? "selected" : ""}>เก็บค่าเดิม</option>`;
+      return `
+        <div class="review-row ${row.conflict ? "conflict" : ""}" data-review-key="${row.key}">
+          <div class="review-label">${esc(row.label)}
+            ${row.conflict ? '<span class="review-conflict-label">CONFLICT</span>' : ""}
+          </div>
+          <div class="review-value">${esc(row.current)}</div>
+          <div class="review-value incoming">${esc(row.incoming)}${row.detail ? "\n" + esc(row.detail) : ""}</div>
+          <div class="review-action"><select data-review-decision="${row.key}">${options}</select></div>
+        </div>`;
+    }).join("");
+
+    aiImportReview.classList.toggle("hidden", rows.length === 0);
+    return {conflicts:[...conflicts, ...indicatorConflicts], rows};
+  }
+
+  function applyAiImport(data, mode = "fill", decisions = importReviewDecisions) {
     const {out, warnings} = normalizeAiJson(data);
     const current = collectState();
     const merged = {...current};
 
     Object.entries(out).forEach(([key,val]) => {
       if (["indicators","evidenceTypes","importNotes"].includes(key)) return;
-      if (mode === "replace" || !String(current[key] || "").trim()) merged[key] = val;
+      const decision = decisions[key] || (mode === "replace" ? "incoming" : (R.isMeaningful(current[key]) ? "current" : "incoming"));
+      if (decision === "incoming") merged[key] = val;
     });
 
-    if (out.indicators.length) {
-      if (mode === "replace" || !indicators.some(x => x.title || x.target || x.actual || x.evidence)) {
-        merged.indicators = out.indicators;
-      }
+    if (out.indicators.length && (decisions.indicators || "incoming") === "incoming") {
+      merged.indicators = out.indicators;
     }
 
     if (out.evidenceTypes.length) {
-      merged.evidenceTypes = mode === "replace"
-        ? out.evidenceTypes
-        : [...new Set([...(current.evidenceTypes || []), ...out.evidenceTypes])];
+      const decision = decisions.evidenceTypes || (mode === "replace" ? "incoming" : "merge");
+      if (decision === "incoming") merged.evidenceTypes = out.evidenceTypes;
+      if (decision === "merge") merged.evidenceTypes = [...new Set([...(current.evidenceTypes || []), ...out.evidenceTypes])];
     }
 
     merged.currentStep = 0;
     applyState(merged);
     injectFieldExamples();
+    lastConflictCount = 0;
     save();
     showStep(0);
     return {warnings, importNotes: out.importNotes};
