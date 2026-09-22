@@ -41,3 +41,7 @@ jobs:
           grep -q 'AI JSON Assistant' web/index.html
           grep -q 'pa-toolkit/intake/2.2' web/app.js
           grep -q 'FIELD_EXAMPLES' web/app.js
+          test -f web/test-data/owner-pa-2569.ai-intake.json
+          test -f web/test-data/owner-pa-2569.project.json
+          grep -q 'loadOwnerTestDataBtn' web/index.html
+          grep -q 'owner-pa-2569.ai-intake.json' web/app.js
