@@ -1,4 +1,4 @@
-# Web App — Phase 2
+# Web App — Phase 2.1
 
 Static web app สำหรับ Easy Mode ของ PA NotebookLM Presentation Toolkit
 
@@ -11,6 +11,9 @@ Static web app สำหรับ Easy Mode ของ PA NotebookLM Presentation
 - Visual Evidence checklist
 - Readiness check สำหรับ Draft / Final
 - Generate Markdown 6 ไฟล์ใน Browser
+- ตัวเลือกแบบ Datalist + Quick Pick สำหรับตำแหน่ง วิทยฐานะ สังกัด Model และแหล่งข้อมูลตั้งต้น
+- Responsive layout สำหรับ Desktop / Tablet / Mobile
+- ใช้ฟอนต์ **Kanit** เป็นฟอนต์หลัก (โหลดจาก Google Fonts พร้อม fallback)
 - Preview Studio สำหรับตรวจ/แก้ไขไฟล์ก่อนดาวน์โหลด
 - Script word count + ประมาณเวลาอ่าน
 - Preview tabs สำหรับ Results / Storyboard / Script / Manifest / Prompts / QA
