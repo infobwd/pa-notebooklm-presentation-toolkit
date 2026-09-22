@@ -774,6 +774,18 @@ ${r.missing.length ? r.missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่ม�
   form.addEventListener("input", () => save());
   form.addEventListener("change", () => save());
 
+  document.addEventListener("click", e => {
+    const pick = e.target.closest(".quick-pick[data-fill-target]");
+    if (!pick) return;
+    const target = form.elements[pick.dataset.fillTarget];
+    if (!target) return;
+    target.value = pick.dataset.fillValue || "";
+    target.dispatchEvent(new Event("input", {bubbles:true}));
+    document.querySelectorAll(`.quick-pick[data-fill-target="${CSS.escape(pick.dataset.fillTarget)}"]`)
+      .forEach(btn => btn.classList.toggle("selected", btn === pick));
+    target.focus();
+  });
+
   evidenceFiles.addEventListener("change", () => {
     selectedFileNames = [...evidenceFiles.files].map(f => f.name);
     renderFileNames();
