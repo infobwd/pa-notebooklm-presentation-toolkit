@@ -214,3 +214,64 @@ footer {
   .file-card { align-items: flex-start; flex-direction: column; }
   footer { padding: 0 14px 22px; flex-direction: column; }
 }
+
+/* Phase 2 — Preview Studio */
+.preview-studio {
+  margin: 18px 0 20px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: #f9fbfe;
+  overflow: hidden;
+}
+.preview-studio-head {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  gap: 20px; padding: 18px 18px 12px;
+}
+.preview-studio-head h3 { margin: 2px 0 4px; color: var(--navy); font-size: 21px; }
+.preview-studio-head p { margin: 0; color: var(--muted); font-size: 13px; }
+.script-metrics {
+  display: grid; grid-template-columns: repeat(2, minmax(95px,1fr));
+  gap: 7px; min-width: 220px;
+}
+.metric-chip {
+  border: 1px solid var(--border); border-radius: 11px; padding: 8px 10px;
+  background: white; text-align: center;
+}
+.metric-chip strong { display: block; color: var(--navy); font-size: 17px; }
+.metric-chip span { display: block; color: var(--muted); font-size: 11px; }
+.preview-tabs {
+  display: flex; gap: 6px; overflow-x: auto; padding: 0 18px 12px;
+  scrollbar-width: thin;
+}
+.preview-tab {
+  flex: 0 0 auto; border: 1px solid #cbd5e1; background: white; color: #52667a;
+  border-radius: 999px; padding: 7px 11px; font-size: 12px; font-weight: 750;
+}
+.preview-tab.active { background: var(--navy); color: white; border-color: var(--navy); }
+.preview-editor-wrap {
+  border-top: 1px solid var(--border); background: #fff; padding: 14px 18px 18px;
+}
+.preview-toolbar {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  margin-bottom: 10px;
+}
+.preview-toolbar > span { font-weight: 800; color: var(--navy); word-break: break-all; }
+.preview-toolbar > div { display: flex; gap: 7px; }
+.preview-editor {
+  min-height: 440px; width: 100%;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 13px; line-height: 1.6; tab-size: 2;
+  background: #0f1f2e; color: #e8eef6; border: 0;
+  border-radius: 12px; padding: 16px; resize: vertical;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.06);
+}
+.preview-editor:focus { box-shadow: inset 0 0 0 1px #7aa7ff, 0 0 0 3px rgba(36,99,235,.12); }
+.editor-note { margin-top: 8px; color: var(--muted); font-size: 11px; }
+.bundle-note { color: var(--muted); font-size: 12px; margin-top: 6px; }
+
+@media (max-width: 720px) {
+  .preview-studio-head, .preview-toolbar { flex-direction: column; align-items: stretch; }
+  .script-metrics { min-width: 0; width: 100%; }
+  .preview-toolbar > div { flex-wrap: wrap; }
+  .preview-editor { min-height: 360px; }
+}
