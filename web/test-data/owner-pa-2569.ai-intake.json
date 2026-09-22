@@ -1,5 +1,5 @@
 {
-  "schema_version": "pa-toolkit/intake/2.2",
+  "schema_version": "pa-toolkit/intake/3.1",
   "presenterName": "นายนพรุจ ลับบัวงาม",
   "position": "ผู้อำนวยการสถานศึกษา",
   "academicRank": "ชำนาญการพิเศษ",
@@ -19,19 +19,43 @@
       "title": "นักเรียนชั้น ป.3 ผ่านค่าเป้าหมายผลสัมฤทธิ์ทางการเรียนของสถานศึกษา",
       "target": "≥70%",
       "actual": "PENDING",
-      "evidence": "PENDING — ต้องเพิ่มจำนวนผู้เรียนที่ผ่าน/จำนวนนักเรียนทั้งหมดของกลุ่มเป้าหมายในรอบ PA เดียวกัน"
+      "evidence": "PENDING — ต้องเพิ่มจำนวนผู้เรียนที่ผ่าน/จำนวนนักเรียนทั้งหมดของกลุ่มเป้าหมายในรอบ PA เดียวกัน",
+      "actualNumerator": "",
+      "actualDenominator": "",
+      "sourceFile": "",
+      "sourcePage": "",
+      "period": "1 เม.ย. 2569 – 30 ก.ย. 2569",
+      "population": "นักเรียนชั้น ป.3 กลุ่มเป้าหมาย",
+      "cohortId": "PA2569-P3",
+      "verification": "unverified"
     },
     {
       "title": "นักเรียนที่ไม่ผ่านเกณฑ์ได้รับการซ่อมเสริม",
       "target": "100%",
       "actual": "PENDING",
-      "evidence": "PENDING — ต้องเพิ่มจำนวนผู้ไม่ผ่านและจำนวนที่ได้รับการซ่อมเสริม พร้อมหลักฐานติดตาม"
+      "evidence": "PENDING — ต้องเพิ่มจำนวนผู้ไม่ผ่านและจำนวนที่ได้รับการซ่อมเสริม พร้อมหลักฐานติดตาม",
+      "actualNumerator": "",
+      "actualDenominator": "",
+      "sourceFile": "",
+      "sourcePage": "",
+      "period": "1 เม.ย. 2569 – 30 ก.ย. 2569",
+      "population": "นักเรียนชั้น ป.3 กลุ่มเป้าหมาย",
+      "cohortId": "PA2569-P3",
+      "verification": "unverified"
     },
     {
       "title": "นักเรียนมีส่วนร่วมในกิจกรรม/โครงการเพื่อยกระดับผลสัมฤทธิ์",
       "target": "≥80%",
       "actual": "PENDING",
-      "evidence": "PENDING — ต้องเพิ่มจำนวนผู้เข้าร่วม/จำนวนกลุ่มเป้าหมาย พร้อมหลักฐานกิจกรรม"
+      "evidence": "PENDING — ต้องเพิ่มจำนวนผู้เข้าร่วม/จำนวนกลุ่มเป้าหมาย พร้อมหลักฐานกิจกรรม",
+      "actualNumerator": "",
+      "actualDenominator": "",
+      "sourceFile": "",
+      "sourcePage": "",
+      "period": "1 เม.ย. 2569 – 30 ก.ย. 2569",
+      "population": "นักเรียนชั้น ป.3 กลุ่มเป้าหมาย",
+      "cohortId": "PA2569-P3",
+      "verification": "unverified"
     }
   ],
   "learnerOutcome": "PENDING — มีหลักฐานกระบวนการประเมินและซ่อมเสริม แต่ยังต้องเติมผล ACTUAL ของผู้เรียนในรอบเดียวกันก่อนใช้เป็นผลสำเร็จ PA",
@@ -63,5 +87,5 @@
     "Screenshot ระบบ",
     "รางวัล / การยอมรับ"
   ],
-  "importNotes": "OWNER TEST DATA — ใช้สำหรับทดสอบระบบใน repo ของผู้ใช้เอง ข้อมูลระบุตัวตนเป็นข้อมูลด้านวิชาชีพของเจ้าของ repo เท่านั้น ไม่มีข้อมูลส่วนบุคคลของนักเรียน ค่า ACTUAL ของตัวชี้วัด PA ทั้ง 3 รายการจงใจตั้งเป็น PENDING เพื่อทดสอบ guardrail และ readiness; NT 2567/2568 และ SAR เป็น CONTEXT และห้ามตีความเป็น growth ของ cohort เดียวกัน"
+  "importNotes": "OWNER TEST DATA — ใช้สำหรับทดสอบระบบใน repo ของผู้ใช้เอง ข้อมูลระบุตัวตนเป็นข้อมูลด้านวิชาชีพของเจ้าของ repo เท่านั้น ไม่มีข้อมูลส่วนบุคคลของนักเรียน ค่า ACTUAL ของตัวชี้วัด PA ทั้ง 3 รายการจงใจตั้งเป็น PENDING เพื่อทดสอบ guardrail และ readiness; NT 2567/2568 และ SAR เป็น CONTEXT และห้ามตีความเป็น growth ของ cohort เดียวกัน | Phase 3.1: ค่า verification ตั้งเป็น unverified และต้องยืนยันกับต้นฉบับโดยผู้ใช้ก่อน Final"
 }
