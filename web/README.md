@@ -1,4 +1,4 @@
-# Web App — Phase 2.1
+# Web App — Phase 2.2
 
 Static web app สำหรับ Easy Mode ของ PA NotebookLM Presentation Toolkit
 
@@ -14,6 +14,10 @@ Static web app สำหรับ Easy Mode ของ PA NotebookLM Presentation
 - ตัวเลือกแบบ Datalist + Quick Pick สำหรับตำแหน่ง วิทยฐานะ สังกัด Model และแหล่งข้อมูลตั้งต้น
 - Responsive layout สำหรับ Desktop / Tablet / Mobile
 - ใช้ฟอนต์ **Kanit** เป็นฟอนต์หลัก (โหลดจาก Google Fonts พร้อม fallback)
+- แสดง **ตัวอย่างใต้ช่องกรอก** เพื่อช่วยผู้ใช้เข้าใจว่าควรกรอกอะไร
+- **External AI JSON Bridge**: คัดลอก Prompt → ให้ AI ตอบ JSON → ตรวจ JSON → Import เข้าฟอร์ม
+- รองรับ Import แบบเติมเฉพาะช่องว่างหรือแทนข้อมูลเดิม
+- ตรวจ schema, duration, indicators และ evidenceTypes ก่อน Import
 - Preview Studio สำหรับตรวจ/แก้ไขไฟล์ก่อนดาวน์โหลด
 - Script word count + ประมาณเวลาอ่าน
 - Preview tabs สำหรับ Results / Storyboard / Script / Manifest / Prompts / QA
