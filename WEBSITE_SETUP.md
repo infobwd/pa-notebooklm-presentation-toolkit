@@ -1,47 +1,58 @@
 # Website Setup — GitHub Pages
 
-เว็บไซต์ Easy Mode อยู่ในโฟลเดอร์ `web/` และ deploy ด้วย GitHub Actions workflow:
+เว็บไซต์ Easy Mode อยู่ใน `web/` และ Repository นี้เป็น **Public**
 
-`.github/workflows/pages.yml`
+## วิธีเผยแพร่ที่ใช้เป็นค่าเริ่มต้น
 
-## สถานะปัจจุบัน
+แนะนำ GitHub Pages แบบ:
 
-- Static web app: พร้อม
-- JavaScript syntax check: ผ่านใน GitHub Actions
-- GitHub Pages deployment: ต้องเปิด Pages สำหรับ Repository นี้หนึ่งครั้งด้วยสิทธิ์เจ้าของ Repository
+- **Source:** Deploy from a branch
+- **Branch:** `main`
+- **Folder:** `/ (root)`
 
-เนื่องจาก Repository เป็น Private และ GitHub App ที่ใช้แก้ไฟล์ไม่มีสิทธิ์ Administration จึงไม่สามารถเปิด Pages แทนเจ้าของ Repository ได้
+ที่ root มี `index.html` สำหรับพาผู้ใช้เข้า `web/` อัตโนมัติ
 
-## เปิด Pages ครั้งแรก
-
-1. เปิด Repository `infobwd/pa-notebooklm-presentation-toolkit`
-2. ไปที่ **Settings**
-3. เลือก **Pages**
-4. ในส่วน **Build and deployment**
-5. ตั้ง **Source** เป็น **GitHub Actions**
-6. ไปที่แท็บ **Actions**
-7. เปิด workflow **Deploy toolkit website to Pages**
-8. กด **Run workflow**
-
-เมื่อ deploy สำเร็จ URL ที่คาดไว้คือ:
+URL:
 
 `https://infobwd.github.io/pa-notebooklm-presentation-toolkit/`
 
-## หลังเปิดครั้งแรก
+## ตั้งค่าครั้งแรก
 
-ทุกครั้งที่แก้:
-- `web/**`
-- `.github/workflows/pages.yml`
+1. Repository → **Settings**
+2. **Pages**
+3. Build and deployment → Source = **Deploy from a branch**
+4. Branch = **main**
+5. Folder = **/(root)**
+6. Save
 
-workflow จะ deploy เว็บไซต์อัตโนมัติเมื่อ push เข้า `main`
+หลังจากนั้น push เข้า `main` จะ trigger Pages build ตาม GitHub
+
+## GitHub Actions alternative
+
+ไฟล์ `.github/workflows/pages.yml` ยังเก็บไว้เป็นทางเลือกสำหรับอนาคต หากต้องการเปลี่ยน Pages Source เป็น **GitHub Actions**
+
+เพื่อป้องกัน Pages deployment ชนกัน Workflow นี้จึงรันแบบ **manual only** ในสถานะปัจจุบัน
+
+## Phase 2
+
+เว็บไซต์รองรับ:
+- Wizard 8 ขั้นตอน
+- localStorage
+- Import/Export Project JSON
+- Draft/Final readiness
+- Generate Markdown 6 ไฟล์
+- Preview Studio
+- แก้ Markdown ก่อนดาวน์โหลด
+- ประมาณจำนวนคำ/เวลา Script
+- Bundle สำรอง
 
 ## Privacy
 
-Phase 1:
 - ไม่มี backend
 - ไม่มี AI API
-- ฟอร์มบันทึกใน localStorage
-- การ Generate Markdown ทำใน Browser
-- การเลือกไฟล์หลักฐานอ่านเฉพาะชื่อไฟล์ ไม่อัปโหลดไฟล์ด้วยโค้ดของ Toolkit
+- ข้อมูลฟอร์มเก็บใน Browser
+- Generate Markdown ใน Browser
+- การเลือกไฟล์หลักฐานใช้ชื่อไฟล์สำหรับ Manifest ไม่ได้ upload ไฟล์จากโค้ด Toolkit
 
-อย่างไรก็ตาม หากเว็บไซต์ Pages ถูกตั้งให้เข้าถึงแบบสาธารณะ ผู้ใช้ควรหลีกเลี่ยงการกรอกข้อมูลลับหรือข้อมูลส่วนบุคคลที่ไม่จำเป็น
+Repository และเว็บไซต์เป็น Public ดังนั้น **อย่า commit ข้อมูลส่วนบุคคลหรือหลักฐานจริงของผู้รับการประเมินลง Repository นี้**  
+ข้อมูลที่ผู้ใช้กรอกผ่านเว็บไม่ถูก commit เข้า Repository โดยอัตโนมัติ
