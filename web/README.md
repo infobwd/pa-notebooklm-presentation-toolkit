@@ -1,4 +1,4 @@
-# Web App — Phase 1
+# Web App — Phase 2
 
 Static web app สำหรับ Easy Mode ของ PA NotebookLM Presentation Toolkit
 
@@ -11,12 +11,16 @@ Static web app สำหรับ Easy Mode ของ PA NotebookLM Presentation
 - Visual Evidence checklist
 - Readiness check สำหรับ Draft / Final
 - Generate Markdown 6 ไฟล์ใน Browser
+- Preview Studio สำหรับตรวจ/แก้ไขไฟล์ก่อนดาวน์โหลด
+- Script word count + ประมาณเวลาอ่าน
+- Preview tabs สำหรับ Results / Storyboard / Script / Manifest / Prompts / QA
+- ดาวน์โหลดไฟล์รายตัวหรือ Bundle สำรองไฟล์เดียว
 - ไม่เรียก AI API
 - ไม่มี backend
 
 ## Privacy
 
-โค้ด Phase 1 ไม่ส่งข้อมูลที่กรอกไปยัง API ภายนอก ข้อมูลฟอร์มอยู่ใน Browser ของผู้ใช้
+โค้ด Phase 2 ไม่ส่งข้อมูลที่กรอกไปยัง API ภายนอก ข้อมูลฟอร์มอยู่ใน Browser ของผู้ใช้
 
 > หมายเหตุ: หากเผยแพร่เว็บผ่าน GitHub Pages ตัวเว็บเองอาจเข้าถึงได้ตามการตั้งค่า Pages ของ Repository ดังนั้นไม่ควรกรอกข้อมูลส่วนบุคคลที่ไม่จำเป็นหรือข้อมูลลับ
 
