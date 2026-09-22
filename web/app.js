@@ -18,6 +18,42 @@
     "การขยายผล"
   ];
 
+  const AI_SCHEMA_VERSION = "pa-toolkit/intake/2.2";
+
+  const FIELD_EXAMPLES = {
+    presenterName: "นายสมชาย ใจดี",
+    position: "ผู้อำนวยการสถานศึกษา",
+    academicRank: "ชำนาญการพิเศษ",
+    organization: "โรงเรียนตัวอย่างพัฒนา",
+    affiliation: "สำนักงานเขตพื้นที่การศึกษาประถมศึกษา ... เขต ...",
+    paCycle: "1 ต.ค. 2569 – 30 ก.ย. 2570",
+    evaluationPeriod: "1 เม.ย. 2570 – 30 ก.ย. 2570",
+    challengeTitle: "การพัฒนาทักษะการอ่านเพื่อความเข้าใจของผู้เรียนด้วย READ Model",
+    managementModel: "READ Model / PDCA / PLC / แนวทางที่สถานศึกษาพัฒนาขึ้น",
+    baselineSource: "SAR 2569, ผลสัมฤทธิ์, แบบประเมินก่อนเรียน, ข้อมูล PLC",
+    developmentNeed: "ผู้เรียนบางส่วนยังไม่ผ่านเกณฑ์การอ่านจับใจความ และครูยังใช้ข้อมูลรายบุคคลเพื่อปรับการสอนไม่ต่อเนื่อง",
+    contextNotes: "ผลประเมินก่อนพัฒนา 62% ผ่านเกณฑ์\nพบจุดอ่อนด้านการสรุปใจความและการอธิบายเหตุผล",
+    processNotes: "วิเคราะห์ข้อมูลรายบุคคล\nกำหนดเป้าหมาย\nออกแบบกิจกรรม\nPLC สะท้อนผล\nปรับแผนและประเมินซ้ำ",
+    learnerOutcome: "ผู้เรียนอธิบายใจความสำคัญและใช้หลักฐานจากบทอ่านได้ชัดขึ้น",
+    staffOutcome: "ครูใช้ข้อมูลผู้เรียนวางแผนซ่อมเสริมและสะท้อนผลใน PLC ได้เป็นระบบขึ้น",
+    workOutcome: "เกิดวงจรติดตามผลก่อน–หลังในห้องเรียน",
+    organizationOutcome: "สถานศึกษามีข้อมูลภาพรวมเพื่อกำกับติดตามและวางแผนรอบต่อไป",
+    journeyBefore: "นักเรียน A ได้ 8/20 และยังสรุปใจความสำคัญไม่ได้",
+    journeyAction: "ใช้บทอ่านสั้น + graphic organizer + feedback รายกลุ่ม",
+    journeyAfter: "นักเรียน A ได้ 14/20 และอธิบายใจความพร้อมเหตุผลได้",
+    journeyEvidence: "แบบประเมินก่อน–หลังและชิ้นงานที่ปกปิดชื่อ",
+    systems: "Reading Tracker — ติดตามข้อมูลรายบุคคล\nPLC Reflection — ใช้หลักฐานเพื่อปรับการสอน",
+    participationStaff: "ครูร่วมวิเคราะห์ข้อมูล ออกแบบกิจกรรม และสะท้อนผลทุก 2 สัปดาห์",
+    participationLearners: "นักเรียนทำภาระงานและสะท้อนผลการเรียนรู้",
+    participationParents: "ผู้ปกครองช่วยติดตามการอ่านที่บ้านตามแบบบันทึก",
+    participationNetwork: "นำเสนอแนวทางในเครือข่ายโรงเรียน / PENDING หากยังไม่มีหลักฐาน",
+    recognition: "รางวัล/การยอมรับที่เกี่ยวข้องโดยตรงกับงานรอบนี้ หรือเว้นว่างถ้าไม่ใช้",
+    recognitionEvidence: "เกียรติบัตร/ประกาศ/หนังสือรับรอง ลงวันที่ ...",
+    expansionLevel: "ภายในสถานศึกษา / เครือข่าย / เขตพื้นที่ ตามหลักฐานจริง",
+    expansionEvidence: "บันทึกประชุม หนังสือเชิญ ภาพกิจกรรม หรือรายงานที่ยืนยันการขยายผล",
+    policyNotes: "ชื่อ/เลขที่นโยบายจากเอกสารทางการ; ถ้ายังไม่ตรวจให้ใช้ PENDING"
+  };
+
   const form = document.getElementById("wizardForm");
   const panels = [...document.querySelectorAll(".step-panel")];
   const stepLinks = [...document.querySelectorAll(".step-link")];
@@ -30,6 +66,12 @@
   const evidenceChecks = document.getElementById("evidenceChecks");
   const evidenceFiles = document.getElementById("evidenceFiles");
   const selectedFileList = document.getElementById("selectedFileList");
+  const aiJsonModal = document.getElementById("aiJsonModal");
+  const aiPromptPreview = document.getElementById("aiPromptPreview");
+  const aiJsonInput = document.getElementById("aiJsonInput");
+  const aiJsonStatus = document.getElementById("aiJsonStatus");
+  const importAiJsonBtn = document.getElementById("importAiJsonBtn");
+  let validatedAiJson = null;
 
   let currentStep = 0;
   let indicators = [];
@@ -78,6 +120,170 @@
     return base.replace(/[^\p{L}\p{N}\-_]+/gu,"").toLowerCase() || "pa-project";
   }
 
+  function injectFieldExamples() {
+    Object.entries(FIELD_EXAMPLES).forEach(([name, example]) => {
+      const el = form.elements[name];
+      if (!el || el instanceof RadioNodeList) return;
+      const label = el.closest("label");
+      if (!label || label.querySelector(".field-example")) return;
+      const hint = document.createElement("small");
+      hint.className = "field-example";
+      hint.textContent = example;
+      label.appendChild(hint);
+    });
+  }
+
+  function buildExternalAiPrompt() {
+    return `คุณกำลังช่วยเตรียมข้อมูลสำหรับ PA NotebookLM Presentation Toolkit
+
+งานของคุณ:
+1) อ่านเฉพาะเอกสาร/ข้อความ/หลักฐานที่ฉันแนบในบทสนทนานี้
+2) สกัดข้อมูลตาม JSON schema ด้านล่าง
+3) แยก TARGET กับ ACTUAL อย่างเคร่งครัด
+4) CONTEXT หรือข้อมูลคนละรอบ/คนละกลุ่ม ห้ามเขียนเป็น ACTUAL ของรอบปัจจุบัน
+5) ถ้าเอกสารไม่รองรับข้อมูล ให้ใช้สตริงว่าง "" หรือ "PENDING" ห้ามคาดเดา
+6) ถ้าข้อมูลขัดกัน ให้เลือกค่าที่ตรวจสอบไม่ได้เป็น "PENDING" และอธิบายความขัดแย้งใน importNotes
+7) ห้ามสร้างชื่อรางวัล ตัวเลข ผลสอบ นโยบาย หนังสือราชการ หรือหลักฐานที่ไม่มีในเอกสาร
+8) ปกปิดชื่อผู้เรียนหรือข้อมูลส่วนบุคคลที่ไม่จำเป็น
+9) ตอบกลับเป็น JSON object เท่านั้น ห้ามมี Markdown code fence ห้ามมีคำอธิบายก่อนหรือหลัง JSON
+
+JSON ที่ต้องตอบ:
+{
+  "schema_version": "${AI_SCHEMA_VERSION}",
+  "presenterName": "",
+  "position": "",
+  "academicRank": "",
+  "organization": "",
+  "affiliation": "",
+  "paCycle": "",
+  "evaluationPeriod": "",
+  "duration": "5",
+  "challengeTitle": "",
+  "managementModel": "",
+  "baselineSource": "",
+  "developmentNeed": "",
+  "contextNotes": "",
+  "processNotes": "",
+  "indicators": [
+    {
+      "title": "",
+      "target": "",
+      "actual": "",
+      "evidence": ""
+    }
+  ],
+  "learnerOutcome": "",
+  "staffOutcome": "",
+  "workOutcome": "",
+  "organizationOutcome": "",
+  "journeyBefore": "",
+  "journeyAction": "",
+  "journeyAfter": "",
+  "journeyEvidence": "",
+  "systems": "",
+  "participationStaff": "",
+  "participationLearners": "",
+  "participationParents": "",
+  "participationNetwork": "",
+  "recognition": "",
+  "recognitionEvidence": "",
+  "expansionLevel": "",
+  "expansionEvidence": "",
+  "policyNotes": "",
+  "evidenceTypes": [],
+  "importNotes": ""
+}
+
+กติกาเพิ่มเติม:
+- duration ใช้ได้เฉพาะ "5" หรือ "7"
+- indicators เพิ่มได้ตามจำนวนตัวชี้วัดจริง
+- evidenceTypes เลือกได้เฉพาะค่าที่เกี่ยวข้องจากรายการนี้:
+  ${EVIDENCE_OPTIONS.map(x => '"'+x+'"').join(", ")}
+- contextNotes, processNotes และ systems ถ้ามีหลายรายการ ให้คั่นแต่ละรายการด้วยขึ้นบรรทัดใหม่
+- expansionLevel ใช้ข้อความที่สอดคล้องกับหลักฐาน เช่น "ภายในสถานศึกษา/หน่วยงาน", "เครือข่าย", "เขตพื้นที่", "หน่วยงานต้นสังกัด", "ระดับประเทศ" หรือเว้นว่าง
+- ACTUAL ต้องมีหลักฐานรองรับ ถ้ามีค่า ACTUAL แต่ไม่พบหลักฐาน ให้ใส่ evidence เป็น "PENDING" และอธิบายใน importNotes
+- อย่านำข้อมูลจากความรู้ทั่วไปหรือบุคคลอื่นมาเติม
+
+ก่อนตอบ ให้ตรวจ JSON syntax ให้ถูกต้อง และตอบ JSON object เพียงอย่างเดียว`;
+  }
+
+  function parseExternalAiJson(raw) {
+    let text = String(raw || "").trim();
+    if (!text) throw new Error("ยังไม่ได้วาง JSON");
+    text = text.replace(/^\`\`\`(?:json)?\s*/i, "").replace(/\s*\`\`\`$/,"");
+    const data = JSON.parse(text);
+    if (!data || typeof data !== "object" || Array.isArray(data)) throw new Error("JSON ต้องเป็น object");
+    return data;
+  }
+
+  function normalizeAiJson(data) {
+    const warnings = [];
+    const allowedFields = [
+      "presenterName","position","academicRank","organization","affiliation","paCycle","evaluationPeriod",
+      "challengeTitle","managementModel","baselineSource","developmentNeed","contextNotes","processNotes",
+      "learnerOutcome","staffOutcome","workOutcome","organizationOutcome",
+      "journeyBefore","journeyAction","journeyAfter","journeyEvidence",
+      "systems","participationStaff","participationLearners","participationParents","participationNetwork",
+      "recognition","recognitionEvidence","expansionLevel","expansionEvidence","policyNotes"
+    ];
+    const out = {};
+    if (data.schema_version && data.schema_version !== AI_SCHEMA_VERSION) {
+      warnings.push(`schema_version เป็น ${data.schema_version}; ระบบจะพยายามนำเข้าค่าที่รู้จัก`);
+    }
+    allowedFields.forEach(key => {
+      const v = data[key];
+      out[key] = typeof v === "string" ? v.trim() : "";
+      if (v != null && typeof v !== "string") warnings.push(`${key} ไม่ใช่ string จึงไม่ได้นำเข้า`);
+    });
+    out.duration = ["5","7"].includes(String(data.duration)) ? String(data.duration) : "5";
+    if (data.duration != null && !["5","7"].includes(String(data.duration))) warnings.push("duration ไม่ใช่ 5 หรือ 7 จึงใช้ 5 นาที");
+    const rawIndicators = Array.isArray(data.indicators) ? data.indicators : [];
+    out.indicators = rawIndicators.map(item => ({
+      id: cryptoId(),
+      title: typeof item?.title === "string" ? item.title.trim() : "",
+      target: typeof item?.target === "string" ? item.target.trim() : "",
+      actual: typeof item?.actual === "string" ? item.actual.trim() : "",
+      evidence: typeof item?.evidence === "string" ? item.evidence.trim() : ""
+    })).filter(x => x.title || x.target || x.actual || x.evidence);
+    if (!out.indicators.length) warnings.push("ไม่พบ indicators ที่นำเข้าได้");
+    const requestedEvidence = Array.isArray(data.evidenceTypes) ? data.evidenceTypes : [];
+    out.evidenceTypes = requestedEvidence.filter(x => EVIDENCE_OPTIONS.includes(x));
+    const dropped = requestedEvidence.filter(x => !EVIDENCE_OPTIONS.includes(x));
+    if (dropped.length) warnings.push("ตัด evidenceTypes ที่ไม่รู้จัก: " + dropped.join(", "));
+    out.importNotes = typeof data.importNotes === "string" ? data.importNotes.trim() : "";
+    return {out, warnings};
+  }
+
+  function applyAiImport(data, mode = "fill") {
+    const {out, warnings} = normalizeAiJson(data);
+    const current = collectState();
+    const merged = {...current};
+
+    Object.entries(out).forEach(([key,val]) => {
+      if (["indicators","evidenceTypes","importNotes"].includes(key)) return;
+      if (mode === "replace" || !String(current[key] || "").trim()) merged[key] = val;
+    });
+
+    if (out.indicators.length) {
+      if (mode === "replace" || !indicators.some(x => x.title || x.target || x.actual || x.evidence)) {
+        merged.indicators = out.indicators;
+      }
+    }
+
+    if (out.evidenceTypes.length) {
+      merged.evidenceTypes = mode === "replace"
+        ? out.evidenceTypes
+        : [...new Set([...(current.evidenceTypes || []), ...out.evidenceTypes])];
+    }
+
+    merged.currentStep = 0;
+    applyState(merged);
+    injectFieldExamples();
+    save();
+    showStep(0);
+    return {warnings, importNotes: out.importNotes};
+  }
+
   function renderEvidenceChecks(selected = []) {
     evidenceChecks.innerHTML = EVIDENCE_OPTIONS.map((label, i) => {
       const checked = selected.includes(label) ? "checked" : "";
@@ -95,17 +301,22 @@
         <div class="grid two">
           <label class="wide">เรื่อง / ตัวชี้วัด
             <input data-field="title" value="${esc(item.title)}" placeholder="เช่น ผู้เรียนผ่านค่าเป้าหมาย">
+            <small class="field-example">นักเรียนกลุ่มเป้าหมายผ่านเกณฑ์การอ่าน</small>
           </label>
           <label>TARGET
             <input data-field="target" value="${esc(item.target)}" placeholder="เช่น ≥70%">
+            <small class="field-example">≥75% หรือ 100% ของผู้ที่ไม่ผ่านได้รับการซ่อมเสริม</small>
           </label>
           <label>ACTUAL
             <input data-field="actual" value="${esc(item.actual)}" placeholder="ถ้ายังไม่มีให้เว้นว่าง">
+            <small class="field-example">24/30 = 80% หรือ PENDING หากยังไม่มีผลจริง</small>
           </label>
           <label class="wide">หลักฐาน
             <input data-field="evidence" value="${esc(item.evidence)}" placeholder="เช่น แบบประเมิน / log / รายงานผล">
+            <small class="field-example">แบบประเมินปลายรอบ + ตารางสรุปผล / log ที่ตรวจสอบได้</small>
           </label>
         </div>
+        <div class="indicator-example"><strong>หลักคิด:</strong> TARGET = เป้าหมายที่ตกลงไว้ · ACTUAL = ผลจริงของรอบที่มีหลักฐานรองรับ</div>
       </article>`;
   }
 
@@ -131,14 +342,15 @@
     data.indicators = indicators;
     data.selectedFileNames = selectedFileNames;
     data.currentStep = currentStep;
-    data.version = 1;
+    data.version = 2;
+    data.schema_version = "pa-toolkit/project/2.2";
     return data;
   }
 
   function applyState(data) {
     if (!data || typeof data !== "object") return;
     Object.entries(data).forEach(([k,v]) => {
-      if (["evidenceTypes","indicators","selectedFileNames","currentStep","version"].includes(k)) return;
+      if (["evidenceTypes","indicators","selectedFileNames","currentStep","version","schema_version"].includes(k)) return;
       const el = form.elements[k];
       if (!el) return;
       if (el instanceof RadioNodeList) {
@@ -786,6 +998,87 @@ ${r.missing.length ? r.missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่ม�
     target.focus();
   });
 
+  document.getElementById("openAiJsonBtn").addEventListener("click", () => {
+    aiPromptPreview.value = buildExternalAiPrompt();
+    validatedAiJson = null;
+    importAiJsonBtn.disabled = true;
+    aiJsonStatus.className = "json-status neutral";
+    aiJsonStatus.textContent = "วาง JSON ที่ AI ตอบกลับ แล้วกด “ตรวจ JSON”";
+    aiJsonModal.classList.remove("hidden");
+    document.body.style.overflow = "hidden";
+  });
+
+  function closeAiJsonModal() {
+    aiJsonModal.classList.add("hidden");
+    document.body.style.overflow = "";
+  }
+
+  document.getElementById("closeAiJsonBtn").addEventListener("click", closeAiJsonModal);
+  aiJsonModal.addEventListener("click", e => {
+    if (e.target === aiJsonModal) closeAiJsonModal();
+  });
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape" && !aiJsonModal.classList.contains("hidden")) closeAiJsonModal();
+  });
+
+  document.getElementById("copyAiPromptBtn").addEventListener("click", async e => {
+    const prompt = buildExternalAiPrompt();
+    aiPromptPreview.value = prompt;
+    await copyText(prompt);
+    e.currentTarget.textContent = "คัดลอกแล้ว";
+    setTimeout(() => e.currentTarget.textContent = "คัดลอก Prompt", 1100);
+  });
+
+  document.getElementById("aiJsonFileInput").addEventListener("change", async e => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    aiJsonInput.value = await file.text();
+    validatedAiJson = null;
+    importAiJsonBtn.disabled = true;
+    aiJsonStatus.className = "json-status neutral";
+    aiJsonStatus.textContent = "โหลดไฟล์แล้ว กรุณากด “ตรวจ JSON”";
+    e.target.value = "";
+  });
+
+  aiJsonInput.addEventListener("input", () => {
+    validatedAiJson = null;
+    importAiJsonBtn.disabled = true;
+    aiJsonStatus.className = "json-status neutral";
+    aiJsonStatus.textContent = "JSON มีการเปลี่ยนแปลง กรุณาตรวจอีกครั้ง";
+  });
+
+  document.getElementById("validateAiJsonBtn").addEventListener("click", () => {
+    try {
+      const parsed = parseExternalAiJson(aiJsonInput.value);
+      const {out, warnings} = normalizeAiJson(parsed);
+      validatedAiJson = parsed;
+      const filled = Object.entries(out).filter(([k,v]) => !["indicators","evidenceTypes","importNotes"].includes(k) && String(v || "").trim()).length;
+      const indicatorCount = out.indicators.length;
+      importAiJsonBtn.disabled = false;
+      aiJsonStatus.className = "json-status " + (warnings.length ? "warn" : "ok");
+      aiJsonStatus.innerHTML = `<strong>JSON ใช้งานได้</strong> · พบข้อมูล ${filled} ช่อง · ตัวชี้วัด ${indicatorCount} รายการ`
+        + (warnings.length ? `<br>คำเตือน: ${esc(warnings.join(" · "))}` : "")
+        + (out.importNotes ? `<br>หมายเหตุจาก AI: ${esc(out.importNotes)}` : "");
+    } catch (err) {
+      validatedAiJson = null;
+      importAiJsonBtn.disabled = true;
+      aiJsonStatus.className = "json-status error";
+      aiJsonStatus.textContent = "JSON ไม่ถูกต้อง: " + (err?.message || "ไม่ทราบสาเหตุ");
+    }
+  });
+
+  importAiJsonBtn.addEventListener("click", () => {
+    if (!validatedAiJson) return;
+    const mode = document.getElementById("aiImportMode").value;
+    const result = applyAiImport(validatedAiJson, mode);
+    closeAiJsonModal();
+    const extra = [
+      result.warnings.length ? "มีคำเตือน: " + result.warnings.join(" · ") : "",
+      result.importNotes ? "หมายเหตุจาก AI: " + result.importNotes : ""
+    ].filter(Boolean).join("\n");
+    alert("Import JSON เข้าระบบเรียบร้อย" + (extra ? "\n\n" + extra : "") + "\n\nกรุณาตรวจข้อมูลกับเอกสารจริงก่อนใช้เป็น Final");
+  });
+
   evidenceFiles.addEventListener("change", () => {
     selectedFileNames = [...evidenceFiles.files].map(f => f.name);
     renderFileNames();
@@ -865,5 +1158,7 @@ ${r.missing.length ? r.missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่ม�
   });
 
   load();
+  injectFieldExamples();
+  aiPromptPreview.value = buildExternalAiPrompt();
   showStep(currentStep);
 })();
