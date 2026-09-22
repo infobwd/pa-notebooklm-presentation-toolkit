@@ -652,6 +652,12 @@ JSON ที่ต้องตอบ:
   }
 
   function indicatorCard(item, index) {
+    const trace = R.validateIndicatorTrace(item);
+    const calculated = R.formatCalculatedActual(item.actualNumerator, item.actualDenominator, 2);
+    const traceClass = trace.ready ? "ok" : "warn";
+    const traceText = trace.ready
+      ? "ACTUAL มี trace ครบและผู้ใช้ยืนยันต้นฉบับแล้ว"
+      : trace.issues.join(" · ");
     return `
       <article class="indicator-card" data-id="${item.id}">
         <div class="card-head">
@@ -668,7 +674,7 @@ JSON ที่ต้องตอบ:
             <small class="field-example">≥75% หรือ 100% ของผู้ที่ไม่ผ่านได้รับการซ่อมเสริม</small>
           </label>
           <label>ACTUAL
-            <input data-field="actual" value="${esc(item.actual)}" placeholder="ถ้ายังไม่มีให้เว้นว่าง">
+            <input data-field="actual" value="${esc(item.actual)}" placeholder="ถ้ายังไม่มีให้ใช้ PENDING">
             <small class="field-example">24/30 = 80% หรือ PENDING หากยังไม่มีผลจริง</small>
           </label>
           <label class="wide">หลักฐาน
@@ -676,7 +682,45 @@ JSON ที่ต้องตอบ:
             <small class="field-example">แบบประเมินปลายรอบ + ตารางสรุปผล / log ที่ตรวจสอบได้</small>
           </label>
         </div>
-        <div class="indicator-example"><strong>หลักคิด:</strong> TARGET = เป้าหมายที่ตกลงไว้ · ACTUAL = ผลจริงของรอบที่มีหลักฐานรองรับ</div>
+
+        <details class="indicator-trace" ${R.isMeaningful(item.actual) ? "open" : ""}>
+          <summary>Evidence Trace — ที่มา / หน้า / ช่วงเวลา / กลุ่มเป้าหมาย</summary>
+          <div class="trace-grid">
+            <div class="trace-wide trace-calc">
+              <label>จำนวนที่ผ่าน / ตัวตั้ง
+                <input inputmode="decimal" data-field="actualNumerator" value="${esc(item.actualNumerator)}" placeholder="เช่น 24">
+              </label>
+              <label>จำนวนทั้งหมด / ตัวหาร
+                <input inputmode="decimal" data-field="actualDenominator" value="${esc(item.actualDenominator)}" placeholder="เช่น 30">
+              </label>
+              <div class="trace-calc-output" data-calc-output>${esc(calculated || "ยังไม่คำนวณ")}</div>
+            </div>
+            <label>ไฟล์ต้นทาง
+              <input data-field="sourceFile" value="${esc(item.sourceFile)}" placeholder="เช่น results.pdf">
+            </label>
+            <label>หน้า / ตำแหน่ง
+              <input data-field="sourcePage" value="${esc(item.sourcePage)}" placeholder="เช่น 4 หรือ ตาราง 2">
+            </label>
+            <label>ช่วงเวลา
+              <input data-field="period" value="${esc(item.period)}" placeholder="เช่น 1 เม.ย. – 30 ก.ย. 2570">
+            </label>
+            <label>กลุ่มเป้าหมาย / ประชากร
+              <input data-field="population" value="${esc(item.population)}" placeholder="เช่น นักเรียน ป.3 จำนวน 30 คน">
+            </label>
+            <label>Cohort / กลุ่มเดียวกัน
+              <input data-field="cohortId" value="${esc(item.cohortId)}" placeholder="เช่น P3-2570">
+            </label>
+            <label>การตรวจต้นฉบับ
+              <select data-field="verification">
+                <option value="unverified" ${item.verification !== "verified" ? "selected" : ""}>ยังไม่ได้ยืนยัน</option>
+                <option value="verified" ${item.verification === "verified" ? "selected" : ""}>ตรวจต้นฉบับแล้ว</option>
+              </select>
+            </label>
+          </div>
+          <div class="trace-status ${traceClass}" data-trace-status>${esc(traceText)}</div>
+        </details>
+
+        <div class="indicator-example"><strong>Phase 3.1:</strong> ACTUAL จะนับว่า “พร้อม Final” เมื่อมีหลักฐาน ไฟล์ต้นทาง ช่วงเวลา กลุ่มเป้าหมาย และผู้ใช้ยืนยันกับต้นฉบับแล้ว</div>
       </article>`;
   }
 
@@ -699,16 +743,17 @@ JSON ที่ต้องตอบ:
       if (k !== "evidenceType") data[k] = v;
     });
     data.evidenceTypes = [...document.querySelectorAll('input[name="evidenceType"]:checked')].map(x => x.value);
-    data.indicators = indicators;
+    data.indicators = indicators.map(item => R.normalizeIndicator(item));
     data.selectedFileNames = selectedFileNames;
     data.currentStep = currentStep;
-    data.version = 2;
-    data.schema_version = "pa-toolkit/project/2.2";
+    data.version = 3;
+    data.schema_version = M.PROJECT_SCHEMA;
     return data;
   }
 
   function applyState(data) {
     if (!data || typeof data !== "object") return;
+    data = M.migrateProject(data);
     Object.entries(data).forEach(([k,v]) => {
       if (["evidenceTypes","indicators","selectedFileNames","currentStep","version","schema_version"].includes(k)) return;
       const el = form.elements[k];
@@ -720,7 +765,9 @@ JSON ที่ต้องตอบ:
         el.value = v ?? "";
       }
     });
-    indicators = Array.isArray(data.indicators) && data.indicators.length ? data.indicators : defaultIndicators();
+    indicators = Array.isArray(data.indicators) && data.indicators.length
+      ? data.indicators.map(item => ({...R.normalizeIndicator(item), id:item.id || cryptoId()}))
+      : defaultIndicators();
     selectedFileNames = Array.isArray(data.selectedFileNames) ? data.selectedFileNames : [];
     renderIndicators();
     renderEvidenceChecks(Array.isArray(data.evidenceTypes) ? data.evidenceTypes : []);
@@ -778,11 +825,12 @@ JSON ที่ต้องตอบ:
       ["Model / แนวทางหลัก", value("managementModel")],
       ["กระบวนการดำเนินงาน", value("processNotes")]
     ];
-    const indicatorTargets = indicators.map((x,i) => [`TARGET ตัวชี้วัด ${i+1}`, x.title && x.target]);
-    const indicatorActuals = indicators.map((x,i) => [`ACTUAL ตัวชี้วัด ${i+1}`, x.actual && x.evidence]);
+    const indicatorTargets = indicators.map((x,i) => [`TARGET ตัวชี้วัด ${i+1}`, R.isMeaningful(x.title) && R.isMeaningful(x.target)]);
+    const traces = indicators.map(item => R.validateIndicatorTrace(item));
+    const indicatorActuals = traces.map((trace,i) => [`ACTUAL ตัวชี้วัด ${i+1}`, trace.ready]);
     const qual = [
-      ["ผลเชิงคุณภาพ", value("learnerOutcome") || value("staffOutcome") || value("workOutcome") || value("organizationOutcome")],
-      ["Journey ก่อน–หลัง", value("journeyBefore") && value("journeyAfter") && value("journeyEvidence")]
+      ["ผลเชิงคุณภาพ", R.isMeaningful(value("learnerOutcome")) || R.isMeaningful(value("staffOutcome")) || R.isMeaningful(value("workOutcome")) || R.isMeaningful(value("organizationOutcome"))],
+      ["Journey ก่อน–หลัง", R.isMeaningful(value("journeyBefore")) && R.isMeaningful(value("journeyAfter")) && R.isMeaningful(value("journeyEvidence"))]
     ];
     const visuals = [...document.querySelectorAll('input[name="evidenceType"]:checked')].length;
 
@@ -791,17 +839,28 @@ JSON ที่ต้องตอบ:
 
     const score = arr => Math.round(arr.filter(([,v]) => Boolean(v)).length / arr.length * 100);
     const missing = finalChecks.filter(([,v]) => !v).map(([label]) => label);
+    const traceIssues = [];
+    traces.forEach((trace,i) => {
+      if (!trace.ready) trace.issues.forEach(issue => traceIssues.push(`ตัวชี้วัด ${i+1}: ${issue}`));
+    });
 
-    const actualCount = indicators.filter(x => x.actual && x.evidence).length;
+    const actualCount = traces.filter(x => x.ready).length;
+    const hasActualCount = traces.filter(x => x.hasActual).length;
+    const tracePendingCount = traces.filter(x => x.hasActual && !x.ready).length;
     const pendingCount = indicators.length - actualCount;
+    const finalScore = score(finalChecks);
 
     return {
       draft: score(draftChecks),
-      final: score(finalChecks),
+      final: finalScore,
       missing,
+      traceIssues,
       actualCount,
+      hasActualCount,
+      tracePendingCount,
+      conflictCount:lastConflictCount,
       pendingCount,
-      finalReady: score(finalChecks) === 100
+      finalReady: finalScore === 100 && lastConflictCount === 0
     };
   }
 
@@ -815,20 +874,27 @@ JSON ที่ต้องตอบ:
     const state = document.getElementById("readinessState");
     state.className = "readiness-state " + (r.finalReady ? "ready" : "draft");
     state.textContent = r.finalReady
-      ? "READY FOR FINAL — ข้อมูลหลักครบตามกฎของ Toolkit"
-      : "DRAFT — ยังมีข้อมูลสำคัญที่ควรเติมก่อนใช้เป็น Final";
+      ? "READY FOR FINAL — ACTUAL ผ่าน Evidence Trace และไม่มี conflict ค้าง"
+      : "DRAFT — ยังมีข้อมูล/หลักฐานที่ต้องตรวจให้ครบก่อน Final";
 
     document.getElementById("statusSummary").innerHTML = [
       `<span class="tag fact">FACT: ข้อมูลพื้นฐาน</span>`,
-      `<span class="tag target">TARGET: ${indicators.filter(x=>x.target).length}</span>`,
-      `<span class="tag actual">ACTUAL: ${r.actualCount}</span>`,
+      `<span class="tag target">TARGET: ${indicators.filter(x=>R.isMeaningful(x.target)).length}</span>`,
+      `<span class="tag actual">ACTUAL VERIFIED: ${r.actualCount}</span>`,
       `<span class="tag context">CONTEXT: ${lines(value("contextNotes")).length}</span>`,
       `<span class="tag pending">PENDING: ${r.pendingCount + r.missing.length}</span>`
     ].join("");
 
-    document.getElementById("missingList").innerHTML = r.missing.length
-      ? "<h3>สิ่งที่ยังขาด</h3>" + r.missing.map(x => `<div class="missing-item">${esc(x)}</div>`).join("")
-      : '<div class="tip"><strong>ครบ:</strong> ไม่มีรายการสำคัญค้างตาม checklist อัตโนมัติ</div>';
+    document.getElementById("integritySummary").innerHTML = [
+      `<article class="integrity-card"><strong>${r.actualCount}/${indicators.length}</strong><span>ACTUAL trace ครบ + verified</span></article>`,
+      `<article class="integrity-card"><strong>${r.tracePendingCount}</strong><span>มี ACTUAL แต่ trace ยังไม่ครบ</span></article>`,
+      `<article class="integrity-card"><strong>${r.conflictCount}</strong><span>Import conflicts ที่ยังค้าง</span></article>`
+    ].join("");
+
+    const allMissing = [...new Set([...r.missing, ...r.traceIssues])];
+    document.getElementById("missingList").innerHTML = allMissing.length
+      ? "<h3>สิ่งที่ยังขาด / ต้องตรวจ</h3>" + allMissing.map(x => `<div class="missing-item">${esc(x)}</div>`).join("")
+      : '<div class="tip"><strong>ครบ:</strong> ไม่มีรายการสำคัญค้างตาม Evidence & Reliability checklist</div>';
   }
 
   function renderFileNames() {
@@ -842,11 +908,24 @@ JSON ที่ต้องตอบ:
   function buildResultsSource() {
     syncIndicatorsFromDom();
     const targetLines = indicators.map((x,i) => `- **TARGET ${i+1}:** ${safe(x.title)} — ${safe(x.target)}`);
-    const actualLines = indicators.map((x,i) => `- **ACTUAL ${i+1}:** ${safe(x.title)} — ${safe(x.actual)} | หลักฐาน: ${safe(x.evidence)}`);
+    const actualLines = indicators.map((x,i) => {
+      const trace = R.validateIndicatorTrace(x);
+      return [
+        `- **ACTUAL ${i+1}:** ${safe(x.title)} — ${safe(x.actual)}`,
+        `  - Evidence: ${safe(x.evidence)}`,
+        `  - Source: ${safe(x.sourceFile)}${x.sourcePage ? " | หน้า/ตำแหน่ง: " + x.sourcePage : ""}`,
+        `  - Period: ${safe(x.period)}`,
+        `  - Population: ${safe(x.population)}`,
+        `  - Cohort: ${safe(x.cohortId)}`,
+        `  - Verification: ${x.verification === "verified" ? "VERIFIED BY USER" : "UNVERIFIED"}`,
+        `  - Trace status: ${trace.ready ? "READY" : "PENDING — " + trace.issues.join("; ")}`
+      ].join("\n");
+    });
     return `---
 document_type: "presentation_results"
 presenter_name: "${safe(value("presenterName"))}"
 status: "${getReadiness().finalReady ? "final_candidate" : "draft_pending_evidence"}"
+schema: "pa-toolkit/project/3.1"
 ---
 
 # Presentation Results Source
@@ -900,7 +979,7 @@ ${lines(value("processNotes")).length ? lines(value("processNotes")).map((x,i)=>
 
 ${targetLines.join("\n")}
 
-### ACTUAL
+### ACTUAL + EVIDENCE TRACE
 
 ${actualLines.join("\n")}
 
@@ -933,9 +1012,11 @@ ${mdList(lines(value("systems")))}
 - หลักฐานการขยายผล: ${safe(value("expansionEvidence"))}
 - Policy Alignment: ${safe(value("policyNotes"))}
 
-## 11. PENDING
+## 11. PENDING / RELIABILITY CHECK
 
-${getReadiness().missing.length ? getReadiness().missing.map(x=>"- "+x).join("\n") : "- ไม่มีรายการหลักค้างตาม checklist อัตโนมัติ"}
+${[...new Set([...getReadiness().missing, ...getReadiness().traceIssues])].length
+  ? [...new Set([...getReadiness().missing, ...getReadiness().traceIssues])].map(x=>"- "+x).join("\n")
+  : "- ไม่มีรายการหลักค้างตาม checklist อัตโนมัติ"}
 
 ## NotebookLM Guardrails
 
@@ -943,6 +1024,8 @@ ${getReadiness().missing.length ? getReadiness().missing.map(x=>"- "+x).join("\n
 - ห้ามแต่งตัวเลขหรือหลักฐาน
 - CONTEXT ไม่ใช่ผลสำเร็จของรอบปัจจุบันโดยอัตโนมัติ
 - PENDING ต้องคงเป็น PENDING จนกว่าจะมีหลักฐาน
+- ACTUAL ต้องผูกกับ Source / Period / Population และผ่านการยืนยันต้นฉบับโดยผู้ใช้
+- Before/After ต้องเป็น cohort/population ที่เปรียบเทียบกันได้
 - หากข้อมูลขัดกัน ให้แจ้งผู้ใช้ก่อนสรุป
 `;
   }
