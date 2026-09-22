@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css?v=2.1">
+  <link rel="stylesheet" href="./styles.css?v=2.2">
 </head>
 <body>
   <header class="topbar">
@@ -22,6 +22,7 @@
     </div>
     <div class="top-actions">
       <span class="local-badge" title="ข้อมูลฟอร์มถูกเก็บในเบราว์เซอร์เครื่องนี้">● Local only</span>
+      <button class="btn btn-ai" id="openAiJsonBtn" type="button">AI JSON Assistant</button>
       <button class="btn btn-ghost" id="exportProjectBtn" type="button">ส่งออกโปรเจกต์</button>
       <label class="btn btn-ghost file-label">
         นำเข้าโปรเจกต์
@@ -336,6 +337,69 @@
     </section>
   </main>
 
+  <div class="modal-backdrop hidden" id="aiJsonModal" role="dialog" aria-modal="true" aria-labelledby="aiJsonTitle">
+    <section class="modal-card">
+      <div class="modal-head">
+        <div>
+          <p class="eyebrow">PHASE 2.2 · EXTERNAL AI BRIDGE</p>
+          <h2 id="aiJsonTitle">ถาม AI ภายนอก → รับ JSON → Import เข้าระบบ</h2>
+          <p>ใช้ Prompt มาตรฐานเพื่อให้ AI ภายนอกอ่านเอกสารของคุณและตอบกลับเป็น JSON ที่เว็บนี้นำเข้าได้</p>
+        </div>
+        <button class="modal-close" id="closeAiJsonBtn" type="button" aria-label="ปิด">×</button>
+      </div>
+
+      <div class="ai-bridge-grid">
+        <article class="ai-card">
+          <div class="ai-card-head">
+            <div>
+              <span class="step-badge">1</span>
+              <strong>คัดลอก JSON Prompt</strong>
+            </div>
+            <button class="btn btn-secondary" id="copyAiPromptBtn" type="button">คัดลอก Prompt</button>
+          </div>
+          <p>นำ Prompt นี้ไปใช้กับ ChatGPT, Gemini, Claude หรือ AI อื่น พร้อมแนบเอกสาร PA/รายงาน/หลักฐานที่ต้องการให้ช่วยสกัดข้อมูล</p>
+          <textarea id="aiPromptPreview" class="code-box" readonly spellcheck="false"></textarea>
+          <div class="tip compact"><strong>สำคัญ:</strong> ให้ AI ตอบเป็น JSON เท่านั้น และอย่าให้ AI เดาตัวเลข ACTUAL หรือหลักฐานที่ไม่มีในเอกสาร</div>
+        </article>
+
+        <article class="ai-card">
+          <div class="ai-card-head">
+            <div>
+              <span class="step-badge">2</span>
+              <strong>วาง JSON ที่ AI ตอบกลับ</strong>
+            </div>
+            <label class="btn btn-ghost file-label">
+              เปิดไฟล์ JSON
+              <input id="aiJsonFileInput" type="file" accept=".json,application/json" hidden>
+            </label>
+          </div>
+
+          <textarea id="aiJsonInput" class="code-box import-box" spellcheck="false" placeholder='วาง JSON ที่นี่ เช่น {"schema_version":"pa-toolkit/intake/2.2", ...}'></textarea>
+
+          <div class="import-options">
+            <label>วิธีนำเข้า
+              <select id="aiImportMode">
+                <option value="fill">เติมเฉพาะช่องที่ยังว่าง — แนะนำ</option>
+                <option value="replace">แทนข้อมูลในฟอร์มด้วย JSON</option>
+              </select>
+            </label>
+            <div class="import-actions">
+              <button class="btn btn-secondary" id="validateAiJsonBtn" type="button">ตรวจ JSON</button>
+              <button class="btn btn-primary" id="importAiJsonBtn" type="button" disabled>Import เข้าระบบ</button>
+            </div>
+          </div>
+
+          <div id="aiJsonStatus" class="json-status neutral">ยังไม่ได้ตรวจ JSON</div>
+        </article>
+      </div>
+
+      <div class="privacy-note">
+        <strong>ขอบเขตความน่าเชื่อถือ</strong>
+        <p>การ Import ช่วยกรอกฟอร์มเท่านั้น ไม่ถือว่า AI ได้ยืนยันหลักฐาน ผู้ใช้ยังต้องตรวจ FACT / TARGET / ACTUAL / CONTEXT / PENDING กับเอกสารจริงก่อน Final</p>
+      </div>
+    </section>
+  </div>
+
   <datalist id="positionOptions">
     <option value="ครูผู้ช่วย"></option>
     <option value="ครู"></option>
@@ -389,10 +453,10 @@
   </datalist>
 
   <footer>
-    <span>PA NotebookLM Presentation Toolkit · Phase 2.1 Responsive UX</span>
+    <span>PA NotebookLM Presentation Toolkit · Phase 2.2 AI JSON Import</span>
     <span>ข้อมูลฟอร์มบันทึกใน localStorage ของเบราว์เซอร์</span>
   </footer>
 
-  <script src="./app.js?v=2.1"></script>
+  <script src="./app.js?v=2.2"></script>
 </body>
 </html>
