@@ -48,6 +48,8 @@ Browser ดาวน์โหลด library code จาก CDN แต่ Toolkit
 
 ## Source Selection
 
+หลัง extraction ผู้ใช้สามารถกำหนด **Document Role** (PA Agreement / Performance Report / SAR / Assessment / Policy / Award / Evidence / Other) และสำหรับ PDF สามารถเลือกหน้าที่จะส่งให้ AI เช่น `1-3,5,8`
+
 หลัง extraction ผู้ใช้:
 - เลือก/ยกเลิกเอกสารที่จะใช้กับ AI
 - ลบเอกสารจาก session
@@ -84,11 +86,20 @@ Browser ดาวน์โหลด library code จาก CDN แต่ Toolkit
 
 Raw text จงใจอยู่เฉพาะ session เพื่อจำกัดการเก็บข้อมูลโดยไม่จำเป็น
 
-## Next candidates
+## Phase 3.1 ที่ทำต่อแล้ว
 
-Phase 3.x ที่เป็นไปได้:
+ดู `docs/phase_3_1_evidence_reliability.md`
+
+เพิ่มแล้ว:
+- source-page mapping สำหรับ ACTUAL
+- document role tagging
+- PDF page selection
+- conflict detection
+- pre-import review
+- project/intake schema migration
+- automated reliability tests
+
+สิ่งที่ยังเป็น candidate:
 - local OCR แบบ opt-in
 - text chunking สำหรับเอกสารยาว
-- source-page citations / page mapping
-- document role tagging เช่น PA / SAR / Result / Policy / Award
-- duplicate/conflict detection ก่อนส่ง AI
+- duplicate document detection
