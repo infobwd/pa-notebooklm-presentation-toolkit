@@ -1,6 +1,10 @@
 (() => {
   "use strict";
 
+  const R = window.PAToolkitReliability;
+  const M = window.PAToolkitMigrations;
+  if (!R || !M) throw new Error("Phase 3.1 reliability modules failed to load");
+
   const STORAGE_KEY = "pa-notebooklm-toolkit-v1";
   const EVIDENCE_OPTIONS = [
     "ภาพผู้รับการประเมิน",
@@ -18,7 +22,53 @@
     "การขยายผล"
   ];
 
-  const AI_SCHEMA_VERSION = "pa-toolkit/intake/2.2";
+  const AI_SCHEMA_VERSION = M.INTAKE_SCHEMA;
+
+  const DOCUMENT_ROLES = [
+    ["pa_agreement", "PA Agreement / ข้อตกลง"],
+    ["performance_report", "Performance Report / รายงานผล"],
+    ["sar_context", "SAR / CONTEXT"],
+    ["assessment_result", "Assessment Result / ผลประเมิน"],
+    ["policy", "Policy / นโยบาย"],
+    ["award", "Award / Recognition"],
+    ["evidence", "Evidence / หลักฐานประกอบ"],
+    ["other", "Other / อื่น ๆ"]
+  ];
+
+  const REVIEW_FIELD_LABELS = {
+    presenterName:"ชื่อ-นามสกุล",
+    position:"ตำแหน่ง",
+    academicRank:"วิทยฐานะ",
+    organization:"สถานศึกษา/หน่วยงาน",
+    affiliation:"สังกัด",
+    paCycle:"รอบ PA",
+    evaluationPeriod:"ช่วงผลการปฏิบัติงาน",
+    duration:"เวลานำเสนอ",
+    challengeTitle:"ประเด็นท้าทาย",
+    managementModel:"Model / แนวทาง",
+    baselineSource:"แหล่งข้อมูลตั้งต้น",
+    developmentNeed:"ปัญหา/ความต้องการจำเป็น",
+    contextNotes:"ข้อมูลบริบท",
+    processNotes:"กระบวนการ",
+    learnerOutcome:"ผลต่อผู้เรียน",
+    staffOutcome:"ผลต่อครู/บุคลากร",
+    workOutcome:"ผลต่อห้องเรียน/งาน",
+    organizationOutcome:"ผลต่อสถานศึกษา",
+    journeyBefore:"Journey ก่อนพัฒนา",
+    journeyAction:"Journey การดำเนินการ",
+    journeyAfter:"Journey หลังพัฒนา",
+    journeyEvidence:"หลักฐาน Journey",
+    systems:"ระบบ/นวัตกรรม",
+    participationStaff:"การมีส่วนร่วมครู",
+    participationLearners:"การมีส่วนร่วมผู้เรียน",
+    participationParents:"ผู้ปกครอง/ชุมชน",
+    participationNetwork:"เครือข่าย",
+    recognition:"รางวัล/การยอมรับ",
+    recognitionEvidence:"หลักฐานรางวัล",
+    expansionLevel:"ระดับการขยายผล",
+    expansionEvidence:"หลักฐานการขยายผล",
+    policyNotes:"Policy Alignment"
+  };
 
   const FIELD_EXAMPLES = {
     presenterName: "นายสมชาย ใจดี",
@@ -77,7 +127,12 @@
   const aiJsonInput = document.getElementById("aiJsonInput");
   const aiJsonStatus = document.getElementById("aiJsonStatus");
   const importAiJsonBtn = document.getElementById("importAiJsonBtn");
+  const aiImportReview = document.getElementById("aiImportReview");
+  const aiImportReviewRows = document.getElementById("aiImportReviewRows");
+  const aiConflictBadge = document.getElementById("aiConflictBadge");
   let validatedAiJson = null;
+  let importReviewDecisions = {};
+  let lastConflictCount = 0;
 
   let currentStep = 0;
   let indicators = [];
@@ -88,12 +143,9 @@
   let extractedDocuments = [];
   let externalSourceText = "";
 
-  const defaultIndicators = () => [1,2,3].map(n => ({
+  const defaultIndicators = () => [1,2,3].map(() => R.normalizeIndicator({
     id: cryptoId(),
-    title: "",
-    target: "",
-    actual: "",
-    evidence: ""
+    verification: "unverified"
   }));
 
   function cryptoId() {
