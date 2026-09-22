@@ -1,5 +1,5 @@
 {
-  "schema_version": "pa-toolkit/intake/2.2",
+  "schema_version": "pa-toolkit/intake/3.1",
   "presenterName": "นายตัวอย่าง การศึกษา",
   "position": "ผู้อำนวยการสถานศึกษา",
   "academicRank": "ชำนาญการพิเศษ",
@@ -19,7 +19,15 @@
       "title": "นักเรียนกลุ่มเป้าหมายผ่านเกณฑ์การอ่าน",
       "target": "≥75%",
       "actual": "24/30 = 80%",
-      "evidence": "แบบประเมินปลายรอบ + ตารางสรุปผล"
+      "evidence": "แบบประเมินปลายรอบ + ตารางสรุปผล",
+      "actualNumerator": "24",
+      "actualDenominator": "30",
+      "sourceFile": "assessment-results.pdf",
+      "sourcePage": "4",
+      "period": "1 เม.ย. 2570 – 30 ก.ย. 2570",
+      "population": "นักเรียนกลุ่มเป้าหมาย 30 คน",
+      "cohortId": "P3-2570",
+      "verification": "unverified"
     }
   ],
   "learnerOutcome": "ผู้เรียนอธิบายใจความสำคัญได้ชัดขึ้น",
@@ -40,6 +48,9 @@
   "expansionLevel": "ภายในสถานศึกษา/หน่วยงาน",
   "expansionEvidence": "บันทึกประชุมกลุ่มงาน",
   "policyNotes": "PENDING",
-  "evidenceTypes": ["ภาพกิจกรรมจริง", "กราฟผล ACTUAL"],
+  "evidenceTypes": [
+    "ภาพกิจกรรมจริง",
+    "กราฟผล ACTUAL"
+  ],
   "importNotes": "FICTIONAL SAMPLE — ห้ามใช้เป็นข้อมูลจริง"
 }
