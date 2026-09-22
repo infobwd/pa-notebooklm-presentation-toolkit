@@ -1,4 +1,6 @@
 const assert = require("assert");
+const fs = require("fs");
+const path = require("path");
 const R = require("../js/reliability.js");
 global.PAToolkitReliability = R;
 const M = require("../js/migrations.js");
@@ -60,3 +62,21 @@ assert.strictEqual(oldProject.version, 3);
 assert.strictEqual(oldProject.indicators[0].verification, "unverified");
 
 console.log("Phase 3.1 reliability tests: PASS");
+
+
+const ownerIntake = JSON.parse(
+  fs.readFileSync(path.join(__dirname, "../test-data/owner-pa-2569.ai-intake.json"), "utf8")
+);
+assert.strictEqual(ownerIntake.schema_version, "pa-toolkit/intake/3.1");
+assert.strictEqual(ownerIntake.indicators.length, 3);
+ownerIntake.indicators.forEach((item) => {
+  assert.strictEqual(item.actual, "PENDING");
+  assert.strictEqual(R.validateIndicatorTrace(item).ready, false);
+  assert.strictEqual(item.verification, "unverified");
+});
+
+const ownerProject = JSON.parse(
+  fs.readFileSync(path.join(__dirname, "../test-data/owner-pa-2569.project.json"), "utf8")
+);
+assert.strictEqual(ownerProject.schema_version, "pa-toolkit/project/3.1");
+assert.strictEqual(ownerProject.version, 3);
