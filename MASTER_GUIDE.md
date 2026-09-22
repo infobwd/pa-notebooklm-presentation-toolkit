@@ -1,5 +1,16 @@
 # Master Guide — PA Presentation with NotebookLM
 
+## 0. Easy Mode และ Advanced Mode
+
+Toolkit นี้มี 2 ทางเข้า:
+
+- **EASY MODE** — ผู้ใช้กรอก Input Form เดียว แล้วให้ AI สร้าง Sources/Storyboard/Script/Prompts ให้
+- **ADVANCED MODE** — ผู้ใช้ควบคุม Template และ Source Governance ด้วยตนเอง
+
+เริ่มต้นจาก `START_HERE.md`
+
+> Easy Mode เป็นเพียงหน้าบ้านที่ง่ายขึ้น ส่วนกฎ FACT/TARGET/ACTUAL/CONTEXT/PENDING และ QA ยังคงใช้หลักเดียวกับ Advanced Mode
+
 ## 1. วัตถุประสงค์
 
 Toolkit นี้ช่วยเปลี่ยนเอกสารประเมินจำนวนมากให้เป็นชุด Sources ที่ NotebookLM ใช้สร้าง Slide Deck และ Video Overview ได้อย่างมีการควบคุม โดยลดความเสี่ยงจาก:
