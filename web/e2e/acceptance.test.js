@@ -63,12 +63,42 @@ async function acceptance() {
     await page.getByRole("heading", { name: "TARGET & ACTUAL" }).waitFor({ state: "visible" });
   });
 
-  await withPage("mobile responsive", { width: 390, height: 844 }, async page => {
+  await withPage("mobile responsive and AI modal fits viewport", { width: 390, height: 844 }, async page => {
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     if (overflow > 2) throw new Error("mobile horizontal overflow: " + overflow);
+
+    await page.locator("#openAiJsonBtn").click();
+    await page.locator("#aiJsonModal").waitFor({ state: "visible" });
+    const modalOverflow = await page.locator("#aiJsonModal .modal-card").evaluate(el => el.scrollWidth - el.clientWidth);
+    if (modalOverflow > 2) throw new Error("AI modal horizontal overflow: " + modalOverflow);
+    await page.locator("#closeAiJsonBtn").click();
+
     await clickStep(page, 6);
     await page.getByRole("heading", { name: "ตรวจความพร้อม" }).waitFor({ state: "visible" });
     await page.locator("#projectDashboardGrid").waitFor({ state: "visible" });
+  });
+
+  await withPage("Step 2 multiline fields and Step 3 TARGET helper", { width: 1280, height: 900 }, async page => {
+    await clickStep(page, 1);
+
+    const modelEditor = page.locator('[data-smart-field="managementModel"] .rich-editor');
+    await modelEditor.fill("READ Model\nReview Data → Act → Discuss");
+    const modelValue = await page.locator('textarea[name="managementModel"]').inputValue();
+    if (!modelValue.includes("\n")) throw new Error("managementModel did not preserve multiline content");
+
+    await page.locator('.quick-pick[data-fill-target="baselineSource"][data-fill-value*="SAR"]').click();
+    await page.locator('.quick-pick[data-fill-target="baselineSource"][data-fill-value*="ผลสัมฤทธิ์"]').click();
+    const baselineValue = await page.locator('textarea[name="baselineSource"]').inputValue();
+    if (!baselineValue.includes("\n")) throw new Error("baselineSource did not append multiple lines");
+
+    await clickStep(page, 2);
+    const firstCard = page.locator(".indicator-card").first();
+    const target = firstCard.locator('[data-field="target"]');
+    await target.fill("70");
+    await firstCard.locator('[data-target-prefix="≥"]').click();
+    await firstCard.locator('[data-target-suffix="%"]').click();
+    const targetValue = await target.inputValue();
+    if (targetValue !== "≥70%") throw new Error("TARGET helper expected ≥70%, got " + targetValue);
   });
 
   await withPage("owner data import requires review and remains draft", { width: 1280, height: 900 }, async page => {
