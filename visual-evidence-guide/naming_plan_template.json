@@ -1,0 +1,39 @@
+{
+  "schema_version": "pa-toolkit/visual-naming-plan/1",
+  "title": "My PA Visual Evidence Naming Plan",
+  "slots": [
+    {
+      "id": "10_presenter",
+      "order": 10,
+      "filename": "10_presenter_01.jpg",
+      "label": "ภาพผู้รับการประเมิน",
+      "evidenceType": "ภาพผู้รับการประเมิน",
+      "aliases": [
+        "presenter",
+        "director"
+      ]
+    },
+    {
+      "id": "11_organization",
+      "order": 11,
+      "filename": "11_organization_01.jpg",
+      "label": "ภาพสถานศึกษา/หน่วยงาน",
+      "evidenceType": "ภาพสถานศึกษา/หน่วยงาน",
+      "aliases": [
+        "school",
+        "organization"
+      ]
+    },
+    {
+      "id": "12_model",
+      "order": 12,
+      "filename": "12_model_framework.png",
+      "label": "Model / Framework",
+      "evidenceType": "Model / Framework",
+      "aliases": [
+        "model",
+        "framework"
+      ]
+    }
+  ]
+}
