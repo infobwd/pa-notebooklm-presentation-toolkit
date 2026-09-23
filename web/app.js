@@ -1423,6 +1423,11 @@ JSON ที่ต้องตอบ:
 
   function renderReadiness() {
     const r = getReadiness();
+    const audit = getDocumentAudit();
+
+    renderProjectDashboard(r, audit);
+    renderSourceAudit(audit);
+
     document.getElementById("draftScore").textContent = r.draft + "%";
     document.getElementById("finalScore").textContent = r.final + "%";
     document.getElementById("draftBar").style.width = r.draft + "%";
@@ -1431,7 +1436,7 @@ JSON ที่ต้องตอบ:
     const state = document.getElementById("readinessState");
     state.className = "readiness-state " + (r.finalReady ? "ready" : "draft");
     state.textContent = r.finalReady
-      ? "READY FOR FINAL — ACTUAL ผ่าน Evidence Trace และไม่มี conflict ค้าง"
+      ? "READY FOR FINAL — ACTUAL ผ่าน Evidence Trace และไม่มี import conflict ค้าง"
       : "DRAFT — ยังมีข้อมูล/หลักฐานที่ต้องตรวจให้ครบก่อน Final";
 
     document.getElementById("statusSummary").innerHTML = [
@@ -1445,7 +1450,7 @@ JSON ที่ต้องตอบ:
     document.getElementById("integritySummary").innerHTML = [
       `<article class="integrity-card"><strong>${r.actualCount}/${indicators.length}</strong><span>ACTUAL trace ครบ + verified</span></article>`,
       `<article class="integrity-card"><strong>${r.tracePendingCount}</strong><span>มี ACTUAL แต่ trace ยังไม่ครบ</span></article>`,
-      `<article class="integrity-card"><strong>${r.conflictCount}</strong><span>Import conflicts ที่ยังค้าง</span></article>`
+      `<article class="integrity-card"><strong>${audit.issueCount}</strong><span>Source audit issues ใน session</span></article>`
     ].join("");
 
     readinessIndicatorList.innerHTML = indicators.map((item,index) => {
@@ -1456,6 +1461,30 @@ JSON ที่ต้องตอบ:
       const issues = trace.issues.length
         ? trace.issues.map(x => `<div class="readiness-issue">${esc(x)}</div>`).join("")
         : '<div class="readiness-issue" style="border-left-color:#20a47a;background:#f0fbf7;color:#087a5b">Evidence Trace ครบและยืนยันต้นฉบับแล้ว</div>';
+
+      const sourceInfo = sourceExcerptForIndicator(item);
+      let sourceBlock = "";
+      if (R.isMeaningful(item.sourceFile)) {
+        if (sourceInfo) {
+          sourceBlock = `
+            <div class="source-excerpt">
+              <strong>Source preview — ${esc(sourceInfo.label)}</strong>
+              ${esc(sourceInfo.text || "พบไฟล์ต้นทาง แต่ยังไม่มีข้อความ Preview")}
+            </div>
+            <div class="source-nav-actions">
+              <button type="button" class="btn btn-ghost" data-open-indicator-source="${item.id}">เปิด Source ใน Document Reader</button>
+            </div>`;
+        } else {
+          sourceBlock = `
+            <div class="source-excerpt">
+              <strong>Source ยังไม่โหลดใน session</strong>
+              ${esc(item.sourceFile)} ${item.sourcePage ? "· " + esc(item.sourcePage) : ""}
+            </div>
+            <div class="source-nav-actions">
+              <button type="button" class="btn btn-ghost" data-open-indicator-source="${item.id}">เปิด Document Reader เพื่อเลือกไฟล์</button>
+            </div>`;
+        }
+      }
 
       return `
         <details class="readiness-indicator">
@@ -1478,6 +1507,7 @@ JSON ที่ต้องตอบ:
               <div class="readiness-detail"><span>POPULATION</span><strong>${esc(item.population || "PENDING")}</strong></div>
               <div class="readiness-detail"><span>VERIFICATION</span><strong>${item.verification === "verified" ? "VERIFIED — ตรวจต้นฉบับแล้ว" : "UNVERIFIED — ยังไม่ได้ตรวจต้นฉบับ"}</strong></div>
             </div>
+            ${sourceBlock}
             <div class="readiness-issues">${issues}</div>
             <button type="button" class="btn btn-secondary edit-indicator-btn" data-edit-indicator="${item.id}">แก้ไขตัวชี้วัดนี้ที่ STEP 3</button>
           </div>
