@@ -164,3 +164,20 @@ Evidence Trace ไม่ต้องพิมพ์ชื่อไฟล์เ�
 - STEP 3: TARGET มีปุ่มช่วยใส่ **≥ / ≤ / = / %** ไม่ต้องพิมพ์สัญลักษณ์พิเศษเอง
 - External AI Bridge เปลี่ยนเป็น 1 คอลัมน์เร็วขึ้นบนจอเล็ก/โน้ตบุ๊ก และ full-screen บนมือถือ
 - ปุ่มใน modal แตกบรรทัด/เรียงแนวตั้งบนมือถือ เพื่อลด horizontal overflow
+
+
+## Phase 3.5.2 — Visual Evidence Organizer
+
+STEP 6 ปรับเป็น Visual Organizer:
+- แนบภาพแล้วเห็น Preview ใน Browser
+- แสดงไฟล์ต้นฉบับ + ชื่อไฟล์มาตรฐาน
+- เลือก slot จาก Visual Naming Plan
+- แก้ชื่อมาตรฐานเองได้
+- ระบุประเภท Visual Evidence ต่อภาพ
+- เตือนชื่อซ้ำและนามสกุลที่ไม่ตรงกับแผน
+- ดาวน์โหลดสำเนาภาพด้วยชื่อมาตรฐานได้
+- Project JSON เก็บ metadata + Naming Plan แต่ไม่เก็บ binary image
+- หลัง refresh ต้องเลือกไฟล์จริงอีกครั้งเพื่อดู Preview/ดาวน์โหลดสำเนา
+- Source Manifest และ Visual Storyboard ใช้ชื่อไฟล์มาตรฐาน
+
+Toolkit มี Generic Naming Plan ในตัว และรองรับ Import Naming Plan JSON ของแต่ละ Project
