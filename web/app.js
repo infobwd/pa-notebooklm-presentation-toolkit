@@ -3548,13 +3548,14 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
   });
 
   documentSearchResults.addEventListener("click", async e => {
-    const key = e.target.closest("[data-use-search-page],[data-use-search-document],[data-use-search-source],[data-copy-search-result]")?.dataset;
+    const key = e.target.closest("[data-use-search-page],[data-use-search-document],[data-use-search-source],[data-save-search-review],[data-copy-search-result]")?.dataset;
     if (!key) return;
 
-    const actionEl = e.target.closest("[data-use-search-page],[data-use-search-document],[data-use-search-source],[data-copy-search-result]");
+    const actionEl = e.target.closest("[data-use-search-page],[data-use-search-document],[data-use-search-source],[data-save-search-review],[data-copy-search-result]");
     const resultKey = actionEl.dataset.useSearchPage
       || actionEl.dataset.useSearchDocument
       || actionEl.dataset.useSearchSource
+      || actionEl.dataset.saveSearchReview
       || actionEl.dataset.copySearchResult;
     const result = searchResultByKey(resultKey);
     if (!result) return;
@@ -3580,10 +3581,97 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
       return;
     }
 
+    if (actionEl.hasAttribute("data-save-search-review")) {
+      addEvidenceReviewFromSearch(result);
+      renderDocumentSearchResults(documentSearchInput.value.trim());
+      return;
+    }
+
     if (actionEl.hasAttribute("data-copy-search-result")) {
       await copyText((result.excerpts || []).join("\n\n"));
       notify("คัดลอกข้อความจากผลค้นหาแล้ว", "success", 3200);
     }
+  });
+
+  evidenceReviewList.addEventListener("change", e => {
+    const card = e.target.closest("[data-review-id]");
+    const item = evidenceReviewNoteById(card?.dataset.reviewId);
+    if (!item) return;
+
+    const classification = e.target.closest("[data-review-classification]");
+    if (classification) item.classification = classification.value;
+
+    const status = e.target.closest("[data-review-status]");
+    if (status) item.reviewStatus = status.value;
+
+    const indicator = e.target.closest("[data-review-indicator]");
+    if (indicator) item.linkedIndicatorId = indicator.value;
+
+    renderEvidenceReview();
+    save();
+    if (documentSearchInput.value.trim()) renderDocumentSearchResults(documentSearchInput.value.trim());
+  });
+
+  evidenceReviewList.addEventListener("input", e => {
+    const input = e.target.closest("[data-review-note]");
+    if (!input) return;
+    const card = input.closest("[data-review-id]");
+    const item = evidenceReviewNoteById(card?.dataset.reviewId);
+    if (!item) return;
+    item.note = input.value.trim();
+    save();
+  });
+
+  evidenceReviewList.addEventListener("click", async e => {
+    const card = e.target.closest("[data-review-id]");
+    const item = evidenceReviewNoteById(card?.dataset.reviewId);
+    if (!item) return;
+
+    if (e.target.closest("[data-review-open-source]")) {
+      openEvidenceReviewSource(item);
+      return;
+    }
+
+    if (e.target.closest("[data-review-copy]")) {
+      await copyText(ER.markdown([item], id => {
+        const index = indicators.findIndex(ind => ind.id === id);
+        return index >= 0 ? `ตัวชี้วัด ${index + 1} · ${indicators[index].title || "ยังไม่มีชื่อ"}` : "";
+      }));
+      notify("คัดลอก Evidence Review Note แล้ว", "success", 3200);
+      return;
+    }
+
+    if (e.target.closest("[data-review-promote]")) {
+      promoteEvidenceReview(item);
+      return;
+    }
+
+    if (e.target.closest("[data-review-remove]")) {
+      evidenceReviewNotes = evidenceReviewNotes.filter(note => note.id !== item.id);
+      renderEvidenceReview();
+      if (documentSearchInput.value.trim()) renderDocumentSearchResults(documentSearchInput.value.trim());
+      save();
+      notify("ลบ Evidence Review Note แล้ว", "info", 3200);
+    }
+  });
+
+  document.getElementById("downloadEvidenceReviewBtn").addEventListener("click", () => {
+    const markdown = ER.markdown(evidenceReviewNotes, id => {
+      const index = indicators.findIndex(ind => ind.id === id);
+      return index >= 0 ? `ตัวชี้วัด ${index + 1} · ${indicators[index].title || "ยังไม่มีชื่อ"}` : "";
+    });
+    const name = slugName(value("presenterName") || "pa") + "-evidence-review-notes.md";
+    download(name,markdown);
+  });
+
+  document.getElementById("removeRejectedReviewBtn").addEventListener("click", () => {
+    const before = evidenceReviewNotes.length;
+    evidenceReviewNotes = evidenceReviewNotes.filter(item => item.reviewStatus !== "rejected");
+    const removed = before - evidenceReviewNotes.length;
+    renderEvidenceReview();
+    if (documentSearchInput.value.trim()) renderDocumentSearchResults(documentSearchInput.value.trim());
+    save();
+    notify(removed ? `ลบรายการ “ไม่ใช้” ${removed} รายการแล้ว` : "ไม่มีรายการ “ไม่ใช้” ที่ต้องลบ", removed ? "success" : "info", 4200);
   });
 
   documentTextPreview.addEventListener("input", () => {
