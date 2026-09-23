@@ -1014,9 +1014,12 @@
     if (!R.isMeaningful(item.evidence)) {
       item.evidence = note.note || `Evidence Review — ${note.sourceFile}${note.sourcePage ? " " + note.sourcePage : ""}`;
     }
+
+    // Close the modal before re-render/save so the handoff never leaves the user trapped
+    // behind the Document Reader if a later UI operation fails.
+    closeDocumentReaderModal();
     renderIndicators();
     save();
-    closeDocumentReaderModal();
     showStep(2);
     window.requestAnimationFrame(() => {
       const card = indicatorCards.querySelector(`[data-id="${CSS.escape(item.id)}"]`);
