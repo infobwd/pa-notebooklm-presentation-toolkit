@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css?v=3.5.1">
+  <link rel="stylesheet" href="./styles.css?v=3.5.2">
 </head>
 <body>
   <header class="topbar">
@@ -254,21 +254,45 @@
             <div>
               <p class="eyebrow">STEP 6</p>
               <h2>Visual Evidence</h2>
-              <p>ติ๊กประเภทภาพที่มี และเลือกไฟล์ในเครื่องเพื่อเก็บ “ชื่อไฟล์” ไว้ใน Source Manifest</p>
+              <p>แนบภาพแล้วดู Preview ได้ทันที พร้อมกำหนด <strong>ชื่อไฟล์มาตรฐาน</strong> สำหรับ Source Manifest และไฟล์สำเนาที่ดาวน์โหลด</p>
             </div>
           </div>
 
           <div id="evidenceChecks" class="evidence-grid"></div>
 
+          <section class="visual-naming-panel">
+            <div class="visual-naming-head">
+              <div>
+                <strong>Visual Naming Plan</strong>
+                <p>ใช้แบบแผนชื่อไฟล์ทั่วไป หรือ Import แผนของ Project เพื่อใช้ชื่อเฉพาะ เช่น 10_... 11_... 12_...</p>
+              </div>
+              <span id="visualNamingPlanStatus" class="visual-plan-status">Generic plan</span>
+            </div>
+            <div class="visual-plan-actions">
+              <button type="button" class="btn btn-ghost" id="downloadNamingPlanBtn">ดาวน์โหลด Template</button>
+              <label class="btn btn-secondary file-label">
+                Import Naming Plan
+                <input id="visualNamingPlanInput" type="file" accept=".json,application/json" hidden>
+              </label>
+              <button type="button" class="btn btn-ghost" id="resetNamingPlanBtn">กลับแผนทั่วไป</button>
+              <button type="button" class="btn btn-secondary" id="autoAssignVisualNamesBtn">จัดชื่ออัตโนมัติตามลำดับ</button>
+            </div>
+          </section>
+
           <div class="upload-zone">
-            <input id="evidenceFiles" type="file" multiple accept="image/*,.pdf,.png,.jpg,.jpeg,.webp">
+            <input id="evidenceFiles" type="file" multiple accept="image/*,.pdf,.png,.jpg,.jpeg,.webp,.svg">
             <div>
               <strong>เลือกไฟล์หลักฐานจากเครื่อง</strong>
-              <p>ไฟล์จะไม่ถูกอัปโหลดขึ้นเซิร์ฟเวอร์โดยเว็บไซต์นี้ ระบบจะบันทึกเฉพาะชื่อไฟล์ใน session ปัจจุบัน</p>
+              <p>ภาพจะแสดง Preview ใน Browser ทันที ไฟล์จริงไม่ถูกอัปโหลดขึ้นเซิร์ฟเวอร์โดยเว็บไซต์นี้</p>
             </div>
           </div>
-          <div id="selectedFileList" class="file-list"></div>
+          <div id="visualFileSummary" class="visual-file-summary"></div>
+          <div id="selectedFileList" class="visual-file-grid"></div>
 
+          <div class="tip">
+            <strong>ชื่อไฟล์มาตรฐาน:</strong>
+            ระบบไม่สามารถเปลี่ยนชื่อไฟล์ต้นฉบับบนเครื่องโดยตรง แต่จะใช้ชื่อมาตรฐานใน Source Manifest/Project JSON และให้ดาวน์โหลด “สำเนาที่ใช้ชื่อมาตรฐาน” ได้
+          </div>
           <div class="tip"><strong>ลำดับภาพ:</strong> ภาพจริง → Screenshot จริง → Infographic จากเอกสาร → กราฟข้อมูลจริง → AI conceptual</div>
         </section>
 
@@ -603,13 +627,14 @@
   <div id="toastStack" class="toast-stack" aria-live="polite" aria-atomic="false"></div>
 
   <footer>
-    <span>PA NotebookLM Presentation Toolkit · Phase 3.5.1 UX Polish</span>
+    <span>PA NotebookLM Presentation Toolkit · Phase 3.5.2 Visual Evidence Organizer</span>
     <span id="runtimeHealth">พร้อมใช้งาน · ข้อมูลฟอร์มบันทึกใน localStorage ของเบราว์เซอร์</span>
   </footer>
 
-  <script src="./js/reliability.js?v=3.5.1"></script>
-  <script src="./js/migrations.js?v=3.5.1"></script>
-  <script src="./js/document-audit.js?v=3.5.1"></script>
-  <script src="./app.js?v=3.5.1"></script>
+  <script src="./js/reliability.js?v=3.5.2"></script>
+  <script src="./js/migrations.js?v=3.5.2"></script>
+  <script src="./js/document-audit.js?v=3.5.2"></script>
+  <script src="./js/visual-evidence.js?v=3.5.2"></script>
+  <script src="./app.js?v=3.5.2"></script>
 </body>
 </html>
