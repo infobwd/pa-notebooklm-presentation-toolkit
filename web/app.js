@@ -2217,7 +2217,8 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
       openDocumentReader();
       notify("เลือกไฟล์ต้นทาง: ถ้ายังไม่มีไฟล์ ให้เลือกไฟล์แล้วกด “อ่านข้อความ” จากนั้นกด “ใช้เป็น Source”", "info", 7000);
       if (!readySourceDocuments().length) {
-        window.setTimeout(() => sourceDocumentsInput.click(), 80);
+        // Keep the native file chooser inside the original user gesture.
+        sourceDocumentsInput.click();
       }
       return;
     }
