@@ -202,3 +202,22 @@ Document Reader รองรับ **PDF สแกนแบบ OCR opt-in** แ�
 OCR engine และ language model ถูกดาวน์โหลดจาก CDN เมื่อจำเป็น แต่ Toolkit ไม่ส่ง PDF หรือภาพหน้ากระดาษไปยัง CDN
 
 OCR เป็นเครื่องมือช่วยอ่านข้อความจากภาพ ไม่ใช่หลักฐานยืนยันความถูกต้อง ผู้ใช้ต้องเทียบข้อความ OCR กับเอกสารต้นฉบับก่อนนำค่ามาใช้เป็น ACTUAL หรือเปลี่ยน Verification เป็น VERIFIED
+
+
+## Phase 4.1 — Long-document Search & Relevance
+
+Document Reader รองรับเอกสารยาว 50–100 หน้าได้สะดวกขึ้น:
+
+- แบ่งข้อความใน Browser เป็น chunks ประมาณ 1,400 ตัวอักษร พร้อม overlap
+- PDF คงเลขหน้าไว้ในทุก chunk
+- Full-text search ทำงาน local-first กับข้อความที่ extract/OCR แล้ว
+- รองรับคำค้นภาษาไทยและอังกฤษผ่าน `Intl.Segmenter` พร้อม fallback
+- รวมผลระดับ chunk กลับเป็นผลระดับ **เอกสาร/หน้า**
+- เรียงตาม textual relevance เท่านั้น ไม่ใช่การตัดสินว่าหน้านั้นเป็นหลักฐานที่ถูกต้อง
+- คำค้นแนะนำสร้างจากประเด็นท้าทาย ความต้องการพัฒนา และชื่อตัวชี้วัด
+- จากผลค้นหา ผู้ใช้สามารถ:
+  - เพิ่มหน้าที่พบเข้า Source selection สำหรับ AI
+  - ใช้หน้านั้นเป็น Evidence Trace Source เมื่อเปิด Reader จาก STEP 3
+  - คัดลอก excerpt เพื่อตรวจต่อ
+- OCR text สามารถเข้า search index ได้ แต่ผลจะติดป้าย OCR และยังต้องตรวจต้นฉบับ
+- การค้นหาไม่โหลด Tesseract และไม่เรียก AI API
