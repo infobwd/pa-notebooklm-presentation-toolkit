@@ -60,6 +60,17 @@ const oldProject = M.migrateProject({
 assert.strictEqual(oldProject.schema_version, "pa-toolkit/project/3.1");
 assert.strictEqual(oldProject.version, 3);
 assert.strictEqual(oldProject.indicators[0].verification, "unverified");
+assert.strictEqual(oldProject.indicators[0].actualMode, "pending");
+
+const fractionMode = R.normalizeIndicator({
+  actual:"24/30 = 80%",
+  actualNumerator:"24",
+  actualDenominator:"30"
+});
+assert.strictEqual(fractionMode.actualMode, "fraction");
+
+const percentMode = R.normalizeIndicator({actual:"80%"});
+assert.strictEqual(percentMode.actualMode, "percent");
 
 console.log("Phase 3.1 reliability tests: PASS");
 
@@ -73,6 +84,7 @@ ownerIntake.indicators.forEach((item) => {
   assert.strictEqual(item.actual, "PENDING");
   assert.strictEqual(R.validateIndicatorTrace(item).ready, false);
   assert.strictEqual(item.verification, "unverified");
+  assert.strictEqual(item.actualMode, "pending");
 });
 
 const ownerProject = JSON.parse(
