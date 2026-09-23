@@ -1,0 +1,61 @@
+name: Browser acceptance
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "web/**"
+      - "package.json"
+      - ".github/workflows/browser-acceptance.yml"
+  pull_request:
+    paths:
+      - "web/**"
+      - "package.json"
+      - ".github/workflows/browser-acceptance.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  chromium-acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install browser test dependency
+        run: npm install --no-audit --no-fund
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Start static server
+        run: |
+          python3 -m http.server 4173 --directory web > /tmp/pa-toolkit-http.log 2>&1 &
+          echo $! > /tmp/pa-toolkit-http.pid
+          for i in {1..20}; do
+            if curl -fsS http://127.0.0.1:4173/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/pa-toolkit-http.log
+          exit 1
+
+      - name: Run browser acceptance
+        env:
+          PA_TOOLKIT_BASE_URL: http://127.0.0.1:4173/
+        run: npm run test:e2e
+
+      - name: Upload failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase-3-5-browser-failure
+          path: web/e2e/artifacts/
+          if-no-files-found: ignore
