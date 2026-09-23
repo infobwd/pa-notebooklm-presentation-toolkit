@@ -1737,6 +1737,7 @@ JSON ที่ต้องตอบ:
       mimeType: asset.mimeType,
       size: asset.size
     }));
+    data.evidenceReviewNotes = evidenceReviewNotes.map(item => ER.normalizeNote(item));
     data.selectedFileNames = selectedFileNames;
     data.currentStep = currentStep;
     data.version = 3;
@@ -1748,7 +1749,7 @@ JSON ที่ต้องตอบ:
     if (!data || typeof data !== "object") return;
     data = M.migrateProject(data);
     Object.entries(data).forEach(([k,v]) => {
-      if (["evidenceTypes","indicators","visualNamingPlan","visualAssets","selectedFileNames","currentStep","version","schema_version"].includes(k)) return;
+      if (["evidenceTypes","indicators","visualNamingPlan","visualAssets","evidenceReviewNotes","selectedFileNames","currentStep","version","schema_version"].includes(k)) return;
       const el = form.elements[k];
       if (!el) return;
       if (el instanceof RadioNodeList) {
@@ -1786,10 +1787,14 @@ JSON ที่ต้องตอบ:
               size: 0
             }))
           : []);
+    evidenceReviewNotes = Array.isArray(data.evidenceReviewNotes)
+      ? data.evidenceReviewNotes.map(item => ({...ER.normalizeNote(item), id:item.id || cryptoId()}))
+      : [];
     selectedFileNames = [];
     renderIndicators();
     renderEvidenceChecks(Array.isArray(data.evidenceTypes) ? data.evidenceTypes : []);
     renderFileNames();
+    renderEvidenceReview();
     currentStep = Number.isInteger(data.currentStep) ? Math.max(0, Math.min(7, data.currentStep)) : 0;
     syncSmartEditorsFromFields();
   }
@@ -1819,12 +1824,14 @@ JSON ที่ต้องตอบ:
         renderIndicators();
         renderEvidenceChecks();
         renderFileNames();
+        renderEvidenceReview();
       }
     } catch (err) {
       indicators = defaultIndicators();
       renderIndicators();
       renderEvidenceChecks();
       renderFileNames();
+      renderEvidenceReview();
       setRuntimeHealth("อ่านข้อมูลเดิมจาก Browser ไม่สำเร็จ · เริ่มฟอร์มใหม่", "warn");
       window.setTimeout(() => notify("อ่านข้อมูลที่บันทึกไว้เดิมไม่สำเร็จ ระบบเริ่มฟอร์มใหม่ กรุณา Import Project JSON หากมีไฟล์สำรอง", "warn", 8500), 0);
     }
