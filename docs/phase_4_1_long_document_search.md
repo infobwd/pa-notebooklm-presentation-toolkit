@@ -128,3 +128,15 @@ Browser acceptance:
 Chunking / search / relevance ทำงานใน Browser ทั้งหมด
 
 ไม่มี raw document text, query หรือ chunks ถูกส่งไป server โดย Toolkit
+
+
+## Next implemented: Phase 4.2
+
+Phase 4.2 เพิ่ม Evidence Review Tray ระหว่าง Search กับ Evidence Trace:
+- เก็บ Search Result เป็น Review Note
+- classify FACT / TARGET / ACTUAL / CONTEXT / PENDING
+- ผูก Indicator
+- review status แยกจาก Evidence Trace Verification
+- ส่ง sourceFile/sourcePage ไป STEP 3 โดยยังคง UNVERIFIED
+
+ดู `docs/phase_4_2_evidence_review.md`
