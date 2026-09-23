@@ -960,20 +960,6 @@
         </article>`;
     }).join("");
 
-    evidenceReviewList.querySelectorAll("[data-review-promote]").forEach(button => {
-      button.addEventListener("click", event => {
-        event.stopPropagation();
-        const card = button.closest("[data-review-id]");
-        const item = evidenceReviewNoteById(card?.dataset.reviewId);
-        if (!item) {
-          notify("ไม่พบ Evidence Review Note ที่ต้องการส่ง", "error", 5200);
-          return;
-        }
-        const indicatorSelect = card.querySelector("[data-review-indicator]");
-        item.linkedIndicatorId = indicatorSelect?.value || item.linkedIndicatorId || "";
-        promoteEvidenceReview(item);
-      });
-    });
   }
 
   function addEvidenceReviewFromSearch(result) {
@@ -3635,6 +3621,23 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
       notify("คัดลอกข้อความจากผลค้นหาแล้ว", "success", 3200);
     }
   });
+
+  document.addEventListener("click", e => {
+    const promote = e.target.closest("[data-review-promote]");
+    if (!promote) return;
+    e.preventDefault();
+    e.stopPropagation();
+
+    const card = promote.closest("[data-review-id]");
+    const item = evidenceReviewNoteById(card?.dataset.reviewId);
+    if (!item) {
+      notify("ไม่พบ Evidence Review Note ที่ต้องการส่ง", "error", 5200);
+      return;
+    }
+    const indicatorSelect = card?.querySelector("[data-review-indicator]");
+    item.linkedIndicatorId = indicatorSelect?.value || item.linkedIndicatorId || "";
+    promoteEvidenceReview(item);
+  }, true);
 
   evidenceReviewList.addEventListener("change", e => {
     const card = e.target.closest("[data-review-id]");
