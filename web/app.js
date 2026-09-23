@@ -580,6 +580,11 @@
     try {
       if (activeOcrJob.worker) await activeOcrJob.worker.terminate();
     } catch {}
+    if (doc) {
+      doc.ocrState = "cancelled";
+      doc.ocrStatus = "ยกเลิก OCR แล้ว";
+      renderExtractedDocuments();
+    }
   }
 
   async function runOcrForDocument(docId) {
@@ -688,7 +693,7 @@
         ...item,
         nativeText:item.extractionMode === "ocr" ? item.ocrText : item.nativeText
       })));
-      doc.ocrSuggestedPages = assessment.candidatePages.filter(page => !doc.ocrCompletedPages.includes(page));
+      doc.ocrSuggestedPages = assessment.candidatePages;
       doc.ocrState = "complete";
       doc.ocrProgress = 1;
       doc.ocrStatus = `OCR เสร็จ ${results.length} หน้า · โปรดตรวจทานข้อความก่อนใช้`;
