@@ -8,8 +8,8 @@
   <title>PA NotebookLM Presentation Toolkit</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css?v=3.1">
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css?v=3.2">
 </head>
 <body>
   <header class="topbar">
@@ -164,7 +164,7 @@
             <div>
               <p class="eyebrow">STEP 3</p>
               <h2>TARGET & ACTUAL</h2>
-              <p>แยก “เป้าหมาย” ออกจาก “ผลจริง” ให้ชัดที่สุด</p>
+              <p>เลือกชนิด ACTUAL ก่อนกรอกผลจริง และเปิด <strong>Evidence Trace</strong> ใต้ตัวชี้วัดแต่ละข้อเพื่อใส่ที่มา/ช่วงเวลา/กลุ่มเป้าหมาย</p>
             </div>
           </div>
           <div id="indicatorCards" class="indicator-list"></div>
@@ -279,6 +279,17 @@
           <div id="readinessState" class="readiness-state"></div>
           <div id="statusSummary" class="status-summary"></div>
           <div id="integritySummary" class="integrity-summary"></div>
+
+          <section class="readiness-indicators-wrap">
+            <div class="readiness-section-head">
+              <div>
+                <h3>รายละเอียดตัวชี้วัด</h3>
+                <p>กดแต่ละข้อเพื่อดู TARGET / ACTUAL / Evidence Trace และกด “แก้ไขที่ STEP 3” ได้ทันที</p>
+              </div>
+            </div>
+            <div id="readinessIndicatorList" class="readiness-indicator-list"></div>
+          </section>
+
           <div id="missingList" class="missing-list"></div>
         </section>
 
@@ -548,13 +559,15 @@
     <option value="ข้อมูลระบบดูแลช่วยเหลือนักเรียน"></option>
   </datalist>
 
+  <div id="toastStack" class="toast-stack" aria-live="polite" aria-atomic="false"></div>
+
   <footer>
-    <span>PA NotebookLM Presentation Toolkit · Phase 3.1 Evidence & Reliability</span>
+    <span>PA NotebookLM Presentation Toolkit · Phase 3.2 UX & Evidence Review</span>
     <span>ข้อมูลฟอร์มบันทึกใน localStorage ของเบราว์เซอร์</span>
   </footer>
 
-  <script src="./js/reliability.js?v=3.1"></script>
-  <script src="./js/migrations.js?v=3.1"></script>
-  <script src="./app.js?v=3.1"></script>
+  <script src="./js/reliability.js?v=3.2"></script>
+  <script src="./js/migrations.js?v=3.2"></script>
+  <script src="./app.js?v=3.2"></script>
 </body>
 </html>
