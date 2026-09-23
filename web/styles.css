@@ -2075,3 +2075,178 @@ input, textarea, select,
     width: 100%;
   }
 }
+
+
+/* Phase 4.0 — Document Intelligence / opt-in OCR */
+.document-ocr-panel {
+  margin-top: 10px;
+  border: 1px solid #d7e1ec;
+  border-radius: 11px;
+  background: #f8fbff;
+  overflow: hidden;
+}
+.document-ocr-panel > summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 9px;
+  padding: 9px 10px;
+  color: var(--navy);
+  font-size: 11px;
+  font-weight: 700;
+}
+.document-ocr-panel > summary::-webkit-details-marker { display: none; }
+.document-ocr-panel > summary::before {
+  content: "▸";
+  flex: 0 0 auto;
+  color: #315f9d;
+}
+.document-ocr-panel[open] > summary::before {
+  content: "▾";
+}
+.ocr-summary-badges {
+  margin-left: auto;
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.ocr-badge {
+  padding: 3px 7px;
+  border-radius: 999px;
+  font-family: "Sarabun", sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+}
+.ocr-badge.warn {
+  background: #fff1d6;
+  color: #965a00;
+}
+.ocr-badge.ok {
+  background: #e8f7f0;
+  color: #087a5b;
+}
+.ocr-badge.info {
+  background: #eaf2ff;
+  color: #315f9d;
+}
+.ocr-controls {
+  display: grid;
+  grid-template-columns: minmax(0,1.35fr) minmax(180px,.65fr);
+  gap: 9px;
+  padding: 10px;
+  border-top: 1px solid #e4ebf3;
+}
+.ocr-controls label {
+  min-width: 0;
+  font-family: "Sarabun", sans-serif;
+}
+.ocr-controls label small {
+  display: block;
+  margin-top: 4px;
+  color: #718096;
+  font-size: 9px;
+  line-height: 1.4;
+}
+.ocr-guide {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 2px;
+  padding: 8px 9px;
+  border-left: 3px solid #5b8ed4;
+  border-radius: 7px;
+  background: #f0f6ff;
+}
+.ocr-guide strong {
+  color: #315f9d;
+  font-size: 11px;
+}
+.ocr-guide span,
+.ocr-privacy {
+  color: #52667a;
+  font-family: "Sarabun", sans-serif;
+  font-size: 10px;
+  line-height: 1.45;
+}
+.ocr-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.ocr-actions .btn:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+  transform: none;
+}
+.btn-danger {
+  border-color: #e3a09b;
+  background: #fff0ef;
+  color: #b42318;
+}
+.btn-danger:hover,
+.btn-danger:focus-visible {
+  border-color: #c65d55;
+  background: #ffe4e1;
+  color: #9b1c13;
+}
+.ocr-progress-wrap {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 5px;
+}
+.ocr-progress-track {
+  width: 100%;
+  height: 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #dfe7f0;
+}
+.ocr-progress-track > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #356fd4;
+  transition: width .15s ease;
+}
+.ocr-progress-wrap > span {
+  min-height: 15px;
+  color: #52667a;
+  font-family: "Sarabun", sans-serif;
+  font-size: 10px;
+}
+.ocr-privacy {
+  grid-column: 1 / -1;
+  padding-top: 5px;
+  border-top: 1px dashed #ccd8e5;
+}
+
+@media (max-width: 720px) {
+  .document-ocr-panel > summary {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  .ocr-summary-badges {
+    width: 100%;
+    margin-left: 20px;
+    justify-content: flex-start;
+  }
+  .ocr-controls {
+    grid-template-columns: 1fr;
+  }
+  .ocr-guide,
+  .ocr-actions,
+  .ocr-progress-wrap,
+  .ocr-privacy {
+    grid-column: 1;
+  }
+  .ocr-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+  .ocr-actions .btn {
+    width: 100%;
+  }
+}
