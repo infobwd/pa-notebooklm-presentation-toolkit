@@ -1313,3 +1313,36 @@ input, textarea, select,
   .readiness-badge { grid-column: 2; justify-self: start; }
   .toast-stack { right: 12px; bottom: 84px; }
 }
+
+
+.actual-mode-btn {
+  min-height: 42px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: white;
+  color: #52667a;
+  padding: 8px 7px;
+  font-size: 11px;
+  text-align: center;
+}
+.actual-mode-btn:hover,
+.actual-mode-btn:focus-visible {
+  border-color: var(--blue);
+  background: #f4f8ff;
+  color: var(--blue);
+  outline: none;
+}
+.actual-mode-btn.selected {
+  border-color: var(--blue);
+  background: #eef4ff;
+  color: var(--blue);
+  box-shadow: inset 0 0 0 1px rgba(45,91,209,.1);
+}
+
+.indicator-card.focus-pulse {
+  animation: indicator-focus 1.7s ease;
+}
+@keyframes indicator-focus {
+  0%, 100% { box-shadow: none; }
+  30% { box-shadow: 0 0 0 4px rgba(45,91,209,.16), 0 12px 30px rgba(45,91,209,.12); }
+}
