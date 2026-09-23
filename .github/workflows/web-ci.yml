@@ -43,8 +43,15 @@ jobs:
           test -f web/tests/reliability.test.js
           test -f web/schema/project.schema.json
           grep -q 'fonts.googleapis.com/css2?family=Kanit' web/index.html
+          grep -q 'family=Sarabun' web/index.html
+          grep -q 'readinessIndicatorList' web/index.html
+          grep -q 'toastStack' web/index.html
+          grep -q 'ACTUAL_MODES' web/app.js
+          grep -q 'SMART_LIST_FIELDS' web/app.js
+          grep -q 'function notify' web/app.js
+          if grep -qE '\b(window\.)?alert\s*\(' web/app.js; then echo "window.alert is not allowed"; exit 1; fi
           grep -q 'data-fill-target="position"' web/index.html
-          grep -q 'Phase 3.1 Evidence & Reliability' web/index.html
+          grep -q 'Phase 3.2 UX & Evidence Review' web/index.html
           grep -q 'openDocumentReaderBtn' web/index.html
           grep -q 'pdfjs-dist@3.11.174' web/app.js
           grep -q 'mammoth@1.8.0' web/app.js
