@@ -604,6 +604,11 @@
     const pagesInput = card?.querySelector("[data-ocr-pages]");
     const languageSelect = card?.querySelector("[data-ocr-language]");
     const pageSpec = String(pagesInput?.value || doc.ocrPageSpec || "").trim();
+    if (!pageSpec) {
+      notify("กรุณาระบุหน้าที่ต้องการ OCR เช่น 1-3,5 ระบบจะไม่ OCR ทั้งเอกสารโดยอัตโนมัติ", "warn", 6500);
+      pagesInput?.focus();
+      return;
+    }
     const parsed = R.parsePageSpec(pageSpec,doc.pages);
 
     if (parsed.error) {
@@ -625,10 +630,6 @@
 
     doc.ocrPageSpec = pageSpec;
     doc.ocrLanguage = languageSelect?.value || doc.ocrLanguage || "tha+eng";
-    doc.ocrState = "loading";
-    doc.ocrProgress = 0;
-    doc.ocrStatus = "กำลังโหลด OCR engine / language model...";
-    renderExtractedDocuments();
 
     const job = {
       docId,
@@ -639,6 +640,10 @@
       totalPages:pages.length
     };
     activeOcrJob = job;
+    doc.ocrState = "loading";
+    doc.ocrProgress = 0;
+    doc.ocrStatus = "กำลังโหลด OCR engine / language model...";
+    renderExtractedDocuments();
 
     try {
       const [pdfjs,TesseractLib] = await Promise.all([ensurePdfJs(),ensureTesseract()]);
