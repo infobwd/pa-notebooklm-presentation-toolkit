@@ -1,0 +1,111 @@
+{
+  "schema_version": "pa-toolkit/visual-naming-plan/1",
+  "title": "PA 2569 Visual Evidence Plan",
+  "slots": [
+    {
+      "id": "10_director",
+      "order": 10,
+      "filename": "10_director.jpg",
+      "label": "ภาพผู้บริหาร/ผู้รับการประเมิน",
+      "evidenceType": "ภาพผู้รับการประเมิน"
+    },
+    {
+      "id": "11_school",
+      "order": 11,
+      "filename": "11_school.jpg",
+      "label": "ภาพโรงเรียนบ้านวังด้ง",
+      "evidenceType": "ภาพสถานศึกษา/หน่วยงาน"
+    },
+    {
+      "id": "12_ioppa_model",
+      "order": 12,
+      "filename": "12_ioppa_model.png",
+      "label": "I-OPPA Model",
+      "evidenceType": "Model / Framework"
+    },
+    {
+      "id": "13_plc_7_weeks",
+      "order": 13,
+      "filename": "13_plc_7_weeks.png",
+      "label": "PLC 7 Weeks",
+      "evidenceType": "Model / Framework"
+    },
+    {
+      "id": "14_plc_real",
+      "order": 14,
+      "filename": "14_plc_real_01.jpg",
+      "label": "หลักฐาน PLC จริง",
+      "evidenceType": "ภาพกิจกรรมจริง"
+    },
+    {
+      "id": "15_active_classroom",
+      "order": 15,
+      "filename": "15_active_classroom_01.jpg",
+      "label": "ห้องเรียน Active Learning",
+      "evidenceType": "ห้องเรียน / งานปฏิบัติจริง"
+    },
+    {
+      "id": "16_wd_standard",
+      "order": 16,
+      "filename": "16_wd_standard.png",
+      "label": "WD Standard",
+      "evidenceType": "Screenshot ระบบ"
+    },
+    {
+      "id": "17_plc_system",
+      "order": 17,
+      "filename": "17_plc_system.png",
+      "label": "PLC System",
+      "evidenceType": "Screenshot ระบบ"
+    },
+    {
+      "id": "18_tdrs",
+      "order": 18,
+      "filename": "18_tdrs.png",
+      "label": "TDRS",
+      "evidenceType": "Screenshot ระบบ"
+    },
+    {
+      "id": "19_bwd_school_center",
+      "order": 19,
+      "filename": "19_bwd_school_center.png",
+      "label": "BWD School Center",
+      "evidenceType": "Screenshot ระบบ"
+    },
+    {
+      "id": "20_esdc_national_dashboard",
+      "order": 20,
+      "filename": "20_esdc_national_dashboard.png",
+      "label": "ESDC National Dashboard",
+      "evidenceType": "การขยายผล"
+    },
+    {
+      "id": "21_white_school_diamond_year3",
+      "order": 21,
+      "filename": "21_white_school_diamond_year3.png",
+      "label": "White School Diamond Year 3",
+      "evidenceType": "รางวัล / การยอมรับ"
+    },
+    {
+      "id": "22_nt67_baseline_chart",
+      "order": 22,
+      "filename": "22_nt67_baseline_chart.png",
+      "label": "NT 2567 Baseline",
+      "evidenceType": "กราฟผล ACTUAL"
+    },
+    {
+      "id": "23_nt68_information_chart",
+      "order": 23,
+      "filename": "23_nt68_information_chart.png",
+      "label": "NT 2568 Information",
+      "evidenceType": "กราฟผล ACTUAL"
+    },
+    {
+      "id": "24_sar_academic_outcome",
+      "order": 24,
+      "filename": "24_sar_academic_outcome.png",
+      "label": "SAR Academic Outcome",
+      "evidenceType": "กราฟผล ACTUAL"
+    }
+  ]
+}

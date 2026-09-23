@@ -130,7 +130,14 @@
   const selectedFileList = document.getElementById("selectedFileList");
   const visualFileSummary = document.getElementById("visualFileSummary");
   const visualNamingPlanStatus = document.getElementById("visualNamingPlanStatus");
+  const visualNamingPlanSource = document.getElementById("visualNamingPlanSource");
   const visualNamingPlanInput = document.getElementById("visualNamingPlanInput");
+  const visualProgressLabel = document.getElementById("visualProgressLabel");
+  const visualProgressFill = document.getElementById("visualProgressFill");
+  const visualSlotOverview = document.getElementById("visualSlotOverview");
+  const visualIssueSummary = document.getElementById("visualIssueSummary");
+  const visualMissingSummary = document.getElementById("visualMissingSummary");
+  const evidenceDropZone = document.getElementById("evidenceDropZone");
   const documentReaderModal = document.getElementById("documentReaderModal");
   const sourceDocumentsInput = document.getElementById("sourceDocumentsInput");
   const documentReaderStatus = document.getElementById("documentReaderStatus");
@@ -1210,6 +1217,7 @@ JSON ที่ต้องตอบ:
       originalName: asset.originalName,
       canonicalName: asset.canonicalName,
       slotId: asset.slotId,
+      sequence: Number(asset.sequence) || 1,
       evidenceType: asset.evidenceType,
       mimeType: asset.mimeType,
       size: asset.size
@@ -1248,6 +1256,7 @@ JSON ที่ต้องตอบ:
           originalName: String(asset.originalName || asset.canonicalName || ""),
           canonicalName: String(asset.canonicalName || asset.originalName || ""),
           slotId: String(asset.slotId || ""),
+          sequence: Number(asset.sequence) || 1,
           evidenceType: String(asset.evidenceType || ""),
           mimeType: String(asset.mimeType || ""),
           size: Number(asset.size) || 0
@@ -1258,6 +1267,7 @@ JSON ที่ต้องตอบ:
               originalName: String(name),
               canonicalName: String(name),
               slotId: "",
+              sequence: 1,
               evidenceType: "",
               mimeType: "",
               size: 0
@@ -1706,9 +1716,16 @@ JSON ที่ต้องตอบ:
     return VE.normalizePlan(visualNamingPlan).slots.find(slot => slot.id === id) || null;
   }
 
+  function effectiveVisualName(asset) {
+    return VE.resolvedDownloadName(
+      String(asset?.canonicalName || asset?.originalName || "").trim(),
+      String(asset?.originalName || "").trim()
+    );
+  }
+
   function syncSelectedVisualNames() {
     selectedFileNames = visualAssets
-      .map(asset => String(asset.canonicalName || asset.originalName || "").trim())
+      .map(asset => effectiveVisualName(asset))
       .filter(Boolean);
   }
 
@@ -1731,7 +1748,7 @@ JSON ที่ต้องตอบ:
     const slots = VE.normalizePlan(visualNamingPlan).slots;
     return ['<option value="">ไม่กำหนด slot / ใช้ชื่อเอง</option>']
       .concat(slots.map(slot =>
-        `<option value="${esc(slot.id)}" ${slot.id === currentSlotId ? "selected" : ""}>${esc(slot.filename)} · ${esc(slot.label)}</option>`
+        `<option value="${esc(slot.id)}" ${slot.id === currentSlotId ? "selected" : ""}>${esc(String(slot.order))} — ${esc(slot.label)} · ${esc(slot.filename)}</option>`
       )).join("");
   }
 
@@ -1742,10 +1759,23 @@ JSON ที่ต้องตอบ:
       )).join("");
   }
 
+  function isGenericVisualPlan(plan) {
+    const current = VE.normalizePlan(plan);
+    const generic = VE.normalizePlan(VE.defaultPlan());
+    return current.title === generic.title
+      && current.slots.length === generic.slots.length
+      && current.slots.every((slot,index) => slot.id === generic.slots[index]?.id && slot.filename === generic.slots[index]?.filename);
+  }
+
   function renderVisualNamingStatus() {
     const normalized = VE.normalizePlan(visualNamingPlan);
     if (visualNamingPlanStatus) {
       visualNamingPlanStatus.textContent = `${normalized.title} · ${normalized.slots.length} slots`;
+    }
+    if (visualNamingPlanSource) {
+      const generic = isGenericVisualPlan(normalized);
+      visualNamingPlanSource.textContent = generic ? "แผนทั่วไป" : "Imported Project Plan";
+      visualNamingPlanSource.classList.toggle("imported", !generic);
     }
   }
 
@@ -1753,25 +1783,73 @@ JSON ที่ต้องตอบ:
     syncSelectedVisualNames();
     renderVisualNamingStatus();
 
+    const plan = VE.normalizePlan(visualNamingPlan);
+    const assignment = VE.assignmentSummary(plan, visualAssets);
+    const slotCounts = new Map(plan.slots.map(slot => [slot.id, 0]));
+    visualAssets.forEach(asset => {
+      if (slotCounts.has(asset.slotId)) slotCounts.set(asset.slotId, (slotCounts.get(asset.slotId) || 0) + 1);
+    });
+    const duplicateSlots = new Set(assignment.duplicateSlotIds);
+
     const canonicalCounts = new Map();
     selectedFileNames.forEach(name => canonicalCounts.set(name.toLowerCase(), (canonicalCounts.get(name.toLowerCase()) || 0) + 1));
     const duplicateCount = [...canonicalCounts.values()].filter(count => count > 1).length;
     const mismatchCount = visualAssets.filter(asset =>
       asset.canonicalName && asset.originalName && !VE.fileExtMatches(asset.canonicalName, asset.originalName)
     ).length;
+    const invalidNameCount = visualAssets.filter(asset => !VE.validFilename(asset.canonicalName || asset.originalName)).length;
     const withPreview = visualAssets.filter(asset => visualAssetFiles.has(asset.id)).length;
+    const pct = assignment.totalSlots ? Math.round((assignment.assignedUnique / assignment.totalSlots) * 100) : 0;
+
+    if (visualProgressLabel) visualProgressLabel.textContent = `${assignment.assignedUnique} / ${assignment.totalSlots}`;
+    if (visualProgressFill) visualProgressFill.style.width = Math.max(0, Math.min(100, pct)) + "%";
+
+    if (visualSlotOverview) {
+      visualSlotOverview.innerHTML = plan.slots.map(slot => {
+        const count = slotCounts.get(slot.id) || 0;
+        const state = count > 1 ? "duplicate" : count === 1 ? "filled" : "missing";
+        const suffix = count > 1 ? ` · ซ้ำ ${count}` : count === 1 ? " · พร้อม" : " · ยังว่าง";
+        return `<button type="button" class="visual-slot-chip ${state}" data-visual-slot-chip="${esc(slot.id)}" title="${esc(slot.label + suffix)}">${esc(String(slot.order))} ${count === 1 ? "✓" : count > 1 ? "!" : "○"}</button>`;
+      }).join("");
+    }
+
+    const issueParts = [];
+    if (duplicateSlots.size) issueParts.push(`Slot ซ้ำ ${duplicateSlots.size}`);
+    if (duplicateCount) issueParts.push(`ชื่อไฟล์ซ้ำ ${duplicateCount}`);
+    if (mismatchCount) issueParts.push(`นามสกุลต่างจากแผน ${mismatchCount}`);
+    if (invalidNameCount) issueParts.push(`ชื่อไฟล์ไม่ถูกต้อง ${invalidNameCount}`);
+    if (assignment.invalidSlotIds.length) issueParts.push(`Slot จากแผนเก่าหรือไม่รู้จัก ${assignment.invalidSlotIds.length}`);
+    if (visualIssueSummary) {
+      visualIssueSummary.classList.toggle("warn", issueParts.length > 0);
+      visualIssueSummary.textContent = issueParts.length
+        ? "ต้องตรวจ: " + issueParts.join(" · ")
+        : visualAssets.length ? "ไม่พบปัญหาการจับคู่หรือชื่อไฟล์" : "";
+    }
 
     if (visualFileSummary) {
       visualFileSummary.innerHTML = visualAssets.length
-        ? `<span>ทั้งหมด <strong>${visualAssets.length}</strong> ไฟล์</span>
-           <span>Preview ใน session <strong>${withPreview}</strong></span>
+        ? `<span>แนบแล้ว <strong>${assignment.assignedUnique} / ${assignment.totalSlots}</strong> Slots</span>
+           <span>ไฟล์ทั้งหมด <strong>${visualAssets.length}</strong></span>
+           <span>Preview <strong>${withPreview}</strong></span>
+           <span class="${duplicateSlots.size ? "warn" : ""}">Slot ซ้ำ <strong>${duplicateSlots.size}</strong></span>
            <span class="${duplicateCount ? "warn" : ""}">ชื่อซ้ำ <strong>${duplicateCount}</strong></span>
-           <span class="${mismatchCount ? "warn" : ""}">นามสกุลไม่ตรงแผน <strong>${mismatchCount}</strong></span>`
-        : '<span>ยังไม่ได้แนบ Visual Evidence</span>';
+           <span class="${mismatchCount ? "warn" : ""}">นามสกุลต่างแผน <strong>${mismatchCount}</strong></span>`
+        : `<span>ยังไม่มีภาพหลักฐาน · 0 / ${assignment.totalSlots} Slots</span>`;
+    }
+
+    if (visualMissingSummary) {
+      if (!assignment.totalSlots) {
+        visualMissingSummary.textContent = "Naming Plan ยังไม่มี Visual Slot";
+      } else if (!assignment.missingSlotIds.length && !duplicateSlots.size) {
+        visualMissingSummary.textContent = `Visual Evidence ครบ ${assignment.totalSlots} Slots`;
+      } else {
+        const missingOrders = plan.slots.filter(slot => assignment.missingSlotIds.includes(slot.id)).map(slot => slot.order);
+        visualMissingSummary.textContent = `ยังว่าง ${assignment.missingSlotIds.length} Slots${missingOrders.length ? " · " + missingOrders.join(", ") : ""}`;
+      }
     }
 
     if (!visualAssets.length) {
-      selectedFileList.innerHTML = '<div class="empty-state">เลือกภาพด้านบน แล้ว Preview และชื่อไฟล์มาตรฐานจะปรากฏที่นี่</div>';
+      selectedFileList.innerHTML = '<div class="empty-state">เลือกภาพด้านบน แล้ว Preview, Visual Slot และชื่อไฟล์มาตรฐานจะปรากฏที่นี่</div>';
       return;
     }
 
@@ -1780,14 +1858,17 @@ JSON ที่ต้องตอบ:
       const file = visualAssetFiles.get(asset.id);
       const slot = visualSlotById(asset.slotId);
       const canonical = asset.canonicalName || asset.originalName;
-      const duplicate = canonical && (canonicalCounts.get(canonical.toLowerCase()) || 0) > 1;
+      const effective = effectiveVisualName(asset);
+      const duplicate = effective && (canonicalCounts.get(effective.toLowerCase()) || 0) > 1;
+      const duplicateSlot = asset.slotId && duplicateSlots.has(asset.slotId);
       const extMismatch = canonical && asset.originalName && !VE.fileExtMatches(canonical, asset.originalName);
-      const resolvedName = VE.resolvedDownloadName(canonical, asset.originalName);
-      const status = duplicate
-        ? '<span class="visual-status warn">ชื่อมาตรฐานซ้ำ</span>'
-        : extMismatch
-          ? `<span class="visual-status warn">นามสกุลไฟล์จริงไม่ตรงแผน · ดาวน์โหลดจะใช้ ${esc(resolvedName)}</span>`
-          : '<span class="visual-status ok">ชื่อพร้อมใช้</span>';
+      const invalidName = !VE.validFilename(canonical);
+      const statuses = [];
+      if (duplicateSlot) statuses.push('<span class="visual-status warn">Slot ซ้ำ</span>');
+      if (duplicate) statuses.push('<span class="visual-status warn">ชื่อมาตรฐานซ้ำ</span>');
+      if (invalidName) statuses.push('<span class="visual-status warn">ชื่อไฟล์ไม่ถูกต้อง</span>');
+      if (extMismatch) statuses.push(`<span class="visual-status warn">ไฟล์จริงต่างนามสกุล · ใช้ ${esc(effective)}</span>`);
+      if (!statuses.length) statuses.push('<span class="visual-status ok">พร้อมใช้</span>');
 
       const previewHtml = preview
         ? `<img src="${preview}" alt="Preview ${esc(asset.originalName)}" loading="lazy">`
@@ -1803,7 +1884,7 @@ JSON ที่ต้องตอบ:
               <small>${esc(asset.mimeType || file?.type || "unknown")} · ${formatBytes(asset.size || file?.size || 0)}</small>
             </div>
 
-            <label>Slot ตาม Naming Plan
+            <label>Visual Slot
               <select data-visual-slot>${visualSlotOptions(asset.slotId)}</select>
             </label>
 
@@ -1811,12 +1892,14 @@ JSON ที่ต้องตอบ:
               <input data-visual-canonical value="${esc(canonical)}" placeholder="เช่น 10_presenter_01.jpg">
             </label>
 
+            ${effective !== canonical ? `<div class="visual-original"><span>ชื่อที่ใช้จริงเมื่อดาวน์โหลด/ส่งต่อ</span><strong>${esc(effective)}</strong></div>` : ""}
+
             <label>ประเภท Visual Evidence
               <select data-visual-evidence>${visualEvidenceOptions(asset.evidenceType || slot?.evidenceType || "")}</select>
             </label>
 
             <div class="visual-status-row">
-              ${status}
+              ${statuses.join("")}
               ${slot ? `<span class="visual-status info">${esc(slot.label)}</span>` : ""}
             </div>
 
@@ -1833,21 +1916,31 @@ JSON ที่ต้องตอบ:
   function buildVisualAssetFromFile(file) {
     const used = visualAssets.map(asset => asset.slotId).filter(Boolean);
     const matched = VE.matchSlotByFilename(visualNamingPlan, file.name);
-    const slot = matched || VE.nextFreeSlot(visualNamingPlan, used);
+    const slot = matched && !used.includes(matched.id) ? matched : VE.nextFreeSlot(visualNamingPlan, used);
     return {
       id: cryptoId(),
       originalName: file.name,
       canonicalName: slot?.filename || file.name,
       slotId: slot?.id || "",
+      sequence: 1,
       evidenceType: slot?.evidenceType || "",
       mimeType: file.type || "",
       size: file.size || 0
     };
   }
 
+  function supportedVisualFile(file) {
+    const type = String(file?.type || "").toLowerCase();
+    const ext = VE.normalizeExt(VE.extension(file?.name || ""));
+    return ["image/jpeg","image/png","image/webp","image/svg+xml"].includes(type)
+      || ["jpg","png","webp","svg"].includes(ext);
+  }
+
   function addVisualFiles(files) {
-    const incoming = [...(files || [])].slice(0, 40);
-    if (!incoming.length) return;
+    const incomingAll = [...(files || [])].slice(0, 40);
+    if (!incomingAll.length) return;
+    const incoming = incomingAll.filter(supportedVisualFile);
+    const rejected = incomingAll.length - incoming.length;
     incoming.forEach(file => {
       const asset = buildVisualAssetFromFile(file);
       visualAssets.push(asset);
@@ -1855,16 +1948,11 @@ JSON ที่ต้องตอบ:
     });
     renderFileNames();
     save();
+    if (rejected) notify(`ข้าม ${rejected} ไฟล์ที่ไม่ใช่ JPG, PNG, WebP หรือ SVG`, "warn", 6500);
   }
 
   function autoAssignVisualNames() {
-    const slots = VE.normalizePlan(visualNamingPlan).slots;
-    visualAssets.forEach((asset,index) => {
-      const slot = slots[index] || null;
-      asset.slotId = slot?.id || "";
-      asset.canonicalName = slot?.filename || asset.originalName;
-      if (slot?.evidenceType) asset.evidenceType = slot.evidenceType;
-    });
+    visualAssets = VE.autoAssignAssets(visualNamingPlan, visualAssets);
     renderFileNames();
     save();
   }
@@ -2057,7 +2145,7 @@ status: "generated_from_easy_mode"
 
 ## Available Visual Evidence — Standardized Filenames
 ${visualAssets.length
-  ? visualAssets.map(asset => `- ${safe(asset.canonicalName || asset.originalName)} — ${safe(asset.evidenceType, "ยังไม่ระบุประเภท")}`).join("\n")
+  ? visualAssets.map(asset => `- ${safe(effectiveVisualName(asset))} — ${safe(asset.evidenceType, "ยังไม่ระบุประเภท")}`).join("\n")
   : "- PENDING — ยังไม่ได้แนบภาพใน STEP 6"}
 
 ## S00 — Identity / Context
@@ -2190,7 +2278,7 @@ Journey สำคัญ: ก่อนพัฒนา ${safe(value("journeyBefore
     const visualMap = visualAssets.length
       ? visualAssets.map(asset => {
           const slot = visualSlotById(asset.slotId);
-          return `- ${safe(asset.originalName, "ไม่พบไฟล์ต้นฉบับ")} → **${safe(asset.canonicalName || asset.originalName)}**${asset.evidenceType ? " | " + asset.evidenceType : ""}${slot ? " | " + slot.label : ""}`;
+          return `- ${safe(asset.originalName, "ไม่พบไฟล์ต้นฉบับ")} → **${safe(effectiveVisualName(asset))}**${asset.evidenceType ? " | " + asset.evidenceType : ""}${slot ? " | " + slot.label : ""}`;
         }).join("\n")
       : "- PENDING — ยังไม่ได้แนบ Visual Evidence";
     const audit = getDocumentAudit();
@@ -3003,6 +3091,39 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
     evidenceFiles.value = "";
   });
 
+  if (evidenceDropZone) {
+    ["dragenter","dragover"].forEach(type => evidenceDropZone.addEventListener(type, e => {
+      e.preventDefault();
+      evidenceDropZone.classList.add("dragover");
+    }));
+    ["dragleave","drop"].forEach(type => evidenceDropZone.addEventListener(type, e => {
+      e.preventDefault();
+      evidenceDropZone.classList.remove("dragover");
+    }));
+    evidenceDropZone.addEventListener("drop", e => {
+      addVisualFiles(e.dataTransfer?.files || []);
+    });
+  }
+
+  if (visualSlotOverview) {
+    visualSlotOverview.addEventListener("click", e => {
+      const chip = e.target.closest("[data-visual-slot-chip]");
+      if (!chip) return;
+      const slotId = chip.dataset.visualSlotChip;
+      const asset = visualAssets.find(item => item.slotId === slotId);
+      const slot = visualSlotById(slotId);
+      if (!asset) {
+        notify(`Slot ${slot?.order || ""} — ${slot?.label || slotId} ยังไม่มีภาพ`, "info", 4200);
+        return;
+      }
+      const card = selectedFileList.querySelector(`[data-visual-id="${CSS.escape(asset.id)}"]`);
+      if (!card) return;
+      card.classList.add("visual-card-focus");
+      card.scrollIntoView({behavior:"smooth",block:"center"});
+      setTimeout(() => card.classList.remove("visual-card-focus"), 1600);
+    });
+  }
+
   selectedFileList.addEventListener("change", e => {
     const card = e.target.closest("[data-visual-id]");
     const asset = visualAssets.find(item => item.id === card?.dataset.visualId);
@@ -3033,6 +3154,14 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
         if (checkbox) checkbox.checked = true;
       }
       save();
+      return;
+    }
+
+    const canonicalInput = e.target.closest("[data-visual-canonical]");
+    if (canonicalInput) {
+      asset.canonicalName = canonicalInput.value.trim();
+      renderFileNames();
+      save();
     }
   });
 
@@ -3053,7 +3182,7 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
     if (!asset) return;
 
     if (e.target.closest("[data-copy-visual-name]")) {
-      await copyText(asset.canonicalName || asset.originalName);
+      await copyText(effectiveVisualName(asset));
       notify("คัดลอกชื่อไฟล์มาตรฐานแล้ว", "success", 3200);
       return;
     }
@@ -3074,7 +3203,7 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
 
   document.getElementById("autoAssignVisualNamesBtn").addEventListener("click", () => {
     autoAssignVisualNames();
-    notify("จัดชื่อภาพตามลำดับของ Naming Plan แล้ว", "success");
+    notify("จัดภาพลง Slot ที่ยังว่างและอัปเดตชื่อมาตรฐานแล้ว", "success");
   });
 
   document.getElementById("resetNamingPlanBtn").addEventListener("click", () => {
@@ -3100,6 +3229,17 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
   });
 
   nextBtn.addEventListener("click", () => {
+    if (currentStep === 5) {
+      const summary = VE.assignmentSummary(visualNamingPlan, visualAssets);
+      syncSelectedVisualNames();
+      const nameCounts = new Map();
+      selectedFileNames.forEach(name => nameCounts.set(name.toLowerCase(), (nameCounts.get(name.toLowerCase()) || 0) + 1));
+      const duplicateNames = [...nameCounts.values()].filter(count => count > 1).length;
+      const issueCount = summary.duplicateSlotIds.length + summary.invalidSlotIds.length + duplicateNames;
+      if ((summary.missingSlotIds.length || issueCount) && !window.confirm(
+        `Visual Evidence ยังไม่ครบหรือมีรายการต้องตรวจ\n\nแนบแล้ว ${summary.assignedUnique} จาก ${summary.totalSlots} Slots\nยังว่าง ${summary.missingSlotIds.length} Slots\nรายการต้องตรวจ ${issueCount}\n\nสามารถกลับมาเพิ่มหรือแก้ไขภายหลังได้ ต้องการไปขั้นถัดไปหรือไม่?`
+      )) return;
+    }
     if (currentStep < panels.length - 1) showStep(currentStep + 1);
     else renderReadiness();
   });

@@ -22,4 +22,18 @@ assert.strictEqual(V.planIssues(custom).length,0);
 const bad = V.normalizePlan({slots:[{filename:"bad/name.jpg"}]});
 assert.strictEqual(bad.slots.length,0);
 
+const assigned = V.autoAssignAssets(custom, [
+  {id:"x",originalName:"first.jpg",slotId:"10_a"},
+  {id:"y",originalName:"second.png",slotId:"10_a"},
+  {id:"z",originalName:"third.png",slotId:""}
+]);
+assert.strictEqual(assigned[0].slotId,"10_a");
+assert.strictEqual(assigned[1].slotId,"11_b");
+assert.strictEqual(assigned[2].slotId,"");
+assert.strictEqual(V.assignmentSummary(custom,assigned).assignedUnique,2);
+assert.deepStrictEqual(V.assignmentSummary(custom,assigned).missingSlotIds,[]);
+assert.deepStrictEqual(V.assignmentSummary(custom,[
+  {slotId:"10_a"},{slotId:"10_a"}
+]).duplicateSlotIds,["10_a"]);
+
 console.log("Visual evidence naming tests: PASS");
