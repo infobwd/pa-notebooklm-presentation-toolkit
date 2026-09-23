@@ -166,18 +166,20 @@ Evidence Trace ไม่ต้องพิมพ์ชื่อไฟล์เ�
 - ปุ่มใน modal แตกบรรทัด/เรียงแนวตั้งบนมือถือ เพื่อลด horizontal overflow
 
 
-## Phase 3.5.2 — Visual Evidence Organizer
+## Phase 3.6 — Visual Evidence Manager
 
-STEP 6 ปรับเป็น Visual Organizer:
-- แนบภาพแล้วเห็น Preview ใน Browser
-- แสดงไฟล์ต้นฉบับ + ชื่อไฟล์มาตรฐาน
-- เลือก slot จาก Visual Naming Plan
-- แก้ชื่อมาตรฐานเองได้
-- ระบุประเภท Visual Evidence ต่อภาพ
-- เตือนชื่อซ้ำและนามสกุลที่ไม่ตรงกับแผน
-- ดาวน์โหลดสำเนาภาพด้วยชื่อมาตรฐานได้
-- Project JSON เก็บ metadata + Naming Plan แต่ไม่เก็บ binary image
-- หลัง refresh ต้องเลือกไฟล์จริงอีกครั้งเพื่อดู Preview/ดาวน์โหลดสำเนา
-- Source Manifest และ Visual Storyboard ใช้ชื่อไฟล์มาตรฐาน
+STEP 6 จัดการ Visual Evidence แบบ local-first:
 
-Toolkit มี Generic Naming Plan ในตัว และรองรับ Import Naming Plan JSON ของแต่ละ Project
+- เลือกหลายภาพพร้อมกันและแสดง thumbnail preview ใน Browser
+- รองรับ JPG, PNG, WebP และ SVG โดยไม่อัปโหลด binary image ไป Server
+- Import Visual Naming Plan ของแต่ละ Project หรือกลับไปใช้ Generic Plan
+- จับคู่ภาพกับ Visual Slot และตั้งชื่อมาตรฐานอัตโนมัติ โดยรักษา Slot ที่ผู้ใช้จัดไว้แล้ว
+- แสดง progress `x / total`, Slot chips, Missing Slots และปัญหา Duplicate Slot / Duplicate Filename
+- ผู้ใช้เปลี่ยน Slot, ชื่อไฟล์ และประเภท Visual Evidence รายภาพได้
+- หากนามสกุลในแผนไม่ตรงกับไฟล์จริง ระบบรักษาชนิดไฟล์จริงในชื่อที่ใช้ดาวน์โหลด/ส่งต่อ
+- Storyboard และ Source Manifest ใช้ effective standardized filename
+- Project JSON เก็บ metadata + Naming Plan + slot mapping แต่ไม่เก็บ binary image
+- ก่อนออกจาก STEP 6 ใช้ soft validation: ยังไปขั้นถัดไปได้ แต่ระบบแจ้งจำนวน Slot ที่ขาดหรือรายการที่ต้องตรวจ
+
+ตัวอย่าง Naming Plan สำหรับโครงการนี้อยู่ที่ `visual-evidence-guide/PA_2569_visual_naming_plan.json`.
+
