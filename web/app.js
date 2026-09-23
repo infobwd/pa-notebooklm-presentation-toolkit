@@ -355,6 +355,25 @@
     });
   }
 
+  let storageWarningShown = false;
+
+  function setRuntimeHealth(message, state = "ok") {
+    const el = document.getElementById("runtimeHealth");
+    if (!el) return;
+    el.textContent = message;
+    el.dataset.state = state;
+  }
+
+  window.addEventListener("error", event => {
+    setRuntimeHealth("พบข้อผิดพลาดในหน้าเว็บ · ลองรีเฟรชหรือ Export Project ก่อนดำเนินการต่อ", "error");
+    notify("พบข้อผิดพลาดในหน้าเว็บ ระบบเก็บรายละเอียดไว้ใน Browser console กรุณา Export Project ก่อนรีเฟรชหากยังทำได้", "error", 9000);
+  });
+
+  window.addEventListener("unhandledrejection", () => {
+    setRuntimeHealth("พบข้อผิดพลาดจากงานเบื้องหลัง · กรุณาตรวจข้อมูลก่อนทำต่อ", "error");
+    notify("งานเบื้องหลังบางส่วนทำงานไม่สำเร็จ กรุณาตรวจข้อมูลและลองอีกครั้ง", "error", 8500);
+  });
+
   function injectFieldExamples() {
     Object.entries(FIELD_EXAMPLES).forEach(([name, example]) => {
       const el = form.elements[name];
@@ -1203,9 +1222,19 @@ JSON ที่ต้องตอบ:
   }
 
   function save() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(collectState()));
-    saveState.textContent = "บันทึกแล้ว";
-    window.setTimeout(() => saveState.textContent = "บันทึกอัตโนมัติ", 900);
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(collectState()));
+      saveState.textContent = "บันทึกแล้ว";
+      setRuntimeHealth("พร้อมใช้งาน · บันทึกข้อมูลใน Browser แล้ว", "ok");
+      window.setTimeout(() => saveState.textContent = "บันทึกอัตโนมัติ", 900);
+    } catch (err) {
+      saveState.textContent = "บันทึกอัตโนมัติไม่ได้";
+      setRuntimeHealth("localStorage ใช้งานไม่ได้ · ควร Export Project เพื่อสำรองข้อมูล", "warn");
+      if (!storageWarningShown) {
+        storageWarningShown = true;
+        notify("Browser ไม่อนุญาตให้บันทึก localStorage หรือพื้นที่ไม่พอ กรุณาใช้ “ส่งออกโปรเจกต์” เพื่อสำรองข้อมูล", "warn", 9000);
+      }
+    }
   }
 
   function load() {
@@ -1217,10 +1246,12 @@ JSON ที่ต้องตอบ:
         renderIndicators();
         renderEvidenceChecks();
       }
-    } catch {
+    } catch (err) {
       indicators = defaultIndicators();
       renderIndicators();
       renderEvidenceChecks();
+      setRuntimeHealth("อ่านข้อมูลเดิมจาก Browser ไม่สำเร็จ · เริ่มฟอร์มใหม่", "warn");
+      window.setTimeout(() => notify("อ่านข้อมูลที่บันทึกไว้เดิมไม่สำเร็จ ระบบเริ่มฟอร์มใหม่ กรุณา Import Project JSON หากมีไฟล์สำรอง", "warn", 8500), 0);
     }
   }
 
