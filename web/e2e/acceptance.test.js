@@ -127,7 +127,7 @@ async function acceptance() {
     const firstCard = page.locator(".indicator-card").first();
     await firstCard.locator(".indicator-trace summary").click();
     await firstCard.locator("[data-pick-source-file]").waitFor({ state: "visible" });
-    await firstCard.locator("[data-source-doc-select]").selectOption({ label: /source-sample\.txt/ });
+    await firstCard.locator("[data-source-doc-select]").selectOption("source-sample.txt");
 
     const sourceFile = await page.locator(".indicator-card").first().locator('[data-field="sourceFile"]').inputValue();
     if (sourceFile !== "source-sample.txt") throw new Error("source file was not assigned to indicator");
