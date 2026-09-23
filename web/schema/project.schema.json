@@ -112,6 +112,100 @@
       "type": "integer",
       "minimum": 0,
       "maximum": 7
+    },
+    "visualNamingPlan": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "slots": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "order": {
+                "type": "number"
+              },
+              "filename": {
+                "type": "string"
+              },
+              "label": {
+                "type": "string"
+              },
+              "evidenceType": {
+                "type": "string"
+              },
+              "aliases": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "id",
+              "order",
+              "filename",
+              "label",
+              "evidenceType",
+              "aliases"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "schema_version",
+        "title",
+        "slots"
+      ],
+      "additionalProperties": false
+    },
+    "visualAssets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "originalName": {
+            "type": "string"
+          },
+          "canonicalName": {
+            "type": "string"
+          },
+          "slotId": {
+            "type": "string"
+          },
+          "evidenceType": {
+            "type": "string"
+          },
+          "mimeType": {
+            "type": "string"
+          },
+          "size": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "originalName",
+          "canonicalName",
+          "slotId",
+          "evidenceType",
+          "mimeType",
+          "size"
+        ],
+        "additionalProperties": false
+      }
     }
   },
   "additionalProperties": true
