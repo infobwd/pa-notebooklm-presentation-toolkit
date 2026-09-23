@@ -2029,6 +2029,7 @@ JSON ที่ต้องตอบ:
   function openDocumentReader() {
     documentReaderModal.classList.remove("hidden");
     document.body.style.overflow = "hidden";
+    rebuildDocumentIntelligenceIndex({rerunSearch:true});
     renderExtractedDocuments();
   }
 
@@ -3231,7 +3232,12 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
     if (!doc) return;
 
     const checkbox = e.target.closest(".document-include");
-    if (checkbox) doc.include = checkbox.checked;
+    if (checkbox) {
+      doc.include = checkbox.checked;
+      if (documentSearchInput?.value.trim() && documentSearchScope?.value === "included") {
+        runDocumentSearch();
+      }
+    }
 
     const role = e.target.closest(".document-role");
     if (role) {
@@ -3322,6 +3328,74 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
     renderExtractedDocuments();
     syncIndicatorsFromDom();
     renderIndicators();
+  });
+
+  document.getElementById("documentSearchBtn").addEventListener("click", () => {
+    runDocumentSearch();
+  });
+
+  documentSearchInput.addEventListener("keydown", e => {
+    if (e.key !== "Enter") return;
+    e.preventDefault();
+    runDocumentSearch();
+  });
+
+  documentSearchScope.addEventListener("change", () => {
+    if (documentSearchInput.value.trim()) runDocumentSearch();
+  });
+
+  document.getElementById("clearDocumentSearchBtn").addEventListener("click", () => {
+    documentSearchInput.value = "";
+    documentSearchPageResults = [];
+    rebuildDocumentIntelligenceIndex({rerunSearch:false});
+    documentSearchInput.focus();
+  });
+
+  documentSearchSuggestions.addEventListener("click", e => {
+    const chip = e.target.closest("[data-document-search-query]");
+    if (!chip) return;
+    documentSearchInput.value = chip.dataset.documentSearchQuery || "";
+    runDocumentSearch();
+    documentSearchResults.scrollIntoView({behavior:"smooth",block:"nearest"});
+  });
+
+  documentSearchResults.addEventListener("click", async e => {
+    const key = e.target.closest("[data-use-search-page],[data-use-search-document],[data-use-search-source],[data-copy-search-result]")?.dataset;
+    if (!key) return;
+
+    const actionEl = e.target.closest("[data-use-search-page],[data-use-search-document],[data-use-search-source],[data-copy-search-result]");
+    const resultKey = actionEl.dataset.useSearchPage
+      || actionEl.dataset.useSearchDocument
+      || actionEl.dataset.useSearchSource
+      || actionEl.dataset.copySearchResult;
+    const result = searchResultByKey(resultKey);
+    if (!result) return;
+    const doc = extractedDocuments.find(item => item.id === result.docId);
+
+    if (actionEl.hasAttribute("data-use-search-page")) {
+      addPageToDocumentSelection(doc,result.page);
+      return;
+    }
+
+    if (actionEl.hasAttribute("data-use-search-document")) {
+      if (doc) {
+        doc.include = true;
+        renderExtractedDocuments();
+        updateDocumentPreview();
+        notify(`เลือก ${doc.name} ใช้กับ AI แล้ว`, "success", 4300);
+      }
+      return;
+    }
+
+    if (actionEl.hasAttribute("data-use-search-source")) {
+      useSearchResultAsSource(result);
+      return;
+    }
+
+    if (actionEl.hasAttribute("data-copy-search-result")) {
+      await copyText((result.excerpts || []).join("\n\n"));
+      notify("คัดลอกข้อความจากผลค้นหาแล้ว", "success", 3200);
+    }
   });
 
   documentTextPreview.addEventListener("input", () => {
