@@ -1,0 +1,16 @@
+{
+  "schema_version": "pa-toolkit/visual-naming-plan/1",
+  "title": "E2E Visual Plan",
+  "slots": [
+    {
+      "id": "10_test",
+      "order": 10,
+      "filename": "10_test_visual.svg",
+      "label": "ภาพทดสอบ",
+      "evidenceType": "ภาพกิจกรรมจริง",
+      "aliases": [
+        "visual-sample"
+      ]
+    }
+  ]
+}
