@@ -66,12 +66,23 @@
               "unverified",
               "verified"
             ]
+          },
+          "actualMode": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "fraction",
+              "percent",
+              "score",
+              "text"
+            ]
           }
         },
         "required": [
           "title",
           "target",
           "actual",
+          "actualMode",
           "evidence",
           "actualNumerator",
           "actualDenominator",
