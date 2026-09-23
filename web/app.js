@@ -1464,9 +1464,8 @@ JSON ที่ต้องตอบ:
     if (!doc || !item) return;
 
     item.sourceFile = doc.name;
-    item.sourcePage = "";
+    item.sourcePage = doc.pageSpec ? "หน้า " + doc.pageSpec : "";
     item.verification = "unverified";
-    sourcePickerIndicatorId = "";
 
     closeDocumentReaderModal();
     renderIndicators();
@@ -2316,6 +2315,7 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
 
   function closeDocumentReaderModal() {
     documentReaderModal.classList.add("hidden");
+    sourcePickerIndicatorId = "";
     if (aiJsonModal.classList.contains("hidden")) document.body.style.overflow = "";
   }
 
