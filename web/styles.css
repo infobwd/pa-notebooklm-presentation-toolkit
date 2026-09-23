@@ -1561,3 +1561,78 @@ input, textarea, select,
 @media (max-width: 430px) {
   .project-dashboard-grid { grid-template-columns: 1fr 1fr; }
 }
+
+
+/* Phase 3.4 — Guided Source Picker & safe Import */
+.step3-source-tip {
+  margin-bottom: 12px;
+  display: grid;
+  gap: 3px;
+}
+.step3-source-tip span {
+  font-family: "Sarabun", sans-serif;
+  font-size: 12px;
+  line-height: 1.55;
+  color: #52667a;
+}
+
+.trace-source-picker {
+  display: grid;
+  gap: 7px;
+}
+.source-picker-tools {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto;
+  gap: 7px;
+  align-items: center;
+}
+.source-picker-tools select,
+.source-page-select {
+  font-family: "Sarabun", sans-serif;
+  font-size: 12px;
+}
+.source-pick-btn {
+  white-space: nowrap;
+}
+.source-picker-help {
+  display: block;
+  color: #718096;
+  font-family: "Sarabun", sans-serif;
+  font-size: 10px;
+  line-height: 1.45;
+}
+.source-page-select {
+  margin-top: 7px;
+}
+
+.document-card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: stretch;
+}
+.use-as-source-btn {
+  white-space: nowrap;
+  font-size: 10px;
+  padding: 7px 9px;
+}
+
+#importAiJsonBtn {
+  position: relative;
+}
+#importAiJsonBtn:not(:disabled) {
+  cursor: pointer;
+}
+
+@media (max-width: 720px) {
+  .source-picker-tools {
+    grid-template-columns: 1fr;
+  }
+  .source-pick-btn {
+    width: 100%;
+  }
+  .document-card-actions {
+    grid-column: 2;
+    align-items: flex-start;
+  }
+}
