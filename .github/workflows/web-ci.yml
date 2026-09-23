@@ -32,6 +32,7 @@ jobs:
           node --check web/js/visual-evidence.js
           node --check web/js/ocr-intelligence.js
           node --check web/js/document-intelligence.js
+          node --check web/js/evidence-review.js
           node --check web/app.js
 
       - name: Run reliability tests
@@ -41,6 +42,7 @@ jobs:
           node web/tests/visual-evidence.test.js
           node web/tests/ocr-intelligence.test.js
           node web/tests/document-intelligence.test.js
+          node web/tests/evidence-review.test.js
 
       - name: Verify required web files
         run: |
@@ -53,9 +55,11 @@ jobs:
           test -f web/js/document-audit.js
           test -f web/js/ocr-intelligence.js
           test -f web/js/document-intelligence.js
+          test -f web/js/evidence-review.js
           test -f web/tests/document-audit.test.js
           test -f web/tests/ocr-intelligence.test.js
           test -f web/tests/document-intelligence.test.js
+          test -f web/tests/evidence-review.test.js
           test -f web/schema/project.schema.json
           test -f package.json
           test -f web/e2e/acceptance.test.js
@@ -90,7 +94,13 @@ jobs:
           grep -q 'function notify' web/app.js
           if grep -qE '\b(window\.)?alert\s*\(' web/app.js; then echo "window.alert is not allowed"; exit 1; fi
           grep -q 'data-fill-target="position"' web/index.html
-          grep -q 'Phase 4.1 Document Intelligence · Search & Relevance' web/index.html
+          grep -q 'Phase 4.2 Evidence Review & Trace Handoff' web/index.html
+          grep -q 'evidence-review.js' web/index.html
+          grep -q 'evidenceReviewList' web/index.html
+          grep -q 'downloadEvidenceReviewBtn' web/index.html
+          grep -q 'data-save-search-review' web/app.js
+          grep -q 'function renderEvidenceReview' web/app.js
+          grep -q 'function promoteEvidenceReview' web/app.js
           grep -q 'document-intelligence.js' web/index.html
           grep -q 'documentSearchInput' web/index.html
           grep -q 'documentSearchResults' web/index.html
