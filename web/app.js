@@ -2123,6 +2123,7 @@ JSON ที่ต้องตอบ:
       {value:String(readyDocs), label:"เอกสารใน session", action:"reader", tone:readyDocs ? "info" : "warn"},
       {value:`${audit.sourceLinks}/${sourceRefCount}`, label:"Source links ที่จับคู่ได้", action:"step3", tone:sourceRefCount && audit.sourceLinks === sourceRefCount ? "ok" : "info"},
       {value:String(audit.issueCount), label:"Source audit issues", action:"audit", tone:audit.issueCount ? "warn" : "ok"},
+      {value:String(ER.counts(evidenceReviewNotes).checked), label:"Evidence Review ที่ตรวจแล้ว", action:"reader", tone:ER.counts(evidenceReviewNotes).checked ? "info" : "warn"},
       {value:String(pendingChecks), label:"รายการที่ยังต้องตรวจ", action:"missing", tone:pendingChecks ? "warn" : "ok"}
     ];
     projectDashboardGrid.innerHTML = cards.map(card => `
@@ -2219,6 +2220,7 @@ JSON ที่ต้องตอบ:
     document.body.style.overflow = "hidden";
     rebuildDocumentIntelligenceIndex({rerunSearch:true});
     renderExtractedDocuments();
+    renderEvidenceReview();
   }
 
   function openIndicatorSource(id) {
@@ -2902,6 +2904,16 @@ Journey สำคัญ: ก่อนพัฒนา ${safe(value("journeyBefore
         }).join("\n")
       : "- PENDING — ยังไม่ได้แนบ Visual Evidence";
     const audit = getDocumentAudit();
+    const reviewCounts = ER.counts(evidenceReviewNotes);
+    const reviewLines = evidenceReviewNotes.length
+      ? evidenceReviewNotes.map((item,index) => {
+          const status = ER.statusLabel(item.reviewStatus);
+          const classification = ER.classificationLabel(item.classification);
+          const indicatorIndex = indicators.findIndex(ind => ind.id === item.linkedIndicatorId);
+          const indicator = indicatorIndex >= 0 ? ` | Indicator ${indicatorIndex + 1}` : "";
+          return `- [${item.reviewStatus === "checked" ? "x" : " "}] Review ${index + 1}: ${safe(item.sourceFile)}${item.sourcePage ? " · " + item.sourcePage : ""} | ${classification} | ${status}${indicator}`;
+        }).join("\n")
+      : "- [ ] ยังไม่มี Evidence Review Note";
     const auditLines = [];
     audit.duplicates.forEach(x => auditLines.push(`- [ ] DUPLICATE: ${x.aName} ↔ ${x.bName} (${Math.round((x.similarity || 0) * 100)}%)`));
     audit.versionConflicts.forEach(x => auditLines.push(`- [ ] VERSION CHECK: ${x.aName} ↔ ${x.bName}`));
@@ -2931,6 +2943,13 @@ ${selectedExtractedDocuments().length
 ${extractedDocuments.length
   ? (auditLines.length ? auditLines.join("\n") : "- [x] ไม่พบ duplicate / version / role / source-link issue ใน session นี้")
   : "- [ ] ไม่ได้โหลดเอกสารใน session นี้ จึงยังไม่ได้ทำ Document Audit"}
+
+## EVIDENCE REVIEW NOTES
+Summary: ${reviewCounts.total} total · ${reviewCounts.checked} checked · ${reviewCounts.candidate} candidate · ${reviewCounts.rejected} rejected
+
+${reviewLines}
+
+> Evidence Review “ตรวจต้นฉบับแล้ว” ไม่เท่ากับ Evidence Trace VERIFIED และไม่ยืนยัน ACTUAL อัตโนมัติ
 
 ## ACTUAL EVIDENCE TRACE
 ${indicators.map((item,i) => {
@@ -3019,6 +3038,7 @@ ${visualMap}
 - [ ] CONTEXT ไม่ถูกเรียกว่า “ผลสำเร็จ” โดยอัตโนมัติ
 - [ ] PENDING ไม่ถูกเติมด้วยการคาดเดา
 - [ ] Before/After ใช้ cohort/population ที่เปรียบเทียบกันได้
+- [ ] Evidence Review ที่เลือกใช้ถูกส่งไป Evidence Trace และตรวจ Verification แยกอีกครั้ง
 
 ## Import Integrity
 - [ ] ไม่มี conflict จาก AI Import ค้าง
