@@ -744,7 +744,14 @@
     const wanted = new Set(parsed.pages);
     return doc.pageTexts
       .filter(item => wanted.has(item.page))
-      .map(item => `--- หน้า ${item.page} ---\n${item.text}`)
+      .map(item => {
+        const tag = item.extractionMode === "ocr"
+          ? " [OCR — ตรวจทานก่อนใช้]"
+          : item.extractionMode === "ocr_empty"
+            ? " [OCR ไม่พบข้อความ]"
+            : "";
+        return `--- หน้า ${item.page}${tag} ---\n${item.text || ""}`;
+      })
       .join("\n\n");
   }
 
@@ -754,7 +761,10 @@
     return docs.map((doc, index) => {
       const selection = documentTextForSelection(doc);
       const pageNote = doc.pages && doc.pageSpec ? ` | PAGES: ${doc.pageSpec}` : "";
-      return `===== SOURCE ${index + 1}: ${doc.name} | ROLE: ${documentRoleLabel(doc.role)}${pageNote} =====\n${selection}`;
+      const ocrNote = doc.ocrCompletedPages?.length
+        ? ` | OCR PAGES: ${OCR.compressPages(doc.ocrCompletedPages)} (USER REVIEW REQUIRED)`
+        : "";
+      return `===== SOURCE ${index + 1}: ${doc.name} | ROLE: ${documentRoleLabel(doc.role)}${pageNote}${ocrNote} =====\n${selection}`;
     }).join("\n\n");
   }
 
