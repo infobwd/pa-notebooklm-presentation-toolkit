@@ -787,6 +787,192 @@
     }).join("\n\n");
   }
 
+  function chunkCountForDocument(docId) {
+    return documentChunks.filter(chunk => chunk.docId === docId).length;
+  }
+
+  function renderDocumentChunkStats() {
+    if (!documentChunkStats) return;
+    const readyDocs = extractedDocuments.filter(doc => doc.status === "ready");
+    const totalPages = readyDocs.reduce((sum,doc) => sum + (doc.pages || 0),0);
+    const longDocs = readyDocs.filter(doc => (doc.pages || 0) >= 30 || String(doc.text || "").length >= 40000).length;
+    documentChunkStats.innerHTML = readyDocs.length
+      ? [
+          `<span class="document-stat">${documentChunks.length.toLocaleString()} chunks</span>`,
+          totalPages ? `<span class="document-stat">${totalPages.toLocaleString()} หน้า</span>` : "",
+          longDocs ? `<span class="document-stat">เอกสารยาว ${longDocs} ไฟล์</span>` : ""
+        ].join("")
+      : "";
+  }
+
+  function renderDocumentSearchSuggestions() {
+    if (!documentSearchSuggestions) return;
+    const suggestions = DI.contextQueries({
+      challengeTitle:value("challengeTitle"),
+      developmentNeed:value("developmentNeed")
+    },indicators);
+    documentSearchSuggestions.innerHTML = suggestions.length
+      ? suggestions.map(item =>
+          `<button type="button" class="document-search-chip" data-document-search-query="${esc(item.query)}"><span>${esc(item.label)}</span>${esc(item.query)}</button>`
+        ).join("")
+      : '<span class="document-search-empty">กรอกประเด็นท้าทาย/ตัวชี้วัดใน STEP 2–3 เพื่อให้ระบบสร้างคำค้นแนะนำ</span>';
+  }
+
+  function rebuildDocumentIntelligenceIndex(options = {}) {
+    documentChunks = DI.buildChunks(extractedDocuments,{
+      maxChars:1400,
+      overlapChars:180
+    });
+    renderDocumentChunkStats();
+    renderDocumentSearchSuggestions();
+
+    const currentQuery = String(documentSearchInput?.value || "").trim();
+    if (options.rerunSearch !== false && currentQuery) {
+      runDocumentSearch(currentQuery);
+    } else if (!currentQuery) {
+      documentSearchPageResults = [];
+      if (documentSearchStatus) {
+        documentSearchStatus.className = "json-status neutral";
+        documentSearchStatus.textContent = extractedDocuments.some(doc => doc.status === "ready")
+          ? `สร้างดัชนีแล้ว ${documentChunks.length.toLocaleString()} chunks · พิมพ์คำค้นหรือเลือกคำค้นจาก Project`
+          : "อ่านเอกสารก่อน แล้วพิมพ์คำค้นหรือเลือกคำค้นจาก Project";
+      }
+      if (documentSearchResults) {
+        documentSearchResults.innerHTML = '<div class="empty-state">ผลค้นหาจะเรียงตามความเกี่ยวข้องระดับ chunk/page และยังต้องเปิดต้นฉบับตรวจเอง</div>';
+      }
+    }
+  }
+
+  function allowedSearchDocumentIds() {
+    if (documentSearchScope?.value === "all") return null;
+    return extractedDocuments
+      .filter(doc => doc.status === "ready" && doc.include)
+      .map(doc => doc.id);
+  }
+
+  function searchResultByKey(key) {
+    return documentSearchPageResults.find(item => item.key === key) || null;
+  }
+
+  function renderDocumentSearchResults(query) {
+    if (!documentSearchResults) return;
+    if (!documentSearchPageResults.length) {
+      documentSearchResults.innerHTML = `<div class="empty-state">ไม่พบคำว่า <strong>${esc(query)}</strong> ในขอบเขตที่เลือก ลองใช้คำสั้นลงหรือเปลี่ยนขอบเขตเป็นเอกสารทั้งหมด</div>`;
+      return;
+    }
+
+    documentSearchResults.innerHTML = documentSearchPageResults.map((item,index) => {
+      const doc = extractedDocuments.find(d => d.id === item.docId);
+      const pageLabel = item.page != null ? `หน้า ${item.page}` : "ทั้งเอกสาร";
+      const role = doc ? documentRoleLabel(doc.role) : "";
+      const ocr = item.extractionMode === "ocr"
+        ? '<span class="search-result-badge ocr">OCR · ต้องตรวจต้นฉบับ</span>'
+        : "";
+      const matched = item.matchedTerms?.length
+        ? `<span class="search-result-terms">พบคำ: ${esc(item.matchedTerms.slice(0,5).join(" · "))}</span>`
+        : "";
+      const sourceAction = sourcePickerIndicatorId
+        ? `<button type="button" class="btn btn-primary" data-use-search-source="${esc(item.key)}">ใช้${item.page != null ? "หน้านี้" : "เอกสารนี้"}เป็น Source</button>`
+        : "";
+      return `
+        <article class="document-search-result" data-search-key="${esc(item.key)}">
+          <div class="search-result-rank">${index + 1}</div>
+          <div class="search-result-main">
+            <div class="search-result-head">
+              <strong>${esc(item.docName)}</strong>
+              <span>${esc(pageLabel)}</span>
+              ${role ? `<span class="search-result-badge">${esc(role)}</span>` : ""}
+              ${ocr}
+            </div>
+            <p>${esc(item.excerpts?.join(" … ") || "")}</p>
+            ${matched}
+          </div>
+          <div class="search-result-actions">
+            ${item.page != null
+              ? `<button type="button" class="btn btn-secondary" data-use-search-page="${esc(item.key)}">เพิ่มหน้านี้เข้า AI</button>`
+              : `<button type="button" class="btn btn-secondary" data-use-search-document="${esc(item.key)}">ใช้เอกสารนี้กับ AI</button>`}
+            ${sourceAction}
+            <button type="button" class="btn btn-ghost" data-copy-search-result="${esc(item.key)}">คัดลอกข้อความ</button>
+          </div>
+        </article>`;
+    }).join("");
+  }
+
+  function runDocumentSearch(queryValue) {
+    const query = String(queryValue != null ? queryValue : documentSearchInput?.value || "").trim();
+    if (!documentSearchStatus || !documentSearchResults) return;
+    if (!query) {
+      documentSearchPageResults = [];
+      documentSearchStatus.className = "json-status neutral";
+      documentSearchStatus.textContent = "กรอกคำค้นก่อน เช่น ผลสัมฤทธิ์ทางการเรียน หรือ ซ่อมเสริม";
+      renderDocumentSearchResults(query);
+      return;
+    }
+    if (!documentChunks.length) {
+      documentSearchPageResults = [];
+      documentSearchStatus.className = "json-status warn";
+      documentSearchStatus.textContent = "ยังไม่มีข้อความที่ค้นหาได้ กรุณาอ่านข้อความจากเอกสารก่อน";
+      renderDocumentSearchResults(query);
+      return;
+    }
+
+    const chunkHits = DI.searchChunks(documentChunks,query,{
+      allowedDocIds:allowedSearchDocumentIds(),
+      limit:100,
+      excerptChars:420
+    });
+    documentSearchPageResults = DI.aggregatePageResults(chunkHits,{limit:30});
+
+    const pageHits = documentSearchPageResults.filter(item => item.page != null).length;
+    documentSearchStatus.className = "json-status " + (documentSearchPageResults.length ? "ok" : "warn");
+    documentSearchStatus.innerHTML = documentSearchPageResults.length
+      ? `พบ <strong>${documentSearchPageResults.length}</strong> ผลที่เกี่ยวข้อง${pageHits ? " · " + pageHits + " หน้า" : ""} จาก ${chunkHits.length} chunk hits · เรียงตามความเกี่ยวข้องเชิงข้อความ ไม่ใช่การยืนยันหลักฐาน`
+      : `ไม่พบ “${esc(query)}” ในขอบเขตที่เลือก`;
+    renderDocumentSearchResults(query);
+  }
+
+  function addPageToDocumentSelection(doc,page) {
+    if (!doc || !page) return;
+    let pages = [];
+    if (doc.pageSpec) {
+      const parsed = R.parsePageSpec(doc.pageSpec,doc.pages);
+      if (!parsed.error) pages = parsed.pages;
+    }
+    pages.push(Number(page));
+    doc.pageSpec = OCR.compressPages(pages);
+    doc.pageError = "";
+    doc.include = true;
+    renderExtractedDocuments();
+    notify(`เพิ่ม ${doc.name} หน้า ${page} เข้า Sources สำหรับ AI แล้ว`, "success", 4800);
+  }
+
+  function useSearchResultAsSource(result) {
+    if (!result || !sourcePickerIndicatorId) return;
+    const item = indicators.find(indicator => indicator.id === sourcePickerIndicatorId);
+    if (!item) return;
+    item.sourceFile = result.docName;
+    item.sourcePage = result.page != null ? "หน้า " + result.page : "";
+    item.verification = "unverified";
+    const doc = extractedDocuments.find(d => d.id === result.docId);
+    if (doc) {
+      doc.include = true;
+      if (result.page != null) addPageToDocumentSelection(doc,result.page);
+    }
+    closeDocumentReaderModal();
+    renderIndicators();
+    save();
+    window.requestAnimationFrame(() => {
+      const card = indicatorCards.querySelector(`[data-id="${CSS.escape(item.id)}"]`);
+      if (!card) return;
+      const trace = card.querySelector(".indicator-trace");
+      if (trace) trace.open = true;
+      card.classList.add("focus-pulse");
+      card.scrollIntoView({behavior:"smooth",block:"center"});
+      setTimeout(() => card.classList.remove("focus-pulse"),1800);
+    });
+    notify(`ใช้ ${result.docName}${result.page != null ? " หน้า " + result.page : ""} เป็น Source แล้ว · ยังเป็น UNVERIFIED จนกว่าจะตรวจต้นฉบับ`, "success", 7200);
+  }
+
   function updateDocumentPreview() {
     const selected = selectedExtractedDocuments();
     const text = buildCombinedDocumentText();
