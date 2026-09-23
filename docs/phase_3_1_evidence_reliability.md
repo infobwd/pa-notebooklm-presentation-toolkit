@@ -78,3 +78,14 @@ Phase 3.1 ยังไม่ทำ:
 - พิสูจน์ว่าเนื้อหาที่ AI สกัดตรงกับ PDF โดยอัตโนมัติ
 - server-side storage
 - cloud AI API
+
+
+## Phase 3.2 UX follow-up
+
+ส่วน Reliability เดิมถูกนำมาแสดงให้ผู้ใช้เข้าใจง่ายขึ้น:
+- ACTUAL เลือกรูปแบบก่อนกรอก
+- Evidence Trace แสดงอยู่ใน STEP 3 อย่างชัดเจน
+- STEP 7 มี indicator drill-down และปุ่มกลับไปแก้ใน STEP 3
+- long-form input ใช้ Rich Editor / Smart Numbered List
+- field content ใช้ Sarabun
+- notification ใช้ Toast แทน `window.alert()`
