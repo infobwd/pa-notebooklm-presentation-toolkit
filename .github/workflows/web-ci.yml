@@ -29,12 +29,14 @@ jobs:
           node --check web/js/reliability.js
           node --check web/js/migrations.js
           node --check web/js/document-audit.js
+          node --check web/js/visual-evidence.js
           node --check web/app.js
 
       - name: Run reliability tests
         run: |
           node web/tests/reliability.test.js
           node web/tests/document-audit.test.js
+          node web/tests/visual-evidence.test.js
 
       - name: Verify required web files
         run: |
@@ -69,13 +71,18 @@ jobs:
           grep -q 'document-audit.js' web/index.html
           grep -q 'toastStack' web/index.html
           grep -q 'runtimeHealth' web/index.html
+          grep -q 'visualNamingPlanStatus' web/index.html
+          grep -q 'visual-file-grid' web/index.html
+          grep -q 'visual-evidence.js' web/index.html
+          grep -q 'function renderFileNames' web/app.js
+          grep -q 'downloadVisualAsset' web/app.js
           grep -q 'function setRuntimeHealth' web/app.js
           grep -q 'ACTUAL_MODES' web/app.js
           grep -q 'SMART_LIST_FIELDS' web/app.js
           grep -q 'function notify' web/app.js
           if grep -qE '\b(window\.)?alert\s*\(' web/app.js; then echo "window.alert is not allowed"; exit 1; fi
           grep -q 'data-fill-target="position"' web/index.html
-          grep -q 'Phase 3.5.1 UX Polish' web/index.html
+          grep -q 'Phase 3.5.2 Visual Evidence Organizer' web/index.html
           grep -q 'openDocumentReaderBtn' web/index.html
           grep -q 'pdfjs-dist@3.11.174' web/app.js
           grep -q 'mammoth@1.8.0' web/app.js
