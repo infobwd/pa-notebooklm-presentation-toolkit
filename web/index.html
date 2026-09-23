@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css?v=3.2">
+  <link rel="stylesheet" href="./styles.css?v=3.4">
 </head>
 <body>
   <header class="topbar">
@@ -166,6 +166,10 @@
               <h2>TARGET & ACTUAL</h2>
               <p>เลือกชนิด ACTUAL ก่อนกรอกผลจริง และเปิด <strong>Evidence Trace</strong> ใต้ตัวชี้วัดแต่ละข้อเพื่อใส่ที่มา/ช่วงเวลา/กลุ่มเป้าหมาย</p>
             </div>
+          </div>
+          <div class="tip step3-source-tip">
+            <strong>Source file/page คือเอกสารจริงที่รองรับ ACTUAL</strong>
+            <span>กด “เลือกไฟล์ต้นทาง” ใน Evidence Trace เพื่อเลือกไฟล์จากเครื่องผ่าน Document Reader แล้วเลือกหน้าที่มีตัวเลข/หลักฐาน ไม่จำเป็นต้องพิมพ์ชื่อไฟล์เอง</span>
           </div>
           <div id="indicatorCards" class="indicator-list"></div>
           <button class="btn btn-secondary" id="addIndicatorBtn" type="button">+ เพิ่มตัวชี้วัด</button>
@@ -504,11 +508,11 @@
             </label>
             <div class="import-actions">
               <button class="btn btn-secondary" id="validateAiJsonBtn" type="button">ตรวจ JSON</button>
-              <button class="btn btn-primary" id="importAiJsonBtn" type="button" disabled>Import เข้าระบบ</button>
+              <button class="btn btn-primary" id="importAiJsonBtn" type="button">Import เข้าระบบ</button>
             </div>
           </div>
 
-          <div id="aiJsonStatus" class="json-status neutral">ยังไม่ได้ตรวจ JSON</div>
+          <div id="aiJsonStatus" class="json-status neutral">ยังไม่ได้ตรวจ JSON · ถ้ากด Import ก่อน ระบบจะตรวจ JSON ให้ก่อนและแจ้งขั้นตอนถัดไป</div>
 
           <section id="aiImportReview" class="import-review hidden">
             <div class="import-review-head">
@@ -585,13 +589,13 @@
   <div id="toastStack" class="toast-stack" aria-live="polite" aria-atomic="false"></div>
 
   <footer>
-    <span>PA NotebookLM Presentation Toolkit · Phase 3.3 Dashboard & Source Audit</span>
+    <span>PA NotebookLM Presentation Toolkit · Phase 3.4 Guided Import & Source Picker</span>
     <span>ข้อมูลฟอร์มบันทึกใน localStorage ของเบราว์เซอร์</span>
   </footer>
 
-  <script src="./js/reliability.js?v=3.2"></script>
-  <script src="./js/migrations.js?v=3.2"></script>
-  <script src="./js/document-audit.js?v=3.3"></script>
-  <script src="./app.js?v=3.3"></script>
+  <script src="./js/reliability.js?v=3.4"></script>
+  <script src="./js/migrations.js?v=3.4"></script>
+  <script src="./js/document-audit.js?v=3.4"></script>
+  <script src="./app.js?v=3.4"></script>
 </body>
 </html>
