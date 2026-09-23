@@ -67,6 +67,46 @@ function makeBlankPdf() {
   return Buffer.from(pdf, "ascii");
 }
 
+function escapePdfText(text) {
+  return String(text).replace(/\\/g,"\\\\").replace(/\(/g,"\\(").replace(/\)/g,"\\)");
+}
+
+function makeLongTextPdf(pageCount = 55, markerPage = 42) {
+  const objects = [];
+  const kids = [];
+  const firstPageObject = 4;
+  for (let page = 1; page <= pageCount; page += 1) {
+    const pageObject = firstPageObject + (page - 1) * 2;
+    const contentObject = pageObject + 1;
+    kids.push(pageObject + " 0 R");
+    const marker = page === markerPage ? " SPECIAL_EVIDENCE_MARKER achievement remediation" : "";
+    const line = `Page ${page} annual report learning outcomes${marker}`;
+    const stream = `BT /F1 12 Tf 72 720 Td (${escapePdfText(line)}) Tj ET`;
+    objects[pageObject] = `${pageObject} 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 3 0 R >> >> /Contents ${contentObject} 0 R >>\nendobj\n`;
+    objects[contentObject] = `${contentObject} 0 obj\n<< /Length ${Buffer.byteLength(stream,"ascii")} >>\nstream\n${stream}\nendstream\nendobj\n`;
+  }
+  objects[1] = "1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n";
+  objects[2] = `2 0 obj\n<< /Type /Pages /Kids [${kids.join(" ")}] /Count ${pageCount} >>\nendobj\n`;
+  objects[3] = "3 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\nendobj\n";
+
+  const maxObject = firstPageObject + pageCount * 2 - 1;
+  let pdf = "%PDF-1.4\n";
+  const offsets = new Array(maxObject + 1).fill(0);
+  for (let id = 1; id <= maxObject; id += 1) {
+    if (!objects[id]) continue;
+    offsets[id] = Buffer.byteLength(pdf,"ascii");
+    pdf += objects[id];
+  }
+  const xrefOffset = Buffer.byteLength(pdf,"ascii");
+  pdf += `xref\n0 ${maxObject + 1}\n`;
+  pdf += "0000000000 65535 f \n";
+  for (let id = 1; id <= maxObject; id += 1) {
+    pdf += String(offsets[id]).padStart(10,"0") + " 00000 n \n";
+  }
+  pdf += `trailer\n<< /Size ${maxObject + 1} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF\n`;
+  return Buffer.from(pdf,"ascii");
+}
+
 async function clickStep(page, zeroBasedIndex) {
   await page.locator(`.step-link[data-goto="${zeroBasedIndex}"]`).click();
 }
@@ -138,6 +178,36 @@ async function acceptance() {
     await clickStep(page, 6);
     await page.getByRole("heading", { name: "ตรวจความพร้อม" }).waitFor({ state: "visible" });
     await page.locator("#projectDashboardGrid").waitFor({ state: "visible" });
+  });
+
+  await withPage("long PDF chunking full-text search and relevant page action", { width: 1280, height: 900 }, async page => {
+    await page.locator("#openDocumentReaderBtn").click();
+    await page.locator("#sourceDocumentsInput").setInputFiles({
+      name:"long-report-55-pages.pdf",
+      mimeType:"application/pdf",
+      buffer:makeLongTextPdf(55,42)
+    });
+    await page.locator("#extractDocumentsBtn").click();
+    await page.locator(".document-item").first().waitFor({ state:"visible", timeout:20000 });
+
+    const chunkStats = await page.locator("#documentChunkStats").innerText();
+    if (!chunkStats.includes("55 หน้า")) throw new Error("long document page stats missing: " + chunkStats);
+    if (!chunkStats.includes("chunks")) throw new Error("chunk stats missing");
+
+    await page.locator("#documentSearchInput").fill("SPECIAL_EVIDENCE_MARKER");
+    await page.locator("#documentSearchBtn").click();
+
+    const result = page.locator(".document-search-result").first();
+    await result.waitFor({ state:"visible", timeout:10000 });
+    const resultText = await result.innerText();
+    if (!resultText.includes("หน้า 42")) throw new Error("relevant page 42 was not ranked first: " + resultText);
+
+    await result.locator("[data-use-search-page]").click();
+    const pagesValue = await page.locator(".document-pages").first().inputValue();
+    if (pagesValue !== "42") throw new Error("search page action expected pageSpec 42, got " + pagesValue);
+
+    const tesseractLoaded = await page.evaluate(() => [...document.scripts].some(s => s.src.includes("tesseract.js@7.0.0")));
+    if (tesseractLoaded) throw new Error("long-document search must not trigger OCR engine");
   });
 
   await withPage("Step 2 multiline fields and Step 3 TARGET helper", { width: 1280, height: 900 }, async page => {
