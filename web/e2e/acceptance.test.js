@@ -165,6 +165,27 @@ async function acceptance() {
     if (verification !== "unverified") throw new Error("choosing source must not auto-verify evidence");
   });
 
+  await withPage("Step 6 visual preview and naming plan", { width: 1280, height: 900 }, async page => {
+    await clickStep(page, 5);
+
+    await page.locator("#visualNamingPlanInput").setInputFiles(path.join(__dirname, "fixtures", "visual-plan.json"));
+    await page.locator("#visualNamingPlanStatus").filter({hasText:"E2E Visual Plan"}).waitFor({ state:"visible", timeout:10000 });
+
+    await page.locator("#evidenceFiles").setInputFiles(path.join(__dirname, "fixtures", "visual-sample.svg"));
+    const card = page.locator(".visual-file-card").first();
+    await card.waitFor({ state:"visible", timeout:10000 });
+
+    await card.locator(".visual-preview img").waitFor({ state:"visible" });
+    const canonical = await card.locator("[data-visual-canonical]").inputValue();
+    if (canonical !== "10_test_visual.svg") throw new Error("unexpected canonical visual name: " + canonical);
+
+    const evidenceType = await card.locator("[data-visual-evidence]").inputValue();
+    if (evidenceType !== "ภาพกิจกรรมจริง") throw new Error("visual evidence type did not follow naming plan");
+
+    const summary = await page.locator("#visualFileSummary").innerText();
+    if (!summary.includes("1")) throw new Error("visual summary did not update");
+  });
+
   await withPage("localStorage persists project form", { width: 1280, height: 900 }, async page => {
     const field = page.locator('[name="presenterName"]');
     await field.fill("ผู้ทดสอบ Persistence");
