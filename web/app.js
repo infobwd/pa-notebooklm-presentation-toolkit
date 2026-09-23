@@ -2925,6 +2925,7 @@ Journey สำคัญ: ก่อนพัฒนา ${safe(value("journeyBefore
 - [x] presentation_results_source.md
 - [x] visual_storyboard.md
 - [x] presentation_script_${value("duration") || "5"}min.md
+- [x] evidence_review_notes.md
 - [ ] เอกสารข้อตกลง/PA ฉบับจริง
 - [ ] Policy Alignment (ถ้ามีและตรวจสอบแล้ว)
 
@@ -3080,6 +3081,10 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
       {name:"presentation_results_source.md", desc:"WHAT TO SAY", content:buildResultsSource()},
       {name:"visual_storyboard.md", desc:"WHAT TO SHOW", content:buildStoryboard()},
       {name:`presentation_script_${dur}min.md`, desc:"HOW TO SAY", content:buildScript()},
+      {name:"evidence_review_notes.md", desc:"EVIDENCE REVIEW", content:ER.markdown(evidenceReviewNotes, id => {
+        const index = indicators.findIndex(ind => ind.id === id);
+        return index >= 0 ? `ตัวชี้วัด ${index + 1} · ${indicators[index].title || "ยังไม่มีชื่อ"}` : "";
+      })},
       {name:"source_manifest.md", desc:"WHAT TO UPLOAD", content:buildManifest()},
       {name:"notebooklm_prompts.md", desc:"HOW TO GENERATE", content:buildPrompts()},
       {name:"final_qa_checklist.md", desc:"VERIFY", content:buildQa()}
