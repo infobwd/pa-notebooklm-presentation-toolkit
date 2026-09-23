@@ -1238,6 +1238,9 @@ JSON ที่ต้องตอบ:
     indicators = Array.isArray(data.indicators) && data.indicators.length
       ? data.indicators.map(item => ({...R.normalizeIndicator(item), id:item.id || cryptoId()}))
       : defaultIndicators();
+    visualPreviewUrls.forEach(url => URL.revokeObjectURL(url));
+    visualPreviewUrls.clear();
+    visualAssetFiles.clear();
     visualNamingPlan = data.visualNamingPlan ? VE.normalizePlan(data.visualNamingPlan) : VE.defaultPlan();
     visualAssets = Array.isArray(data.visualAssets)
       ? data.visualAssets.map(asset => ({
@@ -1292,11 +1295,13 @@ JSON ที่ต้องตอบ:
         indicators = defaultIndicators();
         renderIndicators();
         renderEvidenceChecks();
+        renderFileNames();
       }
     } catch (err) {
       indicators = defaultIndicators();
       renderIndicators();
       renderEvidenceChecks();
+      renderFileNames();
       setRuntimeHealth("อ่านข้อมูลเดิมจาก Browser ไม่สำเร็จ · เริ่มฟอร์มใหม่", "warn");
       window.setTimeout(() => notify("อ่านข้อมูลที่บันทึกไว้เดิมไม่สำเร็จ ระบบเริ่มฟอร์มใหม่ กรุณา Import Project JSON หากมีไฟล์สำรอง", "warn", 8500), 0);
     }
@@ -2994,6 +2999,10 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
       if (slot) {
         asset.canonicalName = slot.filename;
         asset.evidenceType = slot.evidenceType || asset.evidenceType;
+        if (asset.evidenceType) {
+          const checkbox = [...document.querySelectorAll('input[name="evidenceType"]')].find(x => x.value === asset.evidenceType);
+          if (checkbox) checkbox.checked = true;
+        }
       }
       renderFileNames();
       save();
@@ -3003,6 +3012,10 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
     const evidenceSelect = e.target.closest("[data-visual-evidence]");
     if (evidenceSelect) {
       asset.evidenceType = evidenceSelect.value;
+      if (asset.evidenceType) {
+        const checkbox = [...document.querySelectorAll('input[name="evidenceType"]')].find(x => x.value === asset.evidenceType);
+        if (checkbox) checkbox.checked = true;
+      }
       save();
     }
   });
