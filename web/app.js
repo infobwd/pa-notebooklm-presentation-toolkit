@@ -2978,8 +2978,96 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
   document.getElementById("openReaderFromAuditBtn").addEventListener("click", openDocumentReader);
 
   evidenceFiles.addEventListener("change", () => {
-    selectedFileNames = [...evidenceFiles.files].map(f => f.name);
-    renderFileNames();
+    addVisualFiles(evidenceFiles.files);
+    evidenceFiles.value = "";
+  });
+
+  selectedFileList.addEventListener("change", e => {
+    const card = e.target.closest("[data-visual-id]");
+    const asset = visualAssets.find(item => item.id === card?.dataset.visualId);
+    if (!asset) return;
+
+    const slotSelect = e.target.closest("[data-visual-slot]");
+    if (slotSelect) {
+      asset.slotId = slotSelect.value;
+      const slot = visualSlotById(asset.slotId);
+      if (slot) {
+        asset.canonicalName = slot.filename;
+        asset.evidenceType = slot.evidenceType || asset.evidenceType;
+      }
+      renderFileNames();
+      save();
+      return;
+    }
+
+    const evidenceSelect = e.target.closest("[data-visual-evidence]");
+    if (evidenceSelect) {
+      asset.evidenceType = evidenceSelect.value;
+      save();
+    }
+  });
+
+  selectedFileList.addEventListener("input", e => {
+    const input = e.target.closest("[data-visual-canonical]");
+    if (!input) return;
+    const card = input.closest("[data-visual-id]");
+    const asset = visualAssets.find(item => item.id === card?.dataset.visualId);
+    if (!asset) return;
+    asset.canonicalName = input.value.trim();
+    syncSelectedVisualNames();
+    save();
+  });
+
+  selectedFileList.addEventListener("click", async e => {
+    const card = e.target.closest("[data-visual-id]");
+    const asset = visualAssets.find(item => item.id === card?.dataset.visualId);
+    if (!asset) return;
+
+    if (e.target.closest("[data-copy-visual-name]")) {
+      await copyText(asset.canonicalName || asset.originalName);
+      notify("คัดลอกชื่อไฟล์มาตรฐานแล้ว", "success", 3200);
+      return;
+    }
+
+    if (e.target.closest("[data-download-renamed]")) {
+      downloadVisualAsset(asset);
+      return;
+    }
+
+    if (e.target.closest("[data-remove-visual]")) {
+      revokeVisualPreview(asset.id);
+      visualAssetFiles.delete(asset.id);
+      visualAssets = visualAssets.filter(item => item.id !== asset.id);
+      renderFileNames();
+      save();
+    }
+  });
+
+  document.getElementById("autoAssignVisualNamesBtn").addEventListener("click", () => {
+    autoAssignVisualNames();
+    notify("จัดชื่อภาพตามลำดับของ Naming Plan แล้ว", "success");
+  });
+
+  document.getElementById("resetNamingPlanBtn").addEventListener("click", () => {
+    visualNamingPlan = VE.defaultPlan();
+    autoAssignVisualNames();
+    notify("กลับมาใช้ Generic Naming Plan แล้ว", "info");
+  });
+
+  document.getElementById("downloadNamingPlanBtn").addEventListener("click", () => {
+    download("visual-naming-plan-template.json", JSON.stringify(VE.defaultPlan(), null, 2), "application/json;charset=utf-8");
+  });
+
+  visualNamingPlanInput.addEventListener("change", async e => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const data = JSON.parse(await file.text());
+      applyVisualNamingPlan(data);
+    } catch (err) {
+      notify("อ่าน Naming Plan ไม่สำเร็จ: " + (err?.message || "รูปแบบ JSON ไม่ถูกต้อง"), "error", 7000);
+    }
+    e.target.value = "";
   });
 
   nextBtn.addEventListener("click", () => {
