@@ -2055,6 +2055,11 @@ status: "generated_from_easy_mode"
 4. กราฟจากข้อมูลจริง
 5. AI conceptual
 
+## Available Visual Evidence — Standardized Filenames
+${visualAssets.length
+  ? visualAssets.map(asset => `- ${safe(asset.canonicalName || asset.originalName)} — ${safe(asset.evidenceType, "ยังไม่ระบุประเภท")}`).join("\n")
+  : "- PENDING — ยังไม่ได้แนบภาพใน STEP 6"}
+
 ## S00 — Identity / Context
 **Message:** แนะนำผู้รับการประเมินและบริบท
 **Main Reference:** ภาพผู้รับการประเมิน + สถานศึกษา/หน่วยงาน
@@ -2182,6 +2187,12 @@ Journey สำคัญ: ก่อนพัฒนา ${safe(value("journeyBefore
 
   function buildManifest() {
     const files = selectedFileNames.length ? selectedFileNames.map(x=>"- [ ] "+x).join("\n") : "- [ ] PENDING — ยังไม่ได้เลือกชื่อไฟล์หลักฐานในหน้าเว็บ";
+    const visualMap = visualAssets.length
+      ? visualAssets.map(asset => {
+          const slot = visualSlotById(asset.slotId);
+          return `- ${safe(asset.originalName, "ไม่พบไฟล์ต้นฉบับ")} → **${safe(asset.canonicalName || asset.originalName)}**${asset.evidenceType ? " | " + asset.evidenceType : ""}${slot ? " | " + slot.label : ""}`;
+        }).join("\n")
+      : "- PENDING — ยังไม่ได้แนบ Visual Evidence";
     const audit = getDocumentAudit();
     const auditLines = [];
     audit.duplicates.forEach(x => auditLines.push(`- [ ] DUPLICATE: ${x.aName} ↔ ${x.bName} (${Math.round((x.similarity || 0) * 100)}%)`));
@@ -2219,8 +2230,13 @@ ${indicators.map((item,i) => {
 ## VISUAL EVIDENCE
 ${[...document.querySelectorAll('input[name="evidenceType"]:checked')].map(x=>"- [x] "+x.value).join("\n") || "- [ ] PENDING"}
 
-### ชื่อไฟล์ที่ผู้ใช้เลือกใน session
+### ชื่อไฟล์มาตรฐานที่ใช้ใน Project
 ${files}
+
+### Original → Standardized Name Map
+${visualMap}
+
+> หมายเหตุ: Browser ไม่สามารถเปลี่ยนชื่อไฟล์ต้นฉบับบนเครื่องโดยตรง ชื่อด้านบนคือชื่อมาตรฐานสำหรับ Manifest/Project และสำเนาที่ดาวน์โหลดจาก STEP 6
 
 ## ARCHIVE ONLY
 - เอกสารดิบยาวที่สรุปสาระสำคัญแล้ว
