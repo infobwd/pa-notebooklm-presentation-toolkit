@@ -607,6 +607,8 @@
     pendingSourceFiles = [];
     sourceDocumentsInput.value = "";
     renderExtractedDocuments();
+    syncIndicatorsFromDom();
+    renderIndicators();
 
     const ready = docs.filter(x => x.status === "ready").length;
     const failed = docs.length - ready;
@@ -2424,7 +2426,7 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
     aiPromptPreview.value = buildExternalAiPrompt() + "\n\n" +
       "ข้อความจากเอกสารที่ Toolkit อ่านใน Browser:\n\n" + externalSourceText;
     validatedAiJson = null;
-    importAiJsonBtn.disabled = true;
+    
     aiJsonStatus.className = "json-status neutral";
     aiJsonStatus.textContent = "Prompt มีข้อความจากเอกสารแล้ว คัดลอกไปถาม AI ภายนอก จากนั้นนำ JSON กลับมาวาง";
     aiJsonModal.classList.remove("hidden");
@@ -2439,6 +2441,8 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
     documentReaderStatus.className = "json-status neutral";
     documentReaderStatus.textContent = "ล้างเอกสารแล้ว";
     renderExtractedDocuments();
+    syncIndicatorsFromDom();
+    renderIndicators();
   });
 
   document.getElementById("openAiJsonBtn").addEventListener("click", () => {
@@ -2447,7 +2451,7 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
     importReviewDecisions = {};
     lastConflictCount = 0;
     aiImportReview.classList.add("hidden");
-    importAiJsonBtn.disabled = true;
+    
     aiJsonStatus.className = "json-status neutral";
     aiJsonStatus.textContent = "วาง JSON ที่ AI ตอบกลับ แล้วกด “ตรวจ JSON”";
     aiJsonModal.classList.remove("hidden");
@@ -2484,7 +2488,7 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
     importReviewDecisions = {};
     lastConflictCount = 0;
     aiImportReview.classList.add("hidden");
-    importAiJsonBtn.disabled = true;
+    
     aiJsonStatus.className = "json-status neutral";
     aiJsonStatus.textContent = "โหลดตัวอย่างสมมติแล้ว กด “ตรวจ JSON” เพื่อทดลอง workflow";
   });
@@ -2503,7 +2507,7 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
       importReviewDecisions = {};
       lastConflictCount = 0;
       aiImportReview.classList.add("hidden");
-      importAiJsonBtn.disabled = true;
+      
       aiJsonStatus.className = "json-status neutral";
       aiJsonStatus.textContent = "โหลด Owner Test Data แล้ว กด “ตรวจ JSON” ก่อน Import";
     } catch (err) {
@@ -2523,7 +2527,7 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
     importReviewDecisions = {};
     lastConflictCount = 0;
     aiImportReview.classList.add("hidden");
-    importAiJsonBtn.disabled = true;
+    
     aiJsonStatus.className = "json-status neutral";
     aiJsonStatus.textContent = "โหลดไฟล์แล้ว กรุณากด “ตรวจ JSON”";
     e.target.value = "";
@@ -2534,7 +2538,7 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
     importReviewDecisions = {};
     lastConflictCount = 0;
     aiImportReview.classList.add("hidden");
-    importAiJsonBtn.disabled = true;
+    
     aiJsonStatus.className = "json-status neutral";
     aiJsonStatus.textContent = "JSON มีการเปลี่ยนแปลง กรุณาตรวจอีกครั้ง";
   });
@@ -2559,7 +2563,7 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
       const review = renderImportReview(out, document.getElementById("aiImportMode").value);
       const filled = Object.entries(out).filter(([k,v]) => !["indicators","evidenceTypes","importNotes"].includes(k) && String(v || "").trim()).length;
       const indicatorCount = out.indicators.length;
-      importAiJsonBtn.disabled = false;
+      
       const hasWarnings = warnings.length || review.conflicts.length;
       aiJsonStatus.className = "json-status " + (hasWarnings ? "warn" : "ok");
       aiJsonStatus.innerHTML = `<strong>JSON ใช้งานได้</strong> · พบข้อมูล ${filled} ช่อง · ตัวชี้วัด ${indicatorCount} รายการ · conflicts ${review.conflicts.length}`
@@ -2571,14 +2575,29 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
       importReviewDecisions = {};
       lastConflictCount = 0;
       aiImportReview.classList.add("hidden");
-      importAiJsonBtn.disabled = true;
+      
       aiJsonStatus.className = "json-status error";
       aiJsonStatus.textContent = "JSON ไม่ถูกต้อง: " + (err?.message || "ไม่ทราบสาเหตุ");
     }
   });
 
   importAiJsonBtn.addEventListener("click", () => {
-    if (!validatedAiJson) return;
+    if (!validatedAiJson) {
+      document.getElementById("validateAiJsonBtn").click();
+
+      if (!validatedAiJson) {
+        notify("ยัง Import ไม่ได้ เพราะ JSON ยังไม่ผ่านการตรวจ กรุณาดูข้อความผิดพลาดใต้ช่อง JSON แล้วแก้ไขก่อน", "error", 7000);
+        aiJsonStatus.scrollIntoView({behavior:"smooth", block:"center"});
+        return;
+      }
+
+      notify("ตรวจ JSON ให้แล้ว ✓ กรุณาตรวจ Pre-Import Review ด้านล่าง แล้วกด “Import เข้าระบบ” อีกครั้ง", "info", 7600);
+      if (!aiImportReview.classList.contains("hidden")) {
+        aiImportReview.scrollIntoView({behavior:"smooth", block:"nearest"});
+      }
+      return;
+    }
+
     const mode = document.getElementById("aiImportMode").value;
     const reviewedConflictCount = lastConflictCount;
     const result = applyAiImport(validatedAiJson, mode, importReviewDecisions);
