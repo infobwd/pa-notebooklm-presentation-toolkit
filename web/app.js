@@ -909,6 +909,7 @@
     document.getElementById("extractDocumentsBtn").disabled = true;
 
     const docs = [];
+    documentFiles.clear();
     for (let i = 0; i < pendingSourceFiles.length; i += 1) {
       const file = pendingSourceFiles[i];
       documentReaderStatus.textContent = `กำลังอ่าน ${i + 1}/${pendingSourceFiles.length}: ${file.name}`;
@@ -927,6 +928,7 @@
         pageSpec: "",
         pageError: ""
       };
+      documentFiles.set(base.id,file);
       try {
         const result = await extractOneDocument(file);
         docs.push({...base, ...result, status: "ready"});
@@ -942,6 +944,7 @@
     syncIndicatorsFromDom();
     renderIndicators();
 
+    document.getElementById("extractDocumentsBtn").disabled = true;
     const ready = docs.filter(x => x.status === "ready").length;
     const failed = docs.length - ready;
     documentReaderStatus.className = "json-status " + (failed ? "warn" : "ok");
@@ -2984,11 +2987,16 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
     if (e.target === documentReaderModal) closeDocumentReaderModal();
   });
 
-  sourceDocumentsInput.addEventListener("change", e => {
+  sourceDocumentsInput.addEventListener("change", async e => {
     const files = [...(e.target.files || [])];
     const accepted = files.slice(0, 10);
+    if (activeOcrJob) {
+      try { await cancelOcrJob(activeOcrJob.docId); } catch {}
+      activeOcrJob = null;
+    }
     pendingSourceFiles = accepted;
     extractedDocuments = [];
+    documentFiles.clear();
     renderExtractedDocuments();
     document.getElementById("extractDocumentsBtn").disabled = !accepted.length;
     documentReaderStatus.className = "json-status " + (files.length > 10 ? "warn" : "neutral");
