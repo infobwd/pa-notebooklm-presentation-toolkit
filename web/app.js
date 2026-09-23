@@ -3,7 +3,8 @@
 
   const R = window.PAToolkitReliability;
   const M = window.PAToolkitMigrations;
-  if (!R || !M) throw new Error("Phase 3.1 reliability modules failed to load");
+  const DA = window.PAToolkitDocumentAudit;
+  if (!R || !M || !DA) throw new Error("Toolkit core modules failed to load");
 
   const STORAGE_KEY = "pa-notebooklm-toolkit-v1";
   const EVIDENCE_OPTIONS = [
@@ -139,6 +140,10 @@
   const importAiJsonBtn = document.getElementById("importAiJsonBtn");
   const toastStack = document.getElementById("toastStack");
   const readinessIndicatorList = document.getElementById("readinessIndicatorList");
+  const projectDashboardGrid = document.getElementById("projectDashboardGrid");
+  const sourceAuditSummary = document.getElementById("sourceAuditSummary");
+  const sourceAuditList = document.getElementById("sourceAuditList");
+  const documentAuditMini = document.getElementById("documentAuditMini");
   const aiImportReview = document.getElementById("aiImportReview");
   const aiImportReviewRows = document.getElementById("aiImportReviewRows");
   const aiConflictBadge = document.getElementById("aiConflictBadge");
