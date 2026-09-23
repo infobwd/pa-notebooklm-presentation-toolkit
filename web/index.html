@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css?v=3.5.2">
+  <link rel="stylesheet" href="./styles.css?v=3.6.0">
 </head>
 <body>
   <header class="topbar">
@@ -264,30 +264,67 @@
             <div class="visual-naming-head">
               <div>
                 <strong>Visual Naming Plan</strong>
-                <p>ใช้แบบแผนชื่อไฟล์ทั่วไป หรือ Import แผนของ Project เพื่อใช้ชื่อเฉพาะ เช่น 10_... 11_... 12_...</p>
+                <p>เลือกแผนชื่อไฟล์ก่อน แล้วระบบจะจับคู่ภาพเข้ากับ Slot และใช้ชื่อมาตรฐานใน Manifest / Storyboard</p>
               </div>
-              <span id="visualNamingPlanStatus" class="visual-plan-status">Generic plan</span>
+              <div class="visual-plan-badges">
+                <span id="visualNamingPlanSource" class="visual-plan-source">แผนทั่วไป</span>
+                <span id="visualNamingPlanStatus" class="visual-plan-status">Generic plan</span>
+              </div>
             </div>
-            <div class="visual-plan-actions">
-              <button type="button" class="btn btn-ghost" id="downloadNamingPlanBtn">ดาวน์โหลด Template</button>
+            <div class="visual-plan-actions visual-plan-actions-primary">
               <label class="btn btn-secondary file-label">
                 Import Naming Plan
                 <input id="visualNamingPlanInput" type="file" accept=".json,application/json" hidden>
               </label>
-              <button type="button" class="btn btn-ghost" id="resetNamingPlanBtn">กลับแผนทั่วไป</button>
-              <button type="button" class="btn btn-secondary" id="autoAssignVisualNamesBtn">จัดชื่ออัตโนมัติตามลำดับ</button>
+              <details class="visual-plan-more">
+                <summary class="btn btn-ghost">ตัวเลือกแผน</summary>
+                <div class="visual-plan-more-menu">
+                  <button type="button" class="btn btn-ghost" id="downloadNamingPlanBtn">ดาวน์โหลด Template</button>
+                  <button type="button" class="btn btn-ghost" id="resetNamingPlanBtn">กลับแผนทั่วไป</button>
+                </div>
+              </details>
             </div>
           </section>
 
-          <div class="upload-zone">
-            <input id="evidenceFiles" type="file" multiple accept="image/*,.pdf,.png,.jpg,.jpeg,.webp,.svg">
-            <div>
-              <strong>เลือกไฟล์หลักฐานจากเครื่อง</strong>
-              <p>ภาพจะแสดง Preview ใน Browser ทันที ไฟล์จริงไม่ถูกอัปโหลดขึ้นเซิร์ฟเวอร์โดยเว็บไซต์นี้</p>
+          <section class="visual-evidence-manager" aria-labelledby="visualEvidenceManagerTitle">
+            <div class="visual-evidence-head">
+              <div>
+                <strong id="visualEvidenceManagerTitle">Visual Evidence</strong>
+                <p>เลือกหลายภาพพร้อมกันได้ ระบบจะแสดง Preview และจัดเข้ากับ Visual Slot ให้โดยอัตโนมัติ</p>
+              </div>
+              <strong id="visualProgressLabel" class="visual-progress-label">0 / 15</strong>
             </div>
-          </div>
-          <div id="visualFileSummary" class="visual-file-summary"></div>
-          <div id="selectedFileList" class="visual-file-grid"></div>
+
+            <div class="visual-progress-track" aria-hidden="true">
+              <div id="visualProgressFill" class="visual-progress-fill" style="width:0%"></div>
+            </div>
+
+            <div id="visualSlotOverview" class="visual-slot-overview" aria-label="สถานะ Visual Slots"></div>
+            <div id="visualIssueSummary" class="visual-issue-summary"></div>
+
+            <label id="evidenceDropZone" class="upload-zone visual-upload-zone" for="evidenceFiles">
+              <input id="evidenceFiles" type="file" multiple accept="image/jpeg,image/png,image/webp,image/svg+xml,.jpg,.jpeg,.png,.webp,.svg">
+              <div class="visual-upload-copy">
+                <strong>เลือกภาพหลักฐาน</strong>
+                <p>แตะเพื่อเลือกหลายภาพพร้อมกัน หรือ Drag & Drop บนคอมพิวเตอร์</p>
+                <small>รองรับ JPG, PNG, WebP และ SVG</small>
+              </div>
+            </label>
+
+            <div class="visual-privacy-note">
+              <strong>🔒 รูปของคุณอยู่ในอุปกรณ์นี้</strong>
+              <span>เว็บไซต์ใช้ไฟล์เพื่อแสดง Preview ใน Browser เท่านั้น และไม่อัปโหลดภาพขึ้น Server</span>
+            </div>
+
+            <div class="visual-auto-row">
+              <button type="button" class="btn btn-secondary" id="autoAssignVisualNamesBtn">จัดภาพเข้าตามลำดับอัตโนมัติ</button>
+              <span>ระบบจะรักษา Slot ที่จัดไว้แล้ว และเติมเฉพาะ Slot ที่ยังว่าง</span>
+            </div>
+
+            <div id="visualFileSummary" class="visual-file-summary"></div>
+            <div id="visualMissingSummary" class="visual-missing-summary"></div>
+            <div id="selectedFileList" class="visual-file-grid"></div>
+          </section>
 
           <div class="tip">
             <strong>ชื่อไฟล์มาตรฐาน:</strong>
@@ -627,14 +664,14 @@
   <div id="toastStack" class="toast-stack" aria-live="polite" aria-atomic="false"></div>
 
   <footer>
-    <span>PA NotebookLM Presentation Toolkit · Phase 3.5.2 Visual Evidence Organizer</span>
+    <span>PA NotebookLM Presentation Toolkit · Phase 3.6 Visual Evidence Manager</span>
     <span id="runtimeHealth">พร้อมใช้งาน · ข้อมูลฟอร์มบันทึกใน localStorage ของเบราว์เซอร์</span>
   </footer>
 
-  <script src="./js/reliability.js?v=3.5.2"></script>
-  <script src="./js/migrations.js?v=3.5.2"></script>
-  <script src="./js/document-audit.js?v=3.5.2"></script>
-  <script src="./js/visual-evidence.js?v=3.5.2"></script>
-  <script src="./app.js?v=3.5.2"></script>
+  <script src="./js/reliability.js?v=3.6.0"></script>
+  <script src="./js/migrations.js?v=3.6.0"></script>
+  <script src="./js/document-audit.js?v=3.6.0"></script>
+  <script src="./js/visual-evidence.js?v=3.6.0"></script>
+  <script src="./app.js?v=3.6.0"></script>
 </body>
 </html>
