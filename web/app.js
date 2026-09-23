@@ -776,10 +776,12 @@
 
     const totalChars = selected.reduce((sum, doc) => sum + doc.text.length, 0);
     const totalPages = selected.reduce((sum, doc) => sum + (doc.pages || 0), 0);
+    const totalOcrPages = selected.reduce((sum,doc) => sum + (doc.ocrCompletedPages?.length || 0),0);
     documentStats.innerHTML = [
       `<span class="document-stat">${selected.length} ไฟล์ที่เลือก</span>`,
       `<span class="document-stat">${totalChars.toLocaleString()} ตัวอักษร</span>`,
-      totalPages ? `<span class="document-stat">${totalPages} หน้า PDF</span>` : ""
+      totalPages ? `<span class="document-stat">${totalPages} หน้า PDF</span>` : "",
+      totalOcrPages ? `<span class="document-stat">OCR ${totalOcrPages} หน้า · ต้องตรวจทาน</span>` : ""
     ].join("");
 
     const enabled = Boolean(text);
@@ -2520,7 +2522,10 @@ Journey สำคัญ: ก่อนพัฒนา ${safe(value("journeyBefore
 ${selectedExtractedDocuments().length
   ? selectedExtractedDocuments().map(doc => {
       const pages = doc.pages ? (doc.pageSpec ? ` · ใช้หน้า ${doc.pageSpec}` : ` · ${doc.pages} หน้า (ทั้งหมด)`) : "";
-      return `- [x] ${doc.name} — ROLE: ${documentRoleLabel(doc.role)}${pages}`;
+      const ocr = doc.ocrCompletedPages?.length
+        ? ` · OCR: ${OCR.compressPages(doc.ocrCompletedPages)} [USER REVIEW REQUIRED]`
+        : "";
+      return `- [x] ${doc.name} — ROLE: ${documentRoleLabel(doc.role)}${pages}${ocr}`;
     }).join("\n")
   : "- [ ] ไม่มีเอกสารที่อ่านใน session นี้"}
 
@@ -3146,9 +3151,14 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
     document.body.style.overflow = "hidden";
   });
 
-  document.getElementById("clearDocumentsBtn").addEventListener("click", () => {
+  document.getElementById("clearDocumentsBtn").addEventListener("click", async () => {
+    if (activeOcrJob) {
+      try { await cancelOcrJob(activeOcrJob.docId); } catch {}
+      activeOcrJob = null;
+    }
     pendingSourceFiles = [];
     extractedDocuments = [];
+    documentFiles.clear();
     externalSourceText = "";
     sourceDocumentsInput.value = "";
     documentReaderStatus.className = "json-status neutral";
