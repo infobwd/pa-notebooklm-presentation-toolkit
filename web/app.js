@@ -1814,6 +1814,12 @@ Journey สำคัญ: ก่อนพัฒนา ${safe(value("journeyBefore
 
   function buildManifest() {
     const files = selectedFileNames.length ? selectedFileNames.map(x=>"- [ ] "+x).join("\n") : "- [ ] PENDING — ยังไม่ได้เลือกชื่อไฟล์หลักฐานในหน้าเว็บ";
+    const audit = getDocumentAudit();
+    const auditLines = [];
+    audit.duplicates.forEach(x => auditLines.push(`- [ ] DUPLICATE: ${x.aName} ↔ ${x.bName} (${Math.round((x.similarity || 0) * 100)}%)`));
+    audit.versionConflicts.forEach(x => auditLines.push(`- [ ] VERSION CHECK: ${x.aName} ↔ ${x.bName}`));
+    audit.roleConflicts.forEach(x => auditLines.push(`- [ ] ROLE CHECK: ${x.aName} ↔ ${x.bName}`));
+    audit.sourceIssues.forEach(x => auditLines.push(`- [ ] SOURCE LINK: Indicator ${x.indicatorIndex + 1} — ${x.message}`));
     return `# Source Manifest
 
 ## CORE SOURCES
@@ -1830,6 +1836,11 @@ ${selectedExtractedDocuments().length
       return `- [x] ${doc.name} — ROLE: ${documentRoleLabel(doc.role)}${pages}`;
     }).join("\n")
   : "- [ ] ไม่มีเอกสารที่อ่านใน session นี้"}
+
+## DOCUMENT AUDIT — Current Session
+${extractedDocuments.length
+  ? (auditLines.length ? auditLines.join("\n") : "- [x] ไม่พบ duplicate / version / role / source-link issue ใน session นี้")
+  : "- [ ] ไม่ได้โหลดเอกสารใน session นี้ จึงยังไม่ได้ทำ Document Audit"}
 
 ## ACTUAL EVIDENCE TRACE
 ${indicators.map((item,i) => {
