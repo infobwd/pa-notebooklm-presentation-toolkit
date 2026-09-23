@@ -74,7 +74,7 @@ async function acceptance() {
   await withPage("owner data import requires review and remains draft", { width: 1280, height: 900 }, async page => {
     await page.locator("#openAiJsonBtn").click();
     await page.locator("#loadOwnerTestDataBtn").click();
-    await page.locator("#aiJsonInput").waitFor({ state: "visible" });
+    await page.locator("#aiJsonStatus").filter({hasText:"โหลด Owner Test Data แล้ว"}).waitFor({ state:"visible", timeout:10000 });
 
     // First click must auto-validate and stop at Pre-Import Review.
     await page.locator("#importAiJsonBtn").click();
