@@ -440,23 +440,57 @@
     );
   }
 
+  async function ensureTesseract() {
+    return loadScriptOnce(
+      "https://cdn.jsdelivr.net/npm/tesseract.js@7.0.0/dist/tesseract.min.js",
+      "Tesseract"
+    );
+  }
+
   async function extractPdfText(file) {
     const pdfjs = await ensurePdfJs();
     const bytes = await file.arrayBuffer();
     const pdf = await pdfjs.getDocument({data: bytes}).promise;
     const pageTexts = [];
+
     for (let pageNo = 1; pageNo <= pdf.numPages; pageNo += 1) {
       const page = await pdf.getPage(pageNo);
       const content = await page.getTextContent();
-      const text = content.items.map(item => item.str || "").join(" ").replace(/\s+/g, " ").trim();
-      pageTexts.push({page:pageNo, text:text});
+      const nativeText = content.items
+        .map(item => item.str || "")
+        .join(" ")
+        .replace(/\s+/g, " ")
+        .trim();
+      pageTexts.push({
+        page:pageNo,
+        text:nativeText,
+        nativeText,
+        ocrText:"",
+        extractionMode:"native",
+        ocrConfidence:null
+      });
     }
-    const text = pageTexts.map(item => `--- หน้า ${item.page} ---\n${item.text}`).join("\n\n").trim();
-    const compactLength = text.replace(/\s/g, "").length;
-    const warning = compactLength < Math.max(40, pdf.numPages * 25)
-      ? "พบข้อความน้อยมาก เอกสารอาจเป็น PDF สแกน/รูปภาพ ซึ่ง Phase 3 ยังไม่มี OCR"
+
+    const assessment = OCR.scanAssessment(pageTexts);
+    const text = OCR.rebuildPdfText(pageTexts);
+    const warning = assessment.hasAnyCandidate
+      ? `พบ ${assessment.candidateCount}/${assessment.totalPages} หน้าที่ข้อความน้อย${assessment.likelyScanned ? " — เอกสารมีแนวโน้มเป็น PDF สแกน" : ""} · สามารถเลือก OCR ได้`
       : "";
-    return {text, pages: pdf.numPages, pageTexts, warning};
+
+    return {
+      text,
+      pages:pdf.numPages,
+      pageTexts,
+      warning,
+      ocrSuggestedPages:assessment.candidatePages,
+      ocrPageSpec:OCR.compressPages(assessment.candidatePages.slice(0,12)),
+      ocrLanguage:"tha+eng",
+      ocrState:"idle",
+      ocrProgress:0,
+      ocrStatus:"",
+      ocrCompletedPages:[],
+      ocrAverageConfidence:null
+    };
   }
 
   async function extractDocxText(file) {
@@ -465,7 +499,7 @@
     const result = await mammothLib.extractRawText({arrayBuffer});
     const text = String(result.value || "").trim();
     const warning = text ? "" : "ไม่พบข้อความใน DOCX";
-    return {text, pages: null, warning};
+    return {text, pages:null, warning};
   }
 
   async function extractOneDocument(file) {
@@ -481,9 +515,203 @@
     }
     if (lower.endsWith(".txt") || lower.endsWith(".md") || file.type.startsWith("text/")) {
       const text = (await file.text()).trim();
-      return {text, pages: null, warning: text ? "" : "ไฟล์ไม่มีข้อความ"};
+      return {text, pages:null, warning:text ? "" : "ไฟล์ไม่มีข้อความ"};
     }
     throw new Error("ยังไม่รองรับไฟล์ชนิดนี้");
+  }
+
+  function ocrStatusText(message) {
+    const status = String(message?.status || "");
+    const labels = {
+      loading_tesseract_core:"กำลังโหลด OCR core",
+      initializing_tesseract:"กำลังเริ่ม OCR",
+      loading_language_traineddata:"กำลังโหลด language model",
+      initializing_api:"กำลังเตรียมภาษา",
+      recognizing_text:"กำลังอ่านข้อความ"
+    };
+    return labels[status] || status.replaceAll("_"," ") || "กำลังทำ OCR";
+  }
+
+  function updateOcrJobUi(docId, message = {}) {
+    const doc = extractedDocuments.find(item => item.id === docId);
+    if (!doc) return;
+    const job = activeOcrJob && activeOcrJob.docId === docId ? activeOcrJob : null;
+    const pageProgress = job?.totalPages
+      ? ((Math.max(0,(job.currentIndex || 1) - 1) + (Number(message.progress) || 0)) / job.totalPages)
+      : (Number(message.progress) || 0);
+    doc.ocrProgress = Math.max(0,Math.min(1,pageProgress));
+    doc.ocrStatus = job?.currentPage
+      ? `หน้า ${job.currentPage}/${doc.pages} · ${ocrStatusText(message)}`
+      : ocrStatusText(message);
+
+    const card = documentList.querySelector(`[data-doc-id="${CSS.escape(docId)}"]`);
+    if (!card) return;
+    const bar = card.querySelector("[data-ocr-progress-bar]");
+    const label = card.querySelector("[data-ocr-status]");
+    if (bar) bar.style.width = (doc.ocrProgress * 100).toFixed(0) + "%";
+    if (label) label.textContent = doc.ocrStatus;
+  }
+
+  async function renderPdfPageForOcr(pdf, pageNo) {
+    const page = await pdf.getPage(pageNo);
+    const base = page.getViewport({scale:1});
+    const maxBase = Math.max(base.width,base.height) || 1;
+    const scale = Math.max(1.5,Math.min(2.4,2600 / maxBase));
+    const viewport = page.getViewport({scale});
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.ceil(viewport.width);
+    canvas.height = Math.ceil(viewport.height);
+    const context = canvas.getContext("2d",{alpha:false});
+    context.fillStyle = "#ffffff";
+    context.fillRect(0,0,canvas.width,canvas.height);
+    await page.render({canvasContext:context,viewport}).promise;
+    return canvas;
+  }
+
+  async function cancelOcrJob(docId) {
+    if (!activeOcrJob || activeOcrJob.docId !== docId) return;
+    activeOcrJob.cancelled = true;
+    const doc = extractedDocuments.find(item => item.id === docId);
+    if (doc) {
+      doc.ocrState = "cancelling";
+      doc.ocrStatus = "กำลังยกเลิก OCR...";
+      renderExtractedDocuments();
+    }
+    try {
+      if (activeOcrJob.worker) await activeOcrJob.worker.terminate();
+    } catch {}
+  }
+
+  async function runOcrForDocument(docId) {
+    if (activeOcrJob) {
+      notify("มี OCR กำลังทำงานอยู่ กรุณารอหรือยกเลิกงานเดิมก่อน", "warn", 6000);
+      return;
+    }
+
+    const doc = extractedDocuments.find(item => item.id === docId);
+    const file = documentFiles.get(docId);
+    if (!doc || !file || !doc.pages || !Array.isArray(doc.pageTexts)) {
+      notify("ไม่พบไฟล์ PDF จริงใน session นี้ กรุณาเลือกเอกสารใหม่ก่อนทำ OCR", "warn", 7000);
+      return;
+    }
+
+    const card = documentList.querySelector(`[data-doc-id="${CSS.escape(docId)}"]`);
+    const pagesInput = card?.querySelector("[data-ocr-pages]");
+    const languageSelect = card?.querySelector("[data-ocr-language]");
+    const pageSpec = String(pagesInput?.value || doc.ocrPageSpec || "").trim();
+    const parsed = R.parsePageSpec(pageSpec,doc.pages);
+
+    if (parsed.error) {
+      notify("ช่วงหน้า OCR ไม่ถูกต้อง: " + parsed.error, "error", 6500);
+      pagesInput?.focus();
+      return;
+    }
+
+    const pages = parsed.pages;
+    if (!pages.length) {
+      notify("กรุณาระบุหน้าที่ต้องการ OCR เช่น 1-3,5", "warn", 5500);
+      pagesInput?.focus();
+      return;
+    }
+    if (pages.length > 12) {
+      notify("เพื่อป้องกัน Browser ใช้หน่วยความจำสูง OCR ได้ครั้งละไม่เกิน 12 หน้า กรุณาแบ่งเป็นช่วง เช่น 1-12 แล้วทำรอบถัดไป", "warn", 8000);
+      return;
+    }
+
+    doc.ocrPageSpec = pageSpec;
+    doc.ocrLanguage = languageSelect?.value || doc.ocrLanguage || "tha+eng";
+    doc.ocrState = "loading";
+    doc.ocrProgress = 0;
+    doc.ocrStatus = "กำลังโหลด OCR engine / language model...";
+    renderExtractedDocuments();
+
+    const job = {
+      docId,
+      worker:null,
+      cancelled:false,
+      currentPage:null,
+      currentIndex:0,
+      totalPages:pages.length
+    };
+    activeOcrJob = job;
+
+    try {
+      const [pdfjs,TesseractLib] = await Promise.all([ensurePdfJs(),ensureTesseract()]);
+      if (job.cancelled) return;
+
+      const bytes = await file.arrayBuffer();
+      const pdf = await pdfjs.getDocument({data:bytes}).promise;
+      const languages = OCR.normalizeLanguages(doc.ocrLanguage);
+
+      const worker = await TesseractLib.createWorker(languages,1,{
+        workerPath:"https://cdn.jsdelivr.net/npm/tesseract.js@7.0.0/dist/worker.min.js",
+        logger:message => updateOcrJobUi(docId,message)
+      });
+      job.worker = worker;
+
+      const results = [];
+      for (let index = 0; index < pages.length; index += 1) {
+        if (job.cancelled) break;
+        const pageNo = pages[index];
+        job.currentPage = pageNo;
+        job.currentIndex = index + 1;
+        doc.ocrStatus = `กำลังเตรียมหน้า ${pageNo}/${doc.pages}`;
+        renderExtractedDocuments();
+
+        const canvas = await renderPdfPageForOcr(pdf,pageNo);
+        if (job.cancelled) break;
+
+        const result = await worker.recognize(canvas,{rotateAuto:true});
+        if (job.cancelled) break;
+        results.push({
+          page:pageNo,
+          text:String(result?.data?.text || "").trim(),
+          confidence:Number(result?.data?.confidence)
+        });
+        doc.ocrProgress = (index + 1) / pages.length;
+        doc.ocrStatus = `OCR หน้า ${pageNo} เสร็จแล้ว (${index + 1}/${pages.length})`;
+        renderExtractedDocuments();
+      }
+
+      if (job.cancelled) {
+        doc.ocrState = "cancelled";
+        doc.ocrStatus = "ยกเลิก OCR แล้ว";
+        notify("ยกเลิก OCR แล้ว", "info", 4000);
+        return;
+      }
+
+      doc.pageTexts = OCR.mergeOcrResults(doc.pageTexts,results);
+      doc.text = OCR.rebuildPdfText(doc.pageTexts);
+      doc.ocrCompletedPages = [...new Set([...(doc.ocrCompletedPages || []),...results.map(item => item.page)])].sort((a,b)=>a-b);
+      doc.ocrAverageConfidence = OCR.averageConfidence(doc.pageTexts);
+      const assessment = OCR.scanAssessment(doc.pageTexts.map(item => ({
+        ...item,
+        nativeText:item.extractionMode === "ocr" ? item.ocrText : item.nativeText
+      })));
+      doc.ocrSuggestedPages = assessment.candidatePages.filter(page => !doc.ocrCompletedPages.includes(page));
+      doc.ocrState = "complete";
+      doc.ocrProgress = 1;
+      doc.ocrStatus = `OCR เสร็จ ${results.length} หน้า · โปรดตรวจทานข้อความก่อนใช้`;
+      doc.warning = doc.ocrSuggestedPages.length
+        ? `OCR แล้ว ${results.length} หน้า · ยังมีหน้าที่ข้อความน้อย: ${OCR.compressPages(doc.ocrSuggestedPages.slice(0,12))}`
+        : `OCR แล้ว ${results.length} หน้า · ข้อความ OCR ต้องตรวจทานกับต้นฉบับ`;
+
+      notify(`OCR ${doc.name} เสร็จ ${results.length} หน้า${doc.ocrAverageConfidence != null ? " · confidence เฉลี่ย " + doc.ocrAverageConfidence.toFixed(0) + "%" : ""}`, "success", 7500);
+    } catch (err) {
+      if (!job.cancelled) {
+        doc.ocrState = "error";
+        doc.ocrStatus = "OCR ไม่สำเร็จ: " + (err?.message || "ไม่ทราบสาเหตุ");
+        notify(doc.ocrStatus, "error", 9000);
+      }
+    } finally {
+      try {
+        if (job.worker && !job.cancelled) await job.worker.terminate();
+      } catch {}
+      if (activeOcrJob === job) activeOcrJob = null;
+      renderExtractedDocuments();
+      syncIndicatorsFromDom();
+      renderIndicators();
+    }
   }
 
   function selectedExtractedDocuments() {
