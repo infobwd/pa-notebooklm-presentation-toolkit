@@ -24,6 +24,16 @@
 
   const AI_SCHEMA_VERSION = M.INTAKE_SCHEMA;
 
+  const ACTUAL_MODES = [
+    ["pending", "ยังไม่มี / PENDING"],
+    ["fraction", "จำนวน / ทั้งหมด"],
+    ["percent", "ร้อยละ (%)"],
+    ["score", "คะแนน / ค่า"],
+    ["text", "ข้อความผลจริง"]
+  ];
+
+  const SMART_LIST_FIELDS = new Set(["contextNotes","processNotes","systems"]);
+
   const DOCUMENT_ROLES = [
     ["pa_agreement", "PA Agreement / ข้อตกลง"],
     ["performance_report", "Performance Report / รายงานผล"],
@@ -127,6 +137,8 @@
   const aiJsonInput = document.getElementById("aiJsonInput");
   const aiJsonStatus = document.getElementById("aiJsonStatus");
   const importAiJsonBtn = document.getElementById("importAiJsonBtn");
+  const toastStack = document.getElementById("toastStack");
+  const readinessIndicatorList = document.getElementById("readinessIndicatorList");
   const aiImportReview = document.getElementById("aiImportReview");
   const aiImportReviewRows = document.getElementById("aiImportReviewRows");
   const aiConflictBadge = document.getElementById("aiConflictBadge");
@@ -179,6 +191,162 @@
   function slugName(name) {
     const base = String(name || "pa-project").trim().replace(/\s+/g,"-");
     return base.replace(/[^\p{L}\p{N}\-_]+/gu,"").toLowerCase() || "pa-project";
+  }
+
+  function notify(message, type = "info", duration = 5200) {
+    if (!toastStack) return;
+    const icons = {success:"✓", error:"!", warn:"!", info:"i"};
+    const toast = document.createElement("div");
+    toast.className = "toast " + (icons[type] ? type : "info");
+    toast.innerHTML = `
+      <div class="toast-icon">${icons[type] || "i"}</div>
+      <div class="toast-message">${esc(message)}</div>
+      <button type="button" class="toast-close" aria-label="ปิดการแจ้งเตือน">×</button>`;
+    toast.querySelector(".toast-close").addEventListener("click", () => toast.remove());
+    toastStack.appendChild(toast);
+    if (duration > 0) window.setTimeout(() => toast.remove(), duration);
+  }
+
+  function smartEditorWords(text) {
+    const value = String(text || "").trim();
+    if (!value) return 0;
+    try {
+      if (Intl.Segmenter) {
+        const segmenter = new Intl.Segmenter("th", {granularity:"word"});
+        return [...segmenter.segment(value)].filter(x => x.isWordLike).length;
+      }
+    } catch {}
+    return value.split(/\s+/).filter(Boolean).length;
+  }
+
+  function syncRichEditor(shell) {
+    const name = shell.dataset.smartField;
+    const field = form.elements[name];
+    const editor = shell.querySelector(".rich-editor");
+    if (!field || !editor) return;
+    const text = editor.innerText.replace(/\u00a0/g, " ").replace(/\n{3,}/g, "\n\n").trim();
+    field.value = text;
+    const counter = shell.querySelector(".rich-editor-counter");
+    if (counter) counter.textContent = `${smartEditorWords(text)} คำ · ${text.length} ตัวอักษร`;
+    field.dispatchEvent(new Event("input", {bubbles:true}));
+  }
+
+  function renderSmartList(shell, sourceLines) {
+    const name = shell.dataset.smartField;
+    const field = form.elements[name];
+    let items = Array.isArray(sourceLines) ? sourceLines : lines(field?.value);
+    if (!items.length) items = [""];
+    const itemsWrap = shell.querySelector(".smart-list-items");
+    itemsWrap.innerHTML = items.map((text,index) => `
+      <div class="smart-list-row">
+        <span class="smart-list-num">${index + 1}</span>
+        <div class="smart-list-input" contenteditable="true" role="textbox" data-list-index="${index}" data-placeholder="พิมพ์รายการที่ ${index + 1}">${esc(text)}</div>
+        <button type="button" class="smart-list-remove" title="ลบรายการ">ลบ</button>
+      </div>`).join("");
+    const count = shell.querySelector(".smart-list-count");
+    if (count) count.textContent = `${items.filter(Boolean).length} รายการ`;
+  }
+
+  function syncSmartList(shell) {
+    const name = shell.dataset.smartField;
+    const field = form.elements[name];
+    if (!field) return;
+    const values = [...shell.querySelectorAll(".smart-list-input")]
+      .map(el => el.innerText.replace(/\u00a0/g," ").trim())
+      .filter(Boolean);
+    field.value = values.join("\n");
+    const count = shell.querySelector(".smart-list-count");
+    if (count) count.textContent = `${values.length} รายการ`;
+    field.dispatchEvent(new Event("input", {bubbles:true}));
+  }
+
+  function initSmartEditors() {
+    [...form.querySelectorAll("textarea[name]")].forEach(field => {
+      const name = field.name;
+      if (field.dataset.smartInitialized === "1") return;
+      field.dataset.smartInitialized = "1";
+      field.classList.add("smart-hidden-field");
+
+      if (SMART_LIST_FIELDS.has(name)) {
+        const shell = document.createElement("div");
+        shell.className = "smart-list-shell";
+        shell.dataset.smartField = name;
+        shell.innerHTML = `
+          <div class="smart-list-items"></div>
+          <div class="smart-list-toolbar">
+            <button type="button" class="smart-list-add">+ เพิ่มรายการ</button>
+            <span class="smart-list-count">0 รายการ</span>
+          </div>`;
+        field.insertAdjacentElement("afterend", shell);
+        renderSmartList(shell, lines(field.value));
+
+        shell.addEventListener("input", e => {
+          if (e.target.closest(".smart-list-input")) syncSmartList(shell);
+        });
+        shell.addEventListener("keydown", e => {
+          const input = e.target.closest(".smart-list-input");
+          if (!input || e.key !== "Enter" || e.shiftKey) return;
+          e.preventDefault();
+          syncSmartList(shell);
+          const values = lines(field.value);
+          const index = Number(input.dataset.listIndex);
+          values.splice(index + 1, 0, "");
+          renderSmartList(shell, values);
+          const next = shell.querySelector(`[data-list-index="${index + 1}"]`);
+          next?.focus();
+        });
+        shell.addEventListener("click", e => {
+          if (e.target.closest(".smart-list-add")) {
+            const values = [...shell.querySelectorAll(".smart-list-input")].map(el => el.innerText.trim());
+            values.push("");
+            renderSmartList(shell, values);
+            shell.querySelector(".smart-list-input:last-of-type")?.focus();
+            return;
+          }
+          const remove = e.target.closest(".smart-list-remove");
+          if (remove) {
+            const row = remove.closest(".smart-list-row");
+            row?.remove();
+            const values = [...shell.querySelectorAll(".smart-list-input")].map(el => el.innerText.trim());
+            renderSmartList(shell, values.length ? values : [""]);
+            syncSmartList(shell);
+          }
+        });
+      } else {
+        const shell = document.createElement("div");
+        shell.className = "rich-editor-shell";
+        shell.dataset.smartField = name;
+        const placeholder = field.getAttribute("placeholder") || "พิมพ์ข้อมูลที่นี่";
+        shell.innerHTML = `
+          <div class="rich-editor" contenteditable="true" role="textbox" aria-multiline="true" data-placeholder="${esc(placeholder)}"></div>
+          <div class="rich-editor-footer">
+            <span>Enter เพื่อขึ้นบรรทัดใหม่</span>
+            <span class="rich-editor-counter">0 คำ · 0 ตัวอักษร</span>
+          </div>`;
+        field.insertAdjacentElement("afterend", shell);
+        const editor = shell.querySelector(".rich-editor");
+        editor.innerText = field.value || "";
+        const counter = shell.querySelector(".rich-editor-counter");
+        counter.textContent = `${smartEditorWords(field.value)} คำ · ${String(field.value||"").length} ตัวอักษร`;
+        editor.addEventListener("input", () => syncRichEditor(shell));
+      }
+    });
+  }
+
+  function syncSmartEditorsFromFields() {
+    document.querySelectorAll("[data-smart-field]").forEach(shell => {
+      const name = shell.dataset.smartField;
+      const field = form.elements[name];
+      if (!field) return;
+      if (shell.classList.contains("smart-list-shell")) {
+        renderSmartList(shell, lines(field.value));
+      } else {
+        const editor = shell.querySelector(".rich-editor");
+        if (editor && editor.innerText !== field.value) editor.innerText = field.value || "";
+        const counter = shell.querySelector(".rich-editor-counter");
+        if (counter) counter.textContent = `${smartEditorWords(field.value)} คำ · ${String(field.value||"").length} ตัวอักษร`;
+      }
+    });
   }
 
   function injectFieldExamples() {
