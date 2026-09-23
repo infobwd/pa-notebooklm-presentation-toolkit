@@ -3645,12 +3645,16 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
     if (!item) return;
 
     const classification = e.target.closest("[data-review-classification]");
-    if (classification) item.classification = classification.value;
-
     const status = e.target.closest("[data-review-status]");
-    if (status) item.reviewStatus = status.value;
-
     const indicator = e.target.closest("[data-review-indicator]");
+
+    // Text-note inputs also emit a native change event on blur. Do not re-render
+    // the card on that event or the clicked action button can be replaced before
+    // its click event is delivered.
+    if (!classification && !status && !indicator) return;
+
+    if (classification) item.classification = classification.value;
+    if (status) item.reviewStatus = status.value;
     if (indicator) item.linkedIndicatorId = indicator.value;
 
     renderEvidenceReview();
