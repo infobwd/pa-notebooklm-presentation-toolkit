@@ -27,7 +27,8 @@
       "period": "1 เม.ย. 2570 – 30 ก.ย. 2570",
       "population": "นักเรียนกลุ่มเป้าหมาย 30 คน",
       "cohortId": "P3-2570",
-      "verification": "unverified"
+      "verification": "unverified",
+      "actualMode": "fraction"
     }
   ],
   "learnerOutcome": "ผู้เรียนอธิบายใจความสำคัญได้ชัดขึ้น",
