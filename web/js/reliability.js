@@ -6,7 +6,7 @@
   "use strict";
 
   const INDICATOR_FIELDS = [
-    "id","title","target","actual","evidence",
+    "id","title","target","actual","actualMode","evidence",
     "actualNumerator","actualDenominator",
     "sourceFile","sourcePage","period","population","cohortId","verification"
   ];
@@ -45,6 +45,13 @@
     INDICATOR_FIELDS.forEach(function (key) {
       out[key] = clean(source[key]);
     });
+    if (!out.actualMode) {
+      if (isPending(out.actual)) out.actualMode = "pending";
+      else if (clean(out.actualNumerator) || clean(out.actualDenominator) || /\d+\s*\/\s*\d+/.test(out.actual)) out.actualMode = "fraction";
+      else if (/%/.test(out.actual)) out.actualMode = "percent";
+      else out.actualMode = "text";
+    }
+    if (!["pending","fraction","percent","score","text"].includes(out.actualMode)) out.actualMode = "text";
     if (!out.verification) out.verification = "unverified";
     return out;
   }
