@@ -953,7 +953,7 @@
           <div class="review-actions">
             <button type="button" class="btn btn-ghost" data-review-open-source>เปิด Source</button>
             <button type="button" class="btn btn-secondary" data-review-copy>คัดลอก Note</button>
-            <button type="button" class="btn btn-primary" data-review-promote ${indicator ? "" : "disabled"}>ส่งไป Evidence Trace</button>
+            <button type="button" class="btn btn-primary" data-review-promote>ส่งไป Evidence Trace</button>
             <button type="button" class="btn btn-ghost review-remove" data-review-remove>ลบ</button>
           </div>
           <div class="review-guardrail">Review “ตรวจต้นฉบับแล้ว” ยังไม่เท่ากับ Evidence Trace VERIFIED · เมื่อส่งไป STEP 3 ระบบจะตั้ง UNVERIFIED เสมอ</div>
@@ -3670,6 +3670,8 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
     }
 
     if (e.target.closest("[data-review-promote]")) {
+      const indicatorSelect = card?.querySelector("[data-review-indicator]");
+      if (indicatorSelect?.value) item.linkedIndicatorId = indicatorSelect.value;
       promoteEvidenceReview(item);
       return;
     }
