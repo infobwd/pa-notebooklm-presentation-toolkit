@@ -153,3 +153,14 @@ Evidence Trace ไม่ต้องพิมพ์ชื่อไฟล์เ�
 เพิ่ม runtime hardening:
 - localStorage save/load มี error handling
 - runtime error / unhandled promise rejection แสดงสถานะและ Toast แทนการล้มเงียบ
+
+
+## Phase 3.5.1 — UX Polish
+
+ปรับจากการทดสอบใช้งานจริง:
+- STEP 2: **Model / แนวทางหลัก** รองรับหลายบรรทัดผ่าน Rich Editor
+- STEP 2: **แหล่งข้อมูลตั้งต้น** รองรับหลายรายการแบบ Smart Numbered List
+- มี quick-add สำหรับ PDCA / PLC / Active Learning และ SAR / ผลประเมิน / PLC โดยเพิ่มต่อท้าย ไม่เขียนทับค่าที่มี
+- STEP 3: TARGET มีปุ่มช่วยใส่ **≥ / ≤ / = / %** ไม่ต้องพิมพ์สัญลักษณ์พิเศษเอง
+- External AI Bridge เปลี่ยนเป็น 1 คอลัมน์เร็วขึ้นบนจอเล็ก/โน้ตบุ๊ก และ full-screen บนมือถือ
+- ปุ่มใน modal แตกบรรทัด/เรียงแนวตั้งบนมือถือ เพื่อลด horizontal overflow
