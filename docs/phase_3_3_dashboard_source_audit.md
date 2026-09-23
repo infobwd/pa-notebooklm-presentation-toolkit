@@ -85,3 +85,11 @@ Raw document text และ audit result อยู่เฉพาะ session ข
 - source page parsing
 - source file matching
 - missing source detection
+
+
+## Next implemented: Phase 3.4
+
+Phase 3.4 ปรับ UX ของ JSON Import และ Evidence Trace Source Picker:
+- Import ไม่เงียบเมื่อยังไม่ได้ Validate
+- STEP 3 เลือก Source จาก Document Reader/ไฟล์ในเครื่องได้
+- PDF เลือกหน้าได้เร็วขึ้น
