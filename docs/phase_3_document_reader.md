@@ -18,8 +18,8 @@
 ข้อจำกัด:
 - สูงสุด 10 ไฟล์ต่อรอบ
 - แนะนำไม่เกิน 25 MB ต่อไฟล์
-- PDF สแกนที่ไม่มี text layer ยังไม่ทำ OCR
 - PDF layout ที่ซับซ้อนอาจเรียงข้อความไม่สมบูรณ์ จึงต้อง Preview ก่อนใช้
+- PDF สแกนที่ไม่มี text layer ใช้ OCR ได้แล้วใน **Phase 4** แบบ opt-in เท่านั้น
 
 ## Local-first
 
@@ -40,7 +40,7 @@ Browser ดาวน์โหลด library code จาก CDN แต่ Toolkit
 4. เพิ่ม marker `--- หน้า N ---`
 5. ตรวจคร่าว ๆ ว่าข้อความน้อยผิดปกติหรือไม่
 
-ถ้าข้อความน้อยมาก ระบบแจ้งว่าเอกสารอาจเป็น PDF สแกนและไม่เดาเนื้อหา
+ถ้าข้อความน้อยมาก ระบบแจ้งว่าเอกสารอาจเป็น PDF สแกน และใน Phase 4 จะเสนอหน้าที่เหมาะกับ OCR ให้ผู้ใช้เลือกเอง
 
 ## DOCX
 
@@ -77,7 +77,6 @@ Browser ดาวน์โหลด library code จาก CDN แต่ Toolkit
 
 ## สิ่งที่ Phase 3 ยังไม่ทำ
 
-- OCR
 - AI API ภายในเว็บไซต์
 - semantic extraction ใน Browser
 - verify ว่า AI อ่านเอกสารถูก
@@ -99,7 +98,10 @@ Raw text จงใจอยู่เฉพาะ session เพื่อจำ�
 - project/intake schema migration
 - automated reliability tests
 
+สิ่งที่ทำต่อแล้ว:
+- duplicate document detection → Phase 3.3
+- local OCR แบบ opt-in → **Phase 4.0**
+
 สิ่งที่ยังเป็น candidate:
-- local OCR แบบ opt-in
-- text chunking สำหรับเอกสารยาว
-- duplicate document detection
+- text chunking / search สำหรับเอกสารยาว
+- page relevance assistance ที่ไม่ตัดสินแทนผู้ใช้
