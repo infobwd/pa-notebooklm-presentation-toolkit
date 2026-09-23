@@ -524,6 +524,7 @@
     if (!extractedDocuments.length) {
       documentList.innerHTML = '<div class="empty-state">เมื่อเลือกและอ่านข้อความ รายการเอกสารจะปรากฏที่นี่</div>';
       updateDocumentPreview();
+      renderDocumentAuditMini();
       return;
     }
 
@@ -560,6 +561,7 @@
         </article>`;
     }).join("");
     updateDocumentPreview();
+    renderDocumentAuditMini();
   }
 
   async function extractPendingDocuments() {
@@ -2185,11 +2187,7 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
     target.focus();
   });
 
-  document.getElementById("openDocumentReaderBtn").addEventListener("click", () => {
-    documentReaderModal.classList.remove("hidden");
-    document.body.style.overflow = "hidden";
-    renderExtractedDocuments();
-  });
+  document.getElementById("openDocumentReaderBtn").addEventListener("click", openDocumentReader);
 
   function closeDocumentReaderModal() {
     documentReaderModal.classList.add("hidden");
@@ -2232,6 +2230,8 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
     }
 
     updateDocumentPreview();
+    renderDocumentAuditMini();
+    if (currentStep === 6) renderReadiness();
   });
 
   documentList.addEventListener("input", e => {
@@ -2246,6 +2246,8 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
     const errorEl = card.querySelector(".page-error");
     if (errorEl) errorEl.textContent = parsed.error;
     updateDocumentPreview();
+    renderDocumentAuditMini();
+    if (currentStep === 6) renderReadiness();
   });
 
   documentList.addEventListener("click", e => {
@@ -2459,10 +2461,37 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
   });
 
   readinessIndicatorList.addEventListener("click", e => {
-    const button = e.target.closest("[data-edit-indicator]");
-    if (!button) return;
-    goToIndicatorInStep3(button.dataset.editIndicator);
+    const edit = e.target.closest("[data-edit-indicator]");
+    if (edit) {
+      goToIndicatorInStep3(edit.dataset.editIndicator);
+      return;
+    }
+    const source = e.target.closest("[data-open-indicator-source]");
+    if (source) openIndicatorSource(source.dataset.openIndicatorSource);
   });
+
+  projectDashboardGrid.addEventListener("click", e => {
+    const card = e.target.closest("[data-dashboard-action]");
+    if (!card) return;
+    const action = card.dataset.dashboardAction;
+    if (action === "step1") showStep(0);
+    if (action === "step3") showStep(2);
+    if (action === "reader") openDocumentReader();
+    if (action === "audit") document.querySelector(".source-audit-wrap")?.scrollIntoView({behavior:"smooth", block:"start"});
+    if (action === "missing") document.getElementById("missingList")?.scrollIntoView({behavior:"smooth", block:"start"});
+  });
+
+  sourceAuditList.addEventListener("click", e => {
+    const docs = e.target.closest("[data-open-audit-docs]");
+    if (docs) {
+      openAuditDocuments(docs.dataset.openAuditDocs);
+      return;
+    }
+    const indicator = e.target.closest("[data-edit-audit-indicator]");
+    if (indicator?.dataset.editAuditIndicator) goToIndicatorInStep3(indicator.dataset.editAuditIndicator);
+  });
+
+  document.getElementById("openReaderFromAuditBtn").addEventListener("click", openDocumentReader);
 
   evidenceFiles.addEventListener("change", () => {
     selectedFileNames = [...evidenceFiles.files].map(f => f.name);
