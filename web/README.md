@@ -181,3 +181,24 @@ STEP 6 ปรับเป็น Visual Organizer:
 - Source Manifest และ Visual Storyboard ใช้ชื่อไฟล์มาตรฐาน
 
 Toolkit มี Generic Naming Plan ในตัว และรองรับ Import Naming Plan JSON ของแต่ละ Project
+
+
+## Phase 4.0 — Document Intelligence / OCR opt-in
+
+Document Reader รองรับ **PDF สแกนแบบ OCR opt-in** แล้ว:
+
+- อ่าน text layer ด้วย PDF.js ก่อนตามปกติ
+- ตรวจหน้าที่ข้อความน้อยและแนะนำหน้า OCR
+- **ไม่ OCR อัตโนมัติ**
+- ผู้ใช้เลือกหน้าเอง เช่น `1-3,5`
+- สูงสุด 12 หน้าต่อรอบเพื่อลดความเสี่ยง Browser ใช้หน่วยความจำสูง
+- ภาษา: ไทย + English / ไทย / English
+- ใช้ Tesseract.js แบบ lazy-load เฉพาะเมื่อกดเริ่ม OCR
+- PDF page ถูก render เป็น Canvas ใน Browser แล้วจึง OCR
+- ข้อความจาก OCR ติดป้าย `[OCR — ตรวจทานก่อนใช้]`
+- Source Manifest ระบุหน้าที่ผ่าน OCR และ `USER REVIEW REQUIRED`
+- OCR ไม่เปลี่ยน Evidence Trace เป็น VERIFIED
+
+OCR engine และ language model ถูกดาวน์โหลดจาก CDN เมื่อจำเป็น แต่ Toolkit ไม่ส่ง PDF หรือภาพหน้ากระดาษไปยัง CDN
+
+OCR เป็นเครื่องมือช่วยอ่านข้อความจากภาพ ไม่ใช่หลักฐานยืนยันความถูกต้อง ผู้ใช้ต้องเทียบข้อความ OCR กับเอกสารต้นฉบับก่อนนำค่ามาใช้เป็น ACTUAL หรือเปลี่ยน Verification เป็น VERIFIED
