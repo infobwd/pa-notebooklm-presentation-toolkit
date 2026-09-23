@@ -27,6 +27,7 @@ Expected GitHub Pages URL:
 - ตรวจ Draft / Final readiness
 - สร้าง Markdown Package 6 ไฟล์ใน Browser
 - **Phase 2 Preview Studio:** เปิดดูและแก้ไข Markdown ก่อนดาวน์โหลด
+- **Phase 3.5.2 Visual Evidence Organizer:** Preview ภาพใน STEP 6, configurable naming plan, standardized filenames และดาวน์โหลดสำเนาชื่อมาตรฐาน
 - **Phase 3.5.1 UX Polish:** Step 2 multiline fields, responsive External AI Bridge, TARGET ≥/≤/=/ % helper
 - **Phase 3.5 Hardening & Acceptance:** Browser E2E acceptance, Desktop/Tablet/Mobile regression, runtime/localStorage hardening
 - **Phase 3.4 Guided Import & Source Picker:** Import ตรวจ JSON อัตโนมัติเมื่อจำเป็น และ STEP 3 เลือก Source file/page จาก Document Reader ได้
