@@ -1,4 +1,4 @@
-# Web App — Phase 3.1
+# Web App — Phase 3.2
 
 Static web app สำหรับ Easy Mode ของ PA NotebookLM Presentation Toolkit
 
@@ -85,3 +85,16 @@ Toolkit ดาวน์โหลดเฉพาะ library code จาก CDN; d
 - `web/schema/project.schema.json`
 
 ACTUAL จะนับเป็น Final-ready เมื่อมี Evidence Trace ครบและผู้ใช้เลือก **ตรวจต้นฉบับแล้ว**
+
+
+## Phase 3.2 — UX & Evidence Review
+
+- STEP 3: ACTUAL มีตัวเลือก 5 รูปแบบ — PENDING / จำนวน÷ทั้งหมด / ร้อยละ / คะแนนหรือค่า / ข้อความผลจริง
+- แบบจำนวน÷ทั้งหมดคำนวณร้อยละให้อัตโนมัติ
+- Evidence Trace อยู่ใต้ตัวชี้วัดใน STEP 3 และระบุ UNVERIFIED / VERIFIED ชัดเจน
+- STEP 7: กดดูรายละเอียดตัวชี้วัดรายข้อ และกดกลับไปแก้รายการนั้นใน STEP 3 ได้
+- ช่องกรอกข้อความทั่วไปใช้ **Sarabun** ส่วนหัว/ปุ่มยังใช้ Kanit
+- ช่องข้อมูลยาวเปลี่ยนเป็น Rich Editor พร้อมนับคำ/ตัวอักษร
+- Context / Process / Systems ใช้ Smart Numbered List เพิ่ม/ลบรายการได้
+- เลิกใช้ blocking `window.alert()` และเปลี่ยนเป็น Toast Notification
+- การแก้ ACTUAL/Evidence/Trace หลัง VERIFIED จะเปลี่ยนกลับเป็น UNVERIFIED อัตโนมัติ
