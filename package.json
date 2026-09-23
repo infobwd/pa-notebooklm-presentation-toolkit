@@ -1,10 +1,10 @@
 {
   "name": "pa-notebooklm-presentation-toolkit",
   "private": true,
-  "version": "0.3.5",
+  "version": "0.4.0",
   "description": "Acceptance and browser tests for the PA NotebookLM Presentation Toolkit static web app",
   "scripts": {
-    "test:unit": "node web/tests/reliability.test.js && node web/tests/document-audit.test.js",
+    "test:unit": "node web/tests/reliability.test.js && node web/tests/document-audit.test.js && node web/tests/visual-evidence.test.js",
     "test:e2e": "node web/e2e/acceptance.test.js"
   },
   "devDependencies": {
