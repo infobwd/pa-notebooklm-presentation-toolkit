@@ -2472,3 +2472,169 @@ input, textarea, select,
     width: 100%;
   }
 }
+
+
+/* Phase 4.2 — Evidence Review & Trace Handoff */
+.evidence-review-section {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  background: #fbfcfe;
+}
+.evidence-review-section .document-section-head p {
+  margin: 3px 0 0;
+  color: var(--muted);
+  font-family: "Sarabun", sans-serif;
+  font-size: 10px;
+  line-height: 1.45;
+}
+.evidence-review-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.evidence-review-list {
+  display: grid;
+  gap: 9px;
+}
+.evidence-review-card {
+  min-width: 0;
+  display: grid;
+  gap: 9px;
+  padding: 11px;
+  border: 1px solid #dce5ef;
+  border-radius: 12px;
+  background: white;
+}
+.evidence-review-head {
+  display: grid;
+  grid-template-columns: auto minmax(0,1fr) auto;
+  gap: 9px;
+  align-items: start;
+}
+.review-index {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: #eef4ff;
+  color: #315f9d;
+  font-size: 10px;
+  font-weight: 800;
+}
+.evidence-review-head strong {
+  display: block;
+  color: var(--navy);
+  font-family: "Sarabun", sans-serif;
+  font-size: 12px;
+}
+.evidence-review-head small {
+  display: block;
+  margin-top: 2px;
+  color: #718096;
+  font-family: "Sarabun", sans-serif;
+  font-size: 9.5px;
+}
+.review-head-badges {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.review-badge {
+  padding: 3px 6px;
+  border-radius: 999px;
+  background: #eef3f7;
+  color: #52667a;
+  font-family: "Sarabun", sans-serif;
+  font-size: 8.5px;
+  font-weight: 700;
+}
+.review-badge.loaded {
+  background: #e8f7f0;
+  color: #087a5b;
+}
+.review-badge.missing {
+  background: #fff4df;
+  color: #9a5b07;
+}
+.review-badge.ocr {
+  background: #fff1d6;
+  color: #965a00;
+}
+.review-excerpt {
+  padding: 9px 10px;
+  border-left: 3px solid #7ca0cf;
+  border-radius: 7px;
+  background: #f7faff;
+  color: #34495e;
+  font-family: "Sarabun", sans-serif;
+  font-size: 10.5px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+.review-section-hint {
+  color: #52667a;
+  font-family: "Sarabun", sans-serif;
+  font-size: 9.5px;
+}
+.review-section-hint strong {
+  color: #315f9d;
+}
+.review-fields {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 8px;
+}
+.review-fields .wide {
+  grid-column: 1 / -1;
+}
+.review-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.review-actions .btn {
+  padding: 6px 8px;
+  font-size: 9.5px;
+}
+.review-actions .review-remove {
+  margin-left: auto;
+  color: var(--danger);
+}
+.review-guardrail {
+  padding-top: 7px;
+  border-top: 1px dashed #d5dee8;
+  color: #7a5d19;
+  font-family: "Sarabun", sans-serif;
+  font-size: 9.5px;
+  line-height: 1.45;
+}
+@media (max-width: 720px) {
+  .evidence-review-head {
+    grid-template-columns: auto minmax(0,1fr);
+  }
+  .review-head-badges {
+    grid-column: 2;
+    justify-content: flex-start;
+  }
+  .review-fields {
+    grid-template-columns: 1fr;
+  }
+  .review-fields .wide {
+    grid-column: 1;
+  }
+  .review-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+  .review-actions .btn {
+    width: 100%;
+  }
+  .review-actions .review-remove {
+    margin-left: 0;
+  }
+}
