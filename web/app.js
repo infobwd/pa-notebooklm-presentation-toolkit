@@ -1238,6 +1238,189 @@ JSON ที่ต้องตอบ:
     };
   }
 
+  function getDocumentAudit() {
+    syncIndicatorsFromDom();
+    return DA.audit(extractedDocuments, indicators, R.parsePageSpec);
+  }
+
+  function sourceExcerptForIndicator(item) {
+    if (!item || !R.isMeaningful(item.sourceFile)) return null;
+    const doc = DA.findDocumentBySource(extractedDocuments, item.sourceFile);
+    if (!doc) return null;
+
+    const pageSpec = DA.parseSourcePage(item.sourcePage);
+    let text = "";
+    let label = doc.name;
+
+    if (pageSpec && doc.pages && Array.isArray(doc.pageTexts)) {
+      const parsed = R.parsePageSpec(pageSpec, doc.pages);
+      if (!parsed.error) {
+        const wanted = new Set(parsed.pages);
+        text = doc.pageTexts
+          .filter(page => wanted.has(page.page))
+          .map(page => `หน้า ${page.page}: ${page.text}`)
+          .join("\n\n");
+        label += ` · หน้า ${pageSpec}`;
+      }
+    }
+
+    if (!text) text = doc.text || "";
+    text = text.replace(/\s+/g, " ").trim();
+    if (text.length > 520) text = text.slice(0, 520) + "…";
+    return {doc, text, label, pageSpec};
+  }
+
+  function renderProjectDashboard(r, audit) {
+    const readyDocs = extractedDocuments.filter(doc => doc.status === "ready").length;
+    const sourceRefCount = indicators.filter(item => R.isMeaningful(item.sourceFile)).length;
+    const pendingChecks = new Set([...r.missing, ...r.traceIssues]).size;
+    const cards = [
+      {value:r.draft + "%", label:"ข้อมูลพร้อมสำหรับ Draft", action:"step1", tone:r.draft === 100 ? "ok" : "info"},
+      {value:`${r.actualCount}/${indicators.length}`, label:"ACTUAL ที่ Verified", action:"step3", tone:r.actualCount === indicators.length ? "ok" : "warn"},
+      {value:String(readyDocs), label:"เอกสารใน session", action:"reader", tone:readyDocs ? "info" : "warn"},
+      {value:`${audit.sourceLinks}/${sourceRefCount}`, label:"Source links ที่จับคู่ได้", action:"step3", tone:sourceRefCount && audit.sourceLinks === sourceRefCount ? "ok" : "info"},
+      {value:String(audit.issueCount), label:"Source audit issues", action:"audit", tone:audit.issueCount ? "warn" : "ok"},
+      {value:String(pendingChecks), label:"รายการที่ยังต้องตรวจ", action:"missing", tone:pendingChecks ? "warn" : "ok"}
+    ];
+    projectDashboardGrid.innerHTML = cards.map(card => `
+      <button type="button" class="dashboard-card ${card.tone}" data-dashboard-action="${card.action}">
+        <strong>${esc(card.value)}</strong>
+        <span>${esc(card.label)}</span>
+      </button>`).join("");
+  }
+
+  function auditItem(type, title, message, actions = "") {
+    return `
+      <article class="audit-item ${type}">
+        <span class="audit-icon">${type === "ok" ? "✓" : "!"}</span>
+        <div class="audit-main">
+          <strong>${esc(title)}</strong>
+          <small>${esc(message)}</small>
+        </div>
+        <div class="audit-actions">${actions}</div>
+      </article>`;
+  }
+
+  function renderSourceAudit(audit) {
+    sourceAuditSummary.innerHTML = [
+      `<span class="audit-chip ${audit.duplicates.length ? "warn" : "ok"}">ไฟล์ซ้ำ/ใกล้ซ้ำ: ${audit.duplicates.length}</span>`,
+      `<span class="audit-chip ${audit.versionConflicts.length ? "warn" : "ok"}">เวอร์ชันชื่อใกล้กัน: ${audit.versionConflicts.length}</span>`,
+      `<span class="audit-chip ${audit.roleConflicts.length ? "warn" : "ok"}">Role mismatch: ${audit.roleConflicts.length}</span>`,
+      `<span class="audit-chip ${audit.sourceIssues.length ? "warn" : "ok"}">Source link issues: ${audit.sourceIssues.length}</span>`
+    ].join("");
+
+    const rows = [];
+
+    audit.duplicates.forEach(issue => {
+      const similarity = Math.round((issue.similarity || 0) * 100);
+      rows.push(auditItem(
+        "warn",
+        issue.type === "exact_duplicate" ? "พบเอกสารซ้ำ" : "พบเอกสารใกล้ซ้ำ",
+        `${issue.aName} ↔ ${issue.bName} · similarity ${similarity}%`,
+        `<button type="button" class="btn btn-ghost" data-open-audit-docs="${issue.aId},${issue.bId}">เปิดใน Reader</button>`
+      ));
+    });
+
+    audit.versionConflicts.forEach(issue => {
+      rows.push(auditItem(
+        "warn",
+        "อาจเป็นคนละเวอร์ชัน",
+        `${issue.aName} ↔ ${issue.bName} · ${issue.message}`,
+        `<button type="button" class="btn btn-ghost" data-open-audit-docs="${issue.aId},${issue.bId}">ตรวจคู่ไฟล์</button>`
+      ));
+    });
+
+    audit.roleConflicts.forEach(issue => {
+      rows.push(auditItem(
+        "warn",
+        "บทบาทเอกสารไม่ตรงกัน",
+        `${issue.aName} [${documentRoleLabel(issue.roleA)}] ↔ ${issue.bName} [${documentRoleLabel(issue.roleB)}]`,
+        `<button type="button" class="btn btn-ghost" data-open-audit-docs="${issue.aId},${issue.bId}">แก้ Role</button>`
+      ));
+    });
+
+    audit.sourceIssues.forEach(issue => {
+      const item = indicators[issue.indicatorIndex];
+      rows.push(auditItem(
+        "warn",
+        `Source ของตัวชี้วัด ${issue.indicatorIndex + 1}`,
+        `${item?.title || "ยังไม่มีชื่อ"} · ${issue.sourceFile || ""} · ${issue.message}`,
+        `<button type="button" class="btn btn-ghost" data-edit-audit-indicator="${item?.id || ""}">แก้ที่ STEP 3</button>`
+      ));
+    });
+
+    if (!rows.length) {
+      const message = extractedDocuments.length
+        ? "ไม่พบไฟล์ซ้ำ เวอร์ชันชนกัน Role mismatch หรือ Source link issue ใน session นี้"
+        : "ยังไม่มีเอกสารใน Document Reader — Source Audit จะทำงานเมื่อโหลดเอกสารใน session นี้";
+      rows.push(auditItem("ok", "Source Audit", message));
+    }
+
+    sourceAuditList.innerHTML = rows.join("");
+  }
+
+  function renderDocumentAuditMini() {
+    if (!documentAuditMini) return;
+    const audit = getDocumentAudit();
+    const ready = extractedDocuments.filter(doc => doc.status === "ready").length;
+    documentAuditMini.innerHTML = [
+      `<span class="audit-chip">พร้อมอ่าน ${ready} ไฟล์</span>`,
+      `<span class="audit-chip ${audit.duplicates.length ? "warn" : "ok"}">ซ้ำ ${audit.duplicates.length}</span>`,
+      `<span class="audit-chip ${audit.versionConflicts.length ? "warn" : "ok"}">เวอร์ชัน ${audit.versionConflicts.length}</span>`,
+      `<span class="audit-chip ${audit.roleConflicts.length ? "warn" : "ok"}">Role ${audit.roleConflicts.length}</span>`
+    ].join("");
+  }
+
+  function openDocumentReader() {
+    documentReaderModal.classList.remove("hidden");
+    document.body.style.overflow = "hidden";
+    renderExtractedDocuments();
+  }
+
+  function openIndicatorSource(id) {
+    syncIndicatorsFromDom();
+    const item = indicators.find(x => x.id === id);
+    if (!item) return;
+    const doc = DA.findDocumentBySource(extractedDocuments, item.sourceFile);
+
+    if (!doc) {
+      notify("ยังไม่พบไฟล์ " + (item.sourceFile || "ต้นทาง") + " ใน Document Reader ของ session นี้ กรุณาเลือกไฟล์ก่อน", "warn", 6500);
+      openDocumentReader();
+      return;
+    }
+
+    const pageSpec = DA.parseSourcePage(item.sourcePage);
+    if (pageSpec && doc.pages) {
+      const parsed = R.parsePageSpec(pageSpec, doc.pages);
+      if (!parsed.error) doc.pageSpec = pageSpec;
+    }
+    doc.include = true;
+    openDocumentReader();
+    window.requestAnimationFrame(() => {
+      const card = documentList.querySelector(`[data-doc-id="${CSS.escape(doc.id)}"]`);
+      if (!card) return;
+      card.classList.add("source-focus");
+      card.scrollIntoView({behavior:"smooth", block:"center"});
+      window.setTimeout(() => card.classList.remove("source-focus"), 1900);
+    });
+  }
+
+  function openAuditDocuments(ids) {
+    const wanted = String(ids || "").split(",").filter(Boolean);
+    if (!wanted.length) return;
+    wanted.forEach(id => {
+      const doc = extractedDocuments.find(item => item.id === id);
+      if (doc) doc.include = true;
+    });
+    openDocumentReader();
+    window.requestAnimationFrame(() => {
+      wanted.forEach(id => documentList.querySelector(`[data-doc-id="${CSS.escape(id)}"]`)?.classList.add("source-focus"));
+      const first = documentList.querySelector(`[data-doc-id="${CSS.escape(wanted[0])}"]`);
+      first?.scrollIntoView({behavior:"smooth", block:"center"});
+      window.setTimeout(() => wanted.forEach(id => documentList.querySelector(`[data-doc-id="${CSS.escape(id)}"]`)?.classList.remove("source-focus")), 1900);
+    });
+  }
+
   function renderReadiness() {
     const r = getReadiness();
     document.getElementById("draftScore").textContent = r.draft + "%";
