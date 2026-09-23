@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css?v=3.5.2">
+  <link rel="stylesheet" href="./styles.css?v=4.0">
 </head>
 <body>
   <header class="topbar">
@@ -418,9 +418,9 @@
     <section class="modal-card document-modal-card">
       <div class="modal-head">
         <div>
-          <p class="eyebrow">PHASE 3 · LOCAL DOCUMENT READER</p>
-          <h2 id="documentReaderTitle">อ่าน PDF / DOCX / TXT / MD ใน Browser</h2>
-          <p>ดึงข้อความจากเอกสารในเครื่องเพื่อใช้ตรวจทานหรือส่งต่อให้ AI JSON Assistant โดยไม่อัปโหลดไฟล์ผ่าน Toolkit</p>
+          <p class="eyebrow">PHASE 4 · DOCUMENT INTELLIGENCE</p>
+          <h2 id="documentReaderTitle">อ่าน PDF / OCR PDF สแกน / DOCX / TXT / MD ใน Browser</h2>
+          <p>อ่าน text layer ก่อนตามปกติ และใช้ OCR เฉพาะเมื่อคุณกดเลือกเองสำหรับ PDF สแกน/หน้าที่ข้อความน้อย โดยไฟล์เอกสารยังอยู่ใน Browser ของคุณ</p>
         </div>
         <button class="modal-close" id="closeDocumentReaderBtn" type="button" aria-label="ปิด">×</button>
       </div>
@@ -431,7 +431,7 @@
             <div>
               <span class="step-badge">1</span>
               <strong>เลือกเอกสาร</strong>
-              <p>รองรับ PDF ที่มี text layer, DOCX, TXT และ Markdown · สูงสุด 10 ไฟล์ · แนะนำไม่เกิน 25 MB ต่อไฟล์</p>
+              <p>รองรับ PDF ที่มี text layer, PDF สแกนแบบ OCR opt-in, DOCX, TXT และ Markdown · สูงสุด 10 ไฟล์ · แนะนำไม่เกิน 25 MB ต่อไฟล์</p>
             </div>
             <div class="document-upload-actions">
               <label class="btn btn-secondary file-label">
@@ -470,7 +470,7 @@
             </div>
           </div>
           <textarea id="documentTextPreview" class="code-box document-text-preview" spellcheck="false" placeholder="ข้อความที่อ่านจากเอกสารจะแสดงที่นี่"></textarea>
-          <div class="tip compact"><strong>PDF สแกน:</strong> Phase 3 ยังไม่มี OCR หาก PDF เป็นภาพสแกนและไม่มี text layer ระบบจะแจ้งเตือนและไม่เดาเนื้อหา</div>
+          <div class="tip compact"><strong>OCR แบบ opt-in:</strong> ระบบจะไม่ OCR อัตโนมัติ หากพบ PDF ที่ข้อความน้อยจะเสนอหน้าที่ควร OCR ให้คุณเลือกเอง ข้อความ OCR จะติดป้ายว่า “OCR — ตรวจทานก่อนใช้” และไม่ถือเป็นการยืนยันหลักฐาน</div>
         </section>
 
         <section class="document-to-ai">
@@ -488,8 +488,8 @@
       </div>
 
       <div class="privacy-note">
-        <strong>Local-first</strong>
-        <p>Toolkit ประมวลผลไฟล์ใน Browser ของคุณ โค้ด parser ถูกโหลดจาก CDN แต่ไฟล์เอกสารไม่ได้ถูกส่งไป CDN โดย Toolkit การส่งข้อความ/เอกสารให้ AI ภายนอกจะเกิดขึ้นเมื่อคุณ Copy หรือแนบให้บริการนั้นด้วยตนเองเท่านั้น</p>
+        <strong>Local-first + OCR opt-in</strong>
+        <p>Toolkit ประมวลผลไฟล์และภาพหน้ากระดาษใน Browser ของคุณ โค้ด parser/OCR และ language model ถูกดาวน์โหลดจาก CDN เมื่อจำเป็น แต่ Toolkit ไม่อัปโหลด PDF หรือภาพหน้ากระดาษไปยัง CDN การส่งข้อความ/เอกสารให้ AI ภายนอกจะเกิดขึ้นเมื่อคุณ Copy หรือแนบให้บริการนั้นด้วยตนเองเท่านั้น</p>
       </div>
     </section>
   </div>
@@ -627,14 +627,15 @@
   <div id="toastStack" class="toast-stack" aria-live="polite" aria-atomic="false"></div>
 
   <footer>
-    <span>PA NotebookLM Presentation Toolkit · Phase 3.5.2 Visual Evidence Organizer</span>
+    <span>PA NotebookLM Presentation Toolkit · Phase 4.0 Document Intelligence · OCR opt-in</span>
     <span id="runtimeHealth">พร้อมใช้งาน · ข้อมูลฟอร์มบันทึกใน localStorage ของเบราว์เซอร์</span>
   </footer>
 
-  <script src="./js/reliability.js?v=3.5.2"></script>
-  <script src="./js/migrations.js?v=3.5.2"></script>
-  <script src="./js/document-audit.js?v=3.5.2"></script>
-  <script src="./js/visual-evidence.js?v=3.5.2"></script>
-  <script src="./app.js?v=3.5.2"></script>
+  <script src="./js/reliability.js?v=4.0"></script>
+  <script src="./js/migrations.js?v=4.0"></script>
+  <script src="./js/document-audit.js?v=4.0"></script>
+  <script src="./js/visual-evidence.js?v=4.0"></script>
+  <script src="./js/ocr-intelligence.js?v=4.0"></script>
+  <script src="./app.js?v=4.0"></script>
 </body>
 </html>
