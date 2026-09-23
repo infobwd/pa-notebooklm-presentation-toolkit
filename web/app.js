@@ -1690,8 +1690,216 @@ JSON ที่ต้องตอบ:
     });
   }
 
+  function formatBytes(bytes) {
+    const value = Number(bytes) || 0;
+    if (value < 1024) return value + " B";
+    if (value < 1024 * 1024) return (value / 1024).toFixed(1) + " KB";
+    return (value / (1024 * 1024)).toFixed(1) + " MB";
+  }
+
+  function visualSlotById(id) {
+    return VE.normalizePlan(visualNamingPlan).slots.find(slot => slot.id === id) || null;
+  }
+
+  function syncSelectedVisualNames() {
+    selectedFileNames = visualAssets
+      .map(asset => String(asset.canonicalName || asset.originalName || "").trim())
+      .filter(Boolean);
+  }
+
+  function revokeVisualPreview(id) {
+    const url = visualPreviewUrls.get(id);
+    if (url) URL.revokeObjectURL(url);
+    visualPreviewUrls.delete(id);
+  }
+
+  function visualPreviewFor(asset) {
+    const file = visualAssetFiles.get(asset.id);
+    if (!file || !String(file.type || "").startsWith("image/")) return "";
+    if (!visualPreviewUrls.has(asset.id)) {
+      visualPreviewUrls.set(asset.id, URL.createObjectURL(file));
+    }
+    return visualPreviewUrls.get(asset.id);
+  }
+
+  function visualSlotOptions(currentSlotId) {
+    const slots = VE.normalizePlan(visualNamingPlan).slots;
+    return ['<option value="">ไม่กำหนด slot / ใช้ชื่อเอง</option>']
+      .concat(slots.map(slot =>
+        `<option value="${esc(slot.id)}" ${slot.id === currentSlotId ? "selected" : ""}>${esc(slot.filename)} · ${esc(slot.label)}</option>`
+      )).join("");
+  }
+
+  function visualEvidenceOptions(current) {
+    return ['<option value="">ยังไม่ระบุประเภทภาพ</option>']
+      .concat(EVIDENCE_OPTIONS.map(label =>
+        `<option value="${esc(label)}" ${label === current ? "selected" : ""}>${esc(label)}</option>`
+      )).join("");
+  }
+
+  function renderVisualNamingStatus() {
+    const normalized = VE.normalizePlan(visualNamingPlan);
+    if (visualNamingPlanStatus) {
+      visualNamingPlanStatus.textContent = `${normalized.title} · ${normalized.slots.length} slots`;
+    }
+  }
+
   function renderFileNames() {
-    selectedFileList.innerHTML = selectedFileNames.map(n => `<span class="file-pill">${esc(n)}</span>`).join("");
+    syncSelectedVisualNames();
+    renderVisualNamingStatus();
+
+    const canonicalCounts = new Map();
+    selectedFileNames.forEach(name => canonicalCounts.set(name.toLowerCase(), (canonicalCounts.get(name.toLowerCase()) || 0) + 1));
+    const duplicateCount = [...canonicalCounts.values()].filter(count => count > 1).length;
+    const mismatchCount = visualAssets.filter(asset =>
+      asset.canonicalName && asset.originalName && !VE.fileExtMatches(asset.canonicalName, asset.originalName)
+    ).length;
+    const withPreview = visualAssets.filter(asset => visualAssetFiles.has(asset.id)).length;
+
+    if (visualFileSummary) {
+      visualFileSummary.innerHTML = visualAssets.length
+        ? `<span>ทั้งหมด <strong>${visualAssets.length}</strong> ไฟล์</span>
+           <span>Preview ใน session <strong>${withPreview}</strong></span>
+           <span class="${duplicateCount ? "warn" : ""}">ชื่อซ้ำ <strong>${duplicateCount}</strong></span>
+           <span class="${mismatchCount ? "warn" : ""}">นามสกุลไม่ตรงแผน <strong>${mismatchCount}</strong></span>`
+        : '<span>ยังไม่ได้แนบ Visual Evidence</span>';
+    }
+
+    if (!visualAssets.length) {
+      selectedFileList.innerHTML = '<div class="empty-state">เลือกภาพด้านบน แล้ว Preview และชื่อไฟล์มาตรฐานจะปรากฏที่นี่</div>';
+      return;
+    }
+
+    selectedFileList.innerHTML = visualAssets.map((asset,index) => {
+      const preview = visualPreviewFor(asset);
+      const file = visualAssetFiles.get(asset.id);
+      const slot = visualSlotById(asset.slotId);
+      const canonical = asset.canonicalName || asset.originalName;
+      const duplicate = canonical && (canonicalCounts.get(canonical.toLowerCase()) || 0) > 1;
+      const extMismatch = canonical && asset.originalName && !VE.fileExtMatches(canonical, asset.originalName);
+      const resolvedName = VE.resolvedDownloadName(canonical, asset.originalName);
+      const status = duplicate
+        ? '<span class="visual-status warn">ชื่อมาตรฐานซ้ำ</span>'
+        : extMismatch
+          ? `<span class="visual-status warn">นามสกุลไฟล์จริงไม่ตรงแผน · ดาวน์โหลดจะใช้ ${esc(resolvedName)}</span>`
+          : '<span class="visual-status ok">ชื่อพร้อมใช้</span>';
+
+      const previewHtml = preview
+        ? `<img src="${preview}" alt="Preview ${esc(asset.originalName)}" loading="lazy">`
+        : `<div class="visual-preview-placeholder"><strong>${esc((VE.extension(asset.originalName) || "FILE").toUpperCase())}</strong><span>${file ? "ไม่มี image preview" : "เลือกไฟล์อีกครั้งหลัง refresh เพื่อดู Preview"}</span></div>`;
+
+      return `
+        <article class="visual-file-card" data-visual-id="${asset.id}">
+          <div class="visual-preview">${previewHtml}<span class="visual-order">#${index + 1}</span></div>
+          <div class="visual-file-body">
+            <div class="visual-original">
+              <span>ไฟล์ต้นฉบับ</span>
+              <strong title="${esc(asset.originalName)}">${esc(asset.originalName || "ไม่พบไฟล์ใน session")}</strong>
+              <small>${esc(asset.mimeType || file?.type || "unknown")} · ${formatBytes(asset.size || file?.size || 0)}</small>
+            </div>
+
+            <label>Slot ตาม Naming Plan
+              <select data-visual-slot>${visualSlotOptions(asset.slotId)}</select>
+            </label>
+
+            <label>ชื่อไฟล์มาตรฐาน
+              <input data-visual-canonical value="${esc(canonical)}" placeholder="เช่น 10_presenter_01.jpg">
+            </label>
+
+            <label>ประเภท Visual Evidence
+              <select data-visual-evidence>${visualEvidenceOptions(asset.evidenceType || slot?.evidenceType || "")}</select>
+            </label>
+
+            <div class="visual-status-row">
+              ${status}
+              ${slot ? `<span class="visual-status info">${esc(slot.label)}</span>` : ""}
+            </div>
+
+            <div class="visual-card-actions">
+              <button type="button" class="btn btn-ghost" data-copy-visual-name>คัดลอกชื่อ</button>
+              <button type="button" class="btn btn-secondary" data-download-renamed ${file ? "" : "disabled"}>ดาวน์โหลดสำเนาชื่อนี้</button>
+              <button type="button" class="btn btn-ghost visual-remove" data-remove-visual>ลบ</button>
+            </div>
+          </div>
+        </article>`;
+    }).join("");
+  }
+
+  function buildVisualAssetFromFile(file) {
+    const used = visualAssets.map(asset => asset.slotId).filter(Boolean);
+    const matched = VE.matchSlotByFilename(visualNamingPlan, file.name);
+    const slot = matched || VE.nextFreeSlot(visualNamingPlan, used);
+    return {
+      id: cryptoId(),
+      originalName: file.name,
+      canonicalName: slot?.filename || file.name,
+      slotId: slot?.id || "",
+      evidenceType: slot?.evidenceType || "",
+      mimeType: file.type || "",
+      size: file.size || 0
+    };
+  }
+
+  function addVisualFiles(files) {
+    const incoming = [...(files || [])].slice(0, 40);
+    if (!incoming.length) return;
+    incoming.forEach(file => {
+      const asset = buildVisualAssetFromFile(file);
+      visualAssets.push(asset);
+      visualAssetFiles.set(asset.id, file);
+    });
+    renderFileNames();
+    save();
+  }
+
+  function autoAssignVisualNames() {
+    const slots = VE.normalizePlan(visualNamingPlan).slots;
+    visualAssets.forEach((asset,index) => {
+      const slot = slots[index] || null;
+      asset.slotId = slot?.id || "";
+      asset.canonicalName = slot?.filename || asset.originalName;
+      if (slot?.evidenceType) asset.evidenceType = slot.evidenceType;
+    });
+    renderFileNames();
+    save();
+  }
+
+  function applyVisualNamingPlan(plan) {
+    const normalized = VE.normalizePlan(plan);
+    const issues = VE.planIssues(normalized);
+    if (!normalized.slots.length || issues.length) {
+      throw new Error(issues.join(" · ") || "Naming Plan ไม่มี slot ที่ใช้ได้");
+    }
+    visualNamingPlan = normalized;
+    autoAssignVisualNames();
+    notify(`ใช้ Naming Plan “${normalized.title}” แล้ว · ${normalized.slots.length} slots`, "success", 6500);
+  }
+
+  function downloadVisualAsset(asset) {
+    const file = visualAssetFiles.get(asset.id);
+    if (!file) {
+      notify("ไฟล์จริงไม่ได้อยู่ใน session นี้ กรุณาเลือกภาพอีกครั้งก่อนดาวน์โหลดสำเนา", "warn", 6500);
+      return;
+    }
+    const requested = asset.canonicalName || asset.originalName;
+    if (!VE.validFilename(requested)) {
+      notify("ชื่อไฟล์มาตรฐานยังไม่ถูกต้อง กรุณาตรวจอักขระในชื่อไฟล์", "error", 6500);
+      return;
+    }
+    const resolved = VE.resolvedDownloadName(requested, asset.originalName);
+    const url = URL.createObjectURL(file);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = resolved;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1200);
+    if (resolved !== requested) {
+      notify(`นามสกุลต้นฉบับไม่ตรงกับแผน จึงรักษาชนิดไฟล์จริงและดาวน์โหลดเป็น ${resolved}`, "warn", 7000);
+    } else {
+      notify(`ดาวน์โหลดสำเนาเป็น ${resolved}`, "success");
+    }
   }
 
   function mdList(items, fallback = "- PENDING") {
