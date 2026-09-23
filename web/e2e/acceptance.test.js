@@ -55,6 +55,24 @@ async function acceptance() {
     await page.locator("#openDocumentReaderBtn").waitFor({ state: "visible" });
   });
 
+  await withPage("OCR is opt-in and Tesseract stays lazy-loaded", { width: 1280, height: 900 }, async page => {
+    const before = await page.evaluate(() => [...document.scripts].some(s => s.src.includes("tesseract.js@7.0.0")));
+    if (before) throw new Error("Tesseract must not load before the user starts OCR");
+
+    await page.locator("#openDocumentReaderBtn").click();
+    await page.locator("#documentReaderModal").waitFor({ state:"visible" });
+    await page.getByRole("heading", { name:/OCR PDF สแกน/ }).waitFor({ state:"visible" });
+
+    const modalText = await page.locator("#documentReaderModal").innerText();
+    if (!modalText.includes("OCR แบบ opt-in")) throw new Error("OCR opt-in guidance missing");
+    if (!modalText.includes("language model")) throw new Error("OCR CDN/privacy disclosure missing");
+
+    const afterOpen = await page.evaluate(() => [...document.scripts].some(s => s.src.includes("tesseract.js@7.0.0")));
+    if (afterOpen) throw new Error("Opening Document Reader must not load Tesseract automatically");
+
+    await page.locator("#closeDocumentReaderBtn").click();
+  });
+
   await withPage("tablet responsive", { width: 820, height: 1180 }, async page => {
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     if (overflow > 2) throw new Error("tablet horizontal overflow: " + overflow);
@@ -200,7 +218,7 @@ async function acceptance() {
     console.error("\nAcceptance failures:", failures);
     process.exit(1);
   }
-  console.log("\nPhase 3.5 browser acceptance: PASS");
+  console.log("\nPhase 4 browser acceptance: PASS");
 }
 
 acceptance().catch(err => {
