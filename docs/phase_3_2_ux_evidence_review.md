@@ -70,3 +70,8 @@ Schema ยังคง:
 - `actualMode: pending | fraction | percent | score | text`
 
 Project/Intake เก่าจะ infer actualMode ตอน migration/normalization
+
+
+## Next implemented: Phase 3.3
+
+Phase 3.3 เพิ่ม Project Dashboard, Source-to-Page Navigation และ Document Audit โดยไม่เปลี่ยนหลัก Evidence Governance ของ Phase 3.1/3.2
