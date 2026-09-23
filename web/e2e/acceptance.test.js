@@ -27,7 +27,7 @@ async function withPage(name, viewport, testFn) {
 
   try {
     await page.goto(BASE_URL, { waitUntil: "domcontentloaded", timeout: 30000 });
-    await page.waitForSelector("text=PA Presentation Builder", { timeout: 10000 });
+    await page.locator(".brand strong").filter({hasText:"PA NotebookLM Toolkit"}).waitFor({ state:"visible", timeout:10000 });
     await testFn(page);
     if (consoleErrors.length) throw new Error("console errors: " + consoleErrors.join(" | "));
     if (pageErrors.length) throw new Error("page errors: " + pageErrors.join(" | "));
