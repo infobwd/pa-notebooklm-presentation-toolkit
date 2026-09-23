@@ -43,6 +43,30 @@ async function withPage(name, viewport, testFn) {
   }
 }
 
+function makeBlankPdf() {
+  const objects = [
+    "1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n",
+    "2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n",
+    "3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << >> /Contents 4 0 R >>\nendobj\n",
+    "4 0 obj\n<< /Length 0 >>\nstream\n\nendstream\nendobj\n"
+  ];
+  let pdf = "%PDF-1.4\n";
+  const offsets = [0];
+  for (const object of objects) {
+    offsets.push(Buffer.byteLength(pdf, "ascii"));
+    pdf += object;
+  }
+  const xrefOffset = Buffer.byteLength(pdf, "ascii");
+  pdf += "xref\n0 5\n";
+  pdf += "0000000000 65535 f \n";
+  for (let i = 1; i <= 4; i += 1) {
+    pdf += String(offsets[i]).padStart(10, "0") + " 00000 n \n";
+  }
+  pdf += "trailer\n<< /Size 5 /Root 1 0 R >>\n";
+  pdf += "startxref\n" + xrefOffset + "\n%%EOF\n";
+  return Buffer.from(pdf, "ascii");
+}
+
 async function clickStep(page, zeroBasedIndex) {
   await page.locator(`.step-link[data-goto="${zeroBasedIndex}"]`).click();
 }
@@ -71,6 +95,26 @@ async function acceptance() {
     if (afterOpen) throw new Error("Opening Document Reader must not load Tesseract automatically");
 
     await page.locator("#closeDocumentReaderBtn").click();
+  });
+
+  await withPage("scanned PDF is detected but OCR does not auto-run", { width: 1280, height: 900 }, async page => {
+    await page.locator("#openDocumentReaderBtn").click();
+    await page.locator("#sourceDocumentsInput").setInputFiles({
+      name:"scanned-fixture.pdf",
+      mimeType:"application/pdf",
+      buffer:makeBlankPdf()
+    });
+    await page.locator("#extractDocumentsBtn").click();
+
+    const panel = page.locator(".document-ocr-panel").first();
+    await panel.waitFor({ state:"visible", timeout:15000 });
+    const panelText = await panel.innerText();
+    if (!panelText.includes("มีแนวโน้มเป็น PDF สแกน")) throw new Error("blank PDF was not identified as OCR candidate");
+    if (!panelText.includes("แนะนำ 1 หน้า")) throw new Error("OCR page suggestion missing");
+    await panel.locator("[data-start-ocr]").waitFor({ state:"visible" });
+
+    const loaded = await page.evaluate(() => [...document.scripts].some(s => s.src.includes("tesseract.js@7.0.0")));
+    if (loaded) throw new Error("Tesseract must not load merely because a scanned PDF was detected");
   });
 
   await withPage("tablet responsive", { width: 820, height: 1180 }, async page => {
