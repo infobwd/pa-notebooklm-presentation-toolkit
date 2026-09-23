@@ -27,6 +27,7 @@ Expected GitHub Pages URL:
 - ตรวจ Draft / Final readiness
 - สร้าง Markdown Package 6 ไฟล์ใน Browser
 - **Phase 2 Preview Studio:** เปิดดูและแก้ไข Markdown ก่อนดาวน์โหลด
+- **Phase 3.2 UX & Evidence Review:** ACTUAL แบบเลือกชนิด, Smart Editors, STEP 7 drill-down, Sarabun ในช่องข้อมูล และ Toast Notification
 - **Phase 3.1 Evidence & Reliability:** ผูก ACTUAL กับ Source/Page/Period/Population, ตรวจ conflict, Pre-Import Review และยืนยันต้นฉบับก่อน Final
 - **Phase 3 Local Document Reader:** อ่าน PDF/DOCX/TXT/MD ใน Browser → ระบุบทบาท/เลือกหน้า → Preview → Copy Prompt + Sources → AI JSON → Import
 - **Phase 2.2 External AI JSON Bridge:** Copy Prompt → ให้ AI ภายนอกตอบ JSON → Validate → Import เข้าฟอร์ม
