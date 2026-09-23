@@ -3022,28 +3022,67 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
       if (badge) badge.textContent = documentRoleLabel(doc.role);
     }
 
+    const ocrLanguage = e.target.closest("[data-ocr-language]");
+    if (ocrLanguage) doc.ocrLanguage = ocrLanguage.value;
+
     updateDocumentPreview();
     renderDocumentAuditMini();
     if (currentStep === 6) renderReadiness();
   });
 
   documentList.addEventListener("input", e => {
-    const pagesInput = e.target.closest(".document-pages");
-    if (!pagesInput) return;
-    const card = pagesInput.closest("[data-doc-id]");
+    const card = e.target.closest("[data-doc-id]");
     const doc = extractedDocuments.find(x => x.id === card?.dataset.docId);
     if (!doc) return;
-    doc.pageSpec = pagesInput.value.trim();
-    const parsed = R.parsePageSpec(doc.pageSpec, doc.pages);
-    doc.pageError = parsed.error;
-    const errorEl = card.querySelector(".page-error");
-    if (errorEl) errorEl.textContent = parsed.error;
-    updateDocumentPreview();
-    renderDocumentAuditMini();
-    if (currentStep === 6) renderReadiness();
+
+    const pagesInput = e.target.closest(".document-pages");
+    if (pagesInput) {
+      doc.pageSpec = pagesInput.value.trim();
+      const parsed = R.parsePageSpec(doc.pageSpec, doc.pages);
+      doc.pageError = parsed.error;
+      const errorEl = card.querySelector(".page-error");
+      if (errorEl) errorEl.textContent = parsed.error;
+      updateDocumentPreview();
+      renderDocumentAuditMini();
+      if (currentStep === 6) renderReadiness();
+      return;
+    }
+
+    const ocrPages = e.target.closest("[data-ocr-pages]");
+    if (ocrPages) {
+      doc.ocrPageSpec = ocrPages.value.trim();
+    }
   });
 
-  documentList.addEventListener("click", e => {
+  documentList.addEventListener("click", async e => {
+    const startOcr = e.target.closest("[data-start-ocr]");
+    if (startOcr) {
+      await runOcrForDocument(startOcr.dataset.startOcr);
+      return;
+    }
+
+    const cancelOcr = e.target.closest("[data-cancel-ocr]");
+    if (cancelOcr) {
+      await cancelOcrJob(cancelOcr.dataset.cancelOcr);
+      return;
+    }
+
+    const suggested = e.target.closest("[data-use-ocr-suggested]");
+    if (suggested) {
+      const doc = extractedDocuments.find(x => x.id === suggested.dataset.useOcrSuggested);
+      const card = suggested.closest("[data-doc-id]");
+      const input = card?.querySelector("[data-ocr-pages]");
+      if (doc && input) {
+        const pages = Array.isArray(doc.ocrSuggestedPages) && doc.ocrSuggestedPages.length
+          ? doc.ocrSuggestedPages
+          : OCR.candidatePages(doc.pageTexts || []);
+        const spec = OCR.compressPages(pages.slice(0,12));
+        doc.ocrPageSpec = spec;
+        input.value = spec;
+      }
+      return;
+    }
+
     const use = e.target.closest("[data-use-as-source]");
     if (use) {
       assignDocumentToIndicator(use.dataset.useAsSource);
@@ -3053,7 +3092,13 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
     const remove = e.target.closest(".document-remove");
     if (!remove) return;
     const card = remove.closest("[data-doc-id]");
-    extractedDocuments = extractedDocuments.filter(x => x.id !== card?.dataset.docId);
+    const docId = card?.dataset.docId;
+    if (activeOcrJob?.docId === docId) {
+      await cancelOcrJob(docId);
+      activeOcrJob = null;
+    }
+    documentFiles.delete(docId);
+    extractedDocuments = extractedDocuments.filter(x => x.id !== docId);
     renderExtractedDocuments();
     syncIndicatorsFromDom();
     renderIndicators();
