@@ -126,10 +126,19 @@ Browser acceptance ตรวจ:
 
 ไม่ได้รัน OCR จริงใน CI เพื่อหลีกเลี่ยง dependency ขนาดใหญ่และความผันผวนของ network/language-model download
 
-## Next Phase 4 candidates
+## Phase 4.1 implemented
 
+ทำต่อแล้ว:
 - long-document chunking
 - full-text search ใน extracted sources
 - page relevance suggestions
+- one-click page selection / Evidence Trace Source
+
+ดู `docs/phase_4_1_long_document_search.md`
+
+## Next Phase 4 candidates
+
 - OCR image preprocessing controls
 - local cache ของ OCR language model / offline strategy
+- richer phrase/section heading detection
+- export selected search findings เป็น evidence review note
