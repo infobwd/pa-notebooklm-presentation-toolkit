@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css?v=4.0">
+  <link rel="stylesheet" href="./styles.css?v=4.1">
 </head>
 <body>
   <header class="topbar">
@@ -458,10 +458,48 @@
           </div>
         </section>
 
-        <section>
+        <section class="document-search-section">
           <div class="document-section-head">
             <div>
               <span class="step-badge">3</span>
+              <strong>ค้นหาในเอกสารยาว / ช่วยหาหน้าที่เกี่ยวข้อง</strong>
+              <p>ระบบแบ่งข้อความเป็น chunks ใน Browser แล้วค้นแบบ full-text โดยไม่ส่งเอกสารออกไปภายนอก</p>
+            </div>
+            <div id="documentChunkStats" class="document-stats"></div>
+          </div>
+
+          <div class="document-search-toolbar">
+            <div class="document-search-box">
+              <input id="documentSearchInput" type="search" placeholder="ค้นหา เช่น ผลสัมฤทธิ์ทางการเรียน / ซ่อมเสริม / PLC / รางวัล">
+              <button class="btn btn-primary" id="documentSearchBtn" type="button">ค้นหา</button>
+            </div>
+            <label>ขอบเขต
+              <select id="documentSearchScope">
+                <option value="included">เฉพาะเอกสารที่เลือกใช้</option>
+                <option value="all">เอกสารทั้งหมดที่อ่านแล้ว</option>
+              </select>
+            </label>
+            <button class="btn btn-ghost" id="clearDocumentSearchBtn" type="button">ล้างผลค้นหา</button>
+          </div>
+
+          <div class="document-context-search">
+            <div>
+              <strong>คำค้นแนะนำจาก Project</strong>
+              <small>ดึงจากประเด็นท้าทาย ความต้องการพัฒนา และชื่อตัวชี้วัด เพื่อช่วยหาหน้าที่เกี่ยวข้อง ไม่ใช่การยืนยันว่าหน้านั้นเป็นหลักฐาน</small>
+            </div>
+            <div id="documentSearchSuggestions" class="document-search-suggestions"></div>
+          </div>
+
+          <div id="documentSearchStatus" class="json-status neutral">อ่านเอกสารก่อน แล้วพิมพ์คำค้นหรือเลือกคำค้นจาก Project</div>
+          <div id="documentSearchResults" class="document-search-results">
+            <div class="empty-state">ผลค้นหาจะเรียงตามความเกี่ยวข้องระดับ chunk/page และยังต้องเปิดต้นฉบับตรวจเอง</div>
+          </div>
+        </section>
+
+        <section>
+          <div class="document-section-head">
+            <div>
+              <span class="step-badge">4</span>
               <strong>ตรวจข้อความรวม</strong>
             </div>
             <div class="document-preview-actions">
@@ -475,7 +513,7 @@
 
         <section class="document-to-ai">
           <div>
-            <span class="step-badge">4</span>
+            <span class="step-badge">5</span>
             <strong>ใช้กับ AI ภายนอก</strong>
             <p>เลือกเฉพาะเอกสารที่ต้องการ แล้วคัดลอก Prompt + ข้อความเอกสารไปยัง AI ภายนอก เพื่อให้ตอบกลับเป็น JSON สำหรับ Import</p>
           </div>
@@ -627,15 +665,16 @@
   <div id="toastStack" class="toast-stack" aria-live="polite" aria-atomic="false"></div>
 
   <footer>
-    <span>PA NotebookLM Presentation Toolkit · Phase 4.0 Document Intelligence · OCR opt-in</span>
+    <span>PA NotebookLM Presentation Toolkit · Phase 4.1 Document Intelligence · Search & Relevance</span>
     <span id="runtimeHealth">พร้อมใช้งาน · ข้อมูลฟอร์มบันทึกใน localStorage ของเบราว์เซอร์</span>
   </footer>
 
-  <script src="./js/reliability.js?v=4.0"></script>
-  <script src="./js/migrations.js?v=4.0"></script>
-  <script src="./js/document-audit.js?v=4.0"></script>
-  <script src="./js/visual-evidence.js?v=4.0"></script>
-  <script src="./js/ocr-intelligence.js?v=4.0"></script>
-  <script src="./app.js?v=4.0"></script>
+  <script src="./js/reliability.js?v=4.1"></script>
+  <script src="./js/migrations.js?v=4.1"></script>
+  <script src="./js/document-audit.js?v=4.1"></script>
+  <script src="./js/visual-evidence.js?v=4.1"></script>
+  <script src="./js/ocr-intelligence.js?v=4.1"></script>
+  <script src="./js/document-intelligence.js?v=4.1"></script>
+  <script src="./app.js?v=4.1"></script>
 </body>
 </html>
