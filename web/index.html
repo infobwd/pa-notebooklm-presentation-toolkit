@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css?v=3.5">
+  <link rel="stylesheet" href="./styles.css?v=3.5.1">
 </head>
 <body>
   <header class="topbar">
@@ -147,12 +147,26 @@
           </div>
           <div class="grid two">
             <label class="wide">ชื่อประเด็นท้าทาย / ข้อตกลง <textarea name="challengeTitle" rows="2" required></textarea></label>
-            <label>Model / แนวทางหลัก
-              <input name="managementModel" list="modelOptions" autocomplete="off" placeholder="เลือกแนวทางที่ใกล้เคียง หรือพิมพ์ชื่อ Model ของตนเอง">
-            </label>
-            <label>แหล่งข้อมูลตั้งต้น
-              <input name="baselineSource" list="baselineSourceOptions" autocomplete="off" placeholder="เลือกแหล่งข้อมูล หรือพิมพ์เพิ่มเติม">
-            </label>
+            <div class="multi-line-field">
+              <label>Model / แนวทางหลัก
+                <textarea name="managementModel" rows="3" placeholder="เขียนได้หลายบรรทัด เช่น ชื่อ Model + ความหมายแต่ละขั้น"></textarea>
+              </label>
+              <div class="quick-picks multi-line-picks" aria-label="ตัวอย่างแนวทาง">
+                <button type="button" class="quick-pick" data-fill-target="managementModel" data-fill-mode="append" data-fill-value="PDCA">+ PDCA</button>
+                <button type="button" class="quick-pick" data-fill-target="managementModel" data-fill-mode="append" data-fill-value="PLC">+ PLC</button>
+                <button type="button" class="quick-pick" data-fill-target="managementModel" data-fill-mode="append" data-fill-value="Active Learning">+ Active Learning</button>
+              </div>
+            </div>
+            <div class="multi-line-field">
+              <label>แหล่งข้อมูลตั้งต้น
+                <textarea name="baselineSource" rows="3" placeholder="หนึ่งแหล่งต่อหนึ่งบรรทัด เช่น SAR 2569 / ผลประเมินก่อนพัฒนา / ข้อมูล PLC"></textarea>
+              </label>
+              <div class="quick-picks multi-line-picks" aria-label="ตัวอย่างแหล่งข้อมูล">
+                <button type="button" class="quick-pick" data-fill-target="baselineSource" data-fill-mode="append" data-fill-value="SAR / รายงานประเมินตนเอง">+ SAR</button>
+                <button type="button" class="quick-pick" data-fill-target="baselineSource" data-fill-mode="append" data-fill-value="ผลสัมฤทธิ์ / ผลประเมินผู้เรียน">+ ผลประเมิน</button>
+                <button type="button" class="quick-pick" data-fill-target="baselineSource" data-fill-mode="append" data-fill-value="ข้อมูล PLC / การสังเกตชั้นเรียน">+ PLC</button>
+              </div>
+            </div>
             <label class="wide">ปัญหา / ความต้องการจำเป็น <textarea name="developmentNeed" rows="4" required></textarea></label>
             <label class="wide">ข้อมูลบริบทสำคัญ <textarea name="contextNotes" rows="5" placeholder="หนึ่งประเด็นต่อหนึ่งบรรทัด"></textarea></label>
             <label class="wide">ขั้นตอน / กระบวนการที่ใช้ <textarea name="processNotes" rows="5" placeholder="หนึ่งขั้นตอนต่อหนึ่งบรรทัด"></textarea></label>
@@ -589,13 +603,13 @@
   <div id="toastStack" class="toast-stack" aria-live="polite" aria-atomic="false"></div>
 
   <footer>
-    <span>PA NotebookLM Presentation Toolkit · Phase 3.5 Hardening & Acceptance</span>
+    <span>PA NotebookLM Presentation Toolkit · Phase 3.5.1 UX Polish</span>
     <span id="runtimeHealth">พร้อมใช้งาน · ข้อมูลฟอร์มบันทึกใน localStorage ของเบราว์เซอร์</span>
   </footer>
 
-  <script src="./js/reliability.js?v=3.5"></script>
-  <script src="./js/migrations.js?v=3.5"></script>
-  <script src="./js/document-audit.js?v=3.5"></script>
-  <script src="./app.js?v=3.5"></script>
+  <script src="./js/reliability.js?v=3.5.1"></script>
+  <script src="./js/migrations.js?v=3.5.1"></script>
+  <script src="./js/document-audit.js?v=3.5.1"></script>
+  <script src="./app.js?v=3.5.1"></script>
 </body>
 </html>
