@@ -53,7 +53,7 @@
 
   function detectDuplicates(documents, threshold) {
     const docs = (Array.isArray(documents) ? documents : [])
-      .filter(d => d && d.status === "ready" && clean(d.text).length >= 80);
+      .filter(d => d && d.status === "ready" && clean(d.text).length >= 40);
     const nearThreshold = typeof threshold === "number" ? threshold : 0.86;
     const pairs = [];
 
