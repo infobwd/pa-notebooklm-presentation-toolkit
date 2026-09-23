@@ -970,54 +970,98 @@ JSON ที่ต้องตอบ:
   }
 
   function indicatorCard(item, index) {
+    item = {...R.normalizeIndicator(item), id:item.id || cryptoId()};
     const trace = R.validateIndicatorTrace(item);
     const calculated = R.formatCalculatedActual(item.actualNumerator, item.actualDenominator, 2);
     const traceClass = trace.ready ? "ok" : "warn";
     const traceText = trace.ready
       ? "ACTUAL มี trace ครบและผู้ใช้ยืนยันต้นฉบับแล้ว"
       : trace.issues.join(" · ");
+    const mode = item.actualMode || "pending";
+    const modeButtons = ACTUAL_MODES.map(([value,label]) =>
+      `<button type="button" class="actual-mode-btn ${mode === value ? "selected" : ""}" data-actual-mode="${value}">${esc(label)}</button>`
+    ).join("");
+
+    let actualEntry = "";
+    if (mode === "pending") {
+      actualEntry = `
+        <input type="hidden" data-field="actual" value="PENDING">
+        <div class="actual-pending-note">ยังไม่มีผลจริง — ระบบจะเก็บ ACTUAL เป็น PENDING และยังไม่อนุญาตให้ผ่าน Final</div>`;
+    } else if (mode === "fraction") {
+      actualEntry = `
+        <input type="hidden" data-field="actual" value="${esc(item.actual)}">
+        <div class="actual-entry fraction">
+          <label>จำนวนที่ผ่าน / ตัวตั้ง
+            <input inputmode="decimal" data-field="actualNumerator" value="${esc(item.actualNumerator)}" placeholder="เช่น 24">
+          </label>
+          <span class="actual-unit">÷</span>
+          <label>จำนวนทั้งหมด / ตัวหาร
+            <input inputmode="decimal" data-field="actualDenominator" value="${esc(item.actualDenominator)}" placeholder="เช่น 30">
+          </label>
+          <div class="actual-result" data-calc-output>${esc(calculated || "รอคำนวณ")}</div>
+        </div>`;
+    } else if (mode === "percent") {
+      const percentValue = String(item.actual || "").replace("%","").trim();
+      actualEntry = `
+        <div class="actual-entry">
+          <label>ผลจริงเป็นร้อยละ (%)
+            <input inputmode="decimal" data-actual-percent value="${esc(percentValue)}" placeholder="เช่น 80">
+          </label>
+        </div>`;
+    } else if (mode === "score") {
+      actualEntry = `
+        <div class="actual-entry">
+          <label>คะแนน / ค่า ACTUAL
+            <input data-field="actual" value="${esc(item.actual)}" placeholder="เช่น 15.6/20 หรือ ค่าเฉลี่ย 4.25">
+          </label>
+        </div>`;
+    } else {
+      actualEntry = `
+        <div class="actual-entry">
+          <label>ข้อความผลจริง
+            <input data-field="actual" value="${esc(item.actual)}" placeholder="เช่น ดำเนินการครบ 6/6 คน">
+          </label>
+        </div>`;
+    }
+
     return `
       <article class="indicator-card" data-id="${item.id}">
         <div class="card-head">
           <h3>ตัวชี้วัดที่ ${index + 1}</h3>
           ${indicators.length > 1 ? '<button type="button" class="remove-indicator">ลบ</button>' : ''}
         </div>
+
         <div class="grid two">
           <label class="wide">เรื่อง / ตัวชี้วัด
             <input data-field="title" value="${esc(item.title)}" placeholder="เช่น ผู้เรียนผ่านค่าเป้าหมาย">
             <small class="field-example">นักเรียนกลุ่มเป้าหมายผ่านเกณฑ์การอ่าน</small>
           </label>
-          <label>TARGET
+          <label class="wide">TARGET
             <input data-field="target" value="${esc(item.target)}" placeholder="เช่น ≥70%">
             <small class="field-example">≥75% หรือ 100% ของผู้ที่ไม่ผ่านได้รับการซ่อมเสริม</small>
           </label>
-          <label>ACTUAL
-            <input data-field="actual" value="${esc(item.actual)}" placeholder="ถ้ายังไม่มีให้ใช้ PENDING">
-            <small class="field-example">24/30 = 80% หรือ PENDING หากยังไม่มีผลจริง</small>
-          </label>
-          <label class="wide">หลักฐาน
+
+          <div class="actual-mode-wrap">
+            <span class="actual-mode-label">ACTUAL — เลือกรูปแบบผลจริงก่อนกรอก</span>
+            <div class="actual-mode-options">${modeButtons}</div>
+          </div>
+
+          ${actualEntry}
+
+          <label class="wide">หลักฐาน ACTUAL
             <input data-field="evidence" value="${esc(item.evidence)}" placeholder="เช่น แบบประเมิน / log / รายงานผล">
             <small class="field-example">แบบประเมินปลายรอบ + ตารางสรุปผล / log ที่ตรวจสอบได้</small>
           </label>
         </div>
 
         <details class="indicator-trace" ${R.isMeaningful(item.actual) ? "open" : ""}>
-          <summary>Evidence Trace — ที่มา / หน้า / ช่วงเวลา / กลุ่มเป้าหมาย</summary>
+          <summary>Evidence Trace — กดเพื่อระบุที่มา / หน้า / ช่วงเวลา / กลุ่มเป้าหมาย / การยืนยัน</summary>
           <div class="trace-grid">
-            <div class="trace-wide trace-calc">
-              <label>จำนวนที่ผ่าน / ตัวตั้ง
-                <input inputmode="decimal" data-field="actualNumerator" value="${esc(item.actualNumerator)}" placeholder="เช่น 24">
-              </label>
-              <label>จำนวนทั้งหมด / ตัวหาร
-                <input inputmode="decimal" data-field="actualDenominator" value="${esc(item.actualDenominator)}" placeholder="เช่น 30">
-              </label>
-              <div class="trace-calc-output" data-calc-output>${esc(calculated || "ยังไม่คำนวณ")}</div>
-            </div>
             <label>ไฟล์ต้นทาง
               <input data-field="sourceFile" value="${esc(item.sourceFile)}" placeholder="เช่น results.pdf">
             </label>
             <label>หน้า / ตำแหน่ง
-              <input data-field="sourcePage" value="${esc(item.sourcePage)}" placeholder="เช่น 4 หรือ ตาราง 2">
+              <input data-field="sourcePage" value="${esc(item.sourcePage)}" placeholder="เช่น หน้า 4 หรือ ตาราง 2">
             </label>
             <label>ช่วงเวลา
               <input data-field="period" value="${esc(item.period)}" placeholder="เช่น 1 เม.ย. – 30 ก.ย. 2570">
@@ -1030,15 +1074,15 @@ JSON ที่ต้องตอบ:
             </label>
             <label>การตรวจต้นฉบับ
               <select data-field="verification">
-                <option value="unverified" ${item.verification !== "verified" ? "selected" : ""}>ยังไม่ได้ยืนยัน</option>
-                <option value="verified" ${item.verification === "verified" ? "selected" : ""}>ตรวจต้นฉบับแล้ว</option>
+                <option value="unverified" ${item.verification !== "verified" ? "selected" : ""}>UNVERIFIED — ยังไม่ได้ตรวจต้นฉบับ</option>
+                <option value="verified" ${item.verification === "verified" ? "selected" : ""}>VERIFIED — ตรวจต้นฉบับแล้ว</option>
               </select>
             </label>
           </div>
           <div class="trace-status ${traceClass}" data-trace-status>${esc(traceText)}</div>
         </details>
 
-        <div class="indicator-example"><strong>Phase 3.1:</strong> ACTUAL จะนับว่า “พร้อม Final” เมื่อมีหลักฐาน ไฟล์ต้นทาง ช่วงเวลา กลุ่มเป้าหมาย และผู้ใช้ยืนยันกับต้นฉบับแล้ว</div>
+        <div class="indicator-example"><strong>Evidence Trace อยู่ที่ STEP 3 นี้</strong> ใต้ตัวชี้วัดแต่ละข้อ และ STEP 7 จะมีปุ่มพากลับมาที่รายการนี้ได้โดยตรง</div>
       </article>`;
   }
 
@@ -1091,6 +1135,7 @@ JSON ที่ต้องตอบ:
     renderEvidenceChecks(Array.isArray(data.evidenceTypes) ? data.evidenceTypes : []);
     renderFileNames();
     currentStep = Number.isInteger(data.currentStep) ? Math.max(0, Math.min(7, data.currentStep)) : 0;
+    syncSmartEditorsFromFields();
   }
 
   function save() {
