@@ -75,3 +75,18 @@ Phase 3 ถือว่าปิดได้เมื่อ:
 - TARGET มี symbol helper สำหรับ ≥ / ≤ / = / %
 - External AI Bridge ปรับ responsive breakpoint และ mobile layout เพื่อลดการล้นจอ
 - Browser acceptance เพิ่ม test สำหรับ multiline, modal overflow และ TARGET helper
+
+
+## Phase 3.5.2 Visual Evidence Organizer
+
+เพิ่ม hardening ให้ STEP 6:
+- Preview ภาพที่เลือกใน Browser ด้วย Object URL
+- Visual Naming Plan แบบ generic/custom
+- standardized filename ต่อ asset
+- original → standardized mapping ใน Source Manifest
+- Visual Storyboard แสดงรายการ standardized visual files
+- extension mismatch / duplicate canonical name warning
+- renamed-copy download โดยไม่แก้ไฟล์ต้นฉบับ
+- E2E test ครอบคลุม Preview + custom naming plan
+
+Raw image bytes ยังเป็น session-only ตาม local-first model
