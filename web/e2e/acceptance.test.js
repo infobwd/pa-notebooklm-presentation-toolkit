@@ -60,14 +60,14 @@ async function acceptance() {
     if (overflow > 2) throw new Error("tablet horizontal overflow: " + overflow);
     await page.locator(".step-nav").waitFor({ state: "visible" });
     await clickStep(page, 2);
-    await page.locator("text=TARGET & ACTUAL").waitFor({ state: "visible" });
+    await page.getByRole("heading", { name: "TARGET & ACTUAL" }).waitFor({ state: "visible" });
   });
 
   await withPage("mobile responsive", { width: 390, height: 844 }, async page => {
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     if (overflow > 2) throw new Error("mobile horizontal overflow: " + overflow);
     await clickStep(page, 6);
-    await page.locator("text=ตรวจความพร้อม").waitFor({ state: "visible" });
+    await page.getByRole("heading", { name: "ตรวจความพร้อม" }).waitFor({ state: "visible" });
     await page.locator("#projectDashboardGrid").waitFor({ state: "visible" });
   });
 
