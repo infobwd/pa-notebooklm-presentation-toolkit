@@ -1254,10 +1254,59 @@ JSON ที่ต้องตอบ:
       `<article class="integrity-card"><strong>${r.conflictCount}</strong><span>Import conflicts ที่ยังค้าง</span></article>`
     ].join("");
 
-    const allMissing = [...new Set([...r.missing, ...r.traceIssues])];
-    document.getElementById("missingList").innerHTML = allMissing.length
-      ? "<h3>สิ่งที่ยังขาด / ต้องตรวจ</h3>" + allMissing.map(x => `<div class="missing-item">${esc(x)}</div>`).join("")
-      : '<div class="tip"><strong>ครบ:</strong> ไม่มีรายการสำคัญค้างตาม Evidence & Reliability checklist</div>';
+    readinessIndicatorList.innerHTML = indicators.map((item,index) => {
+      const trace = R.validateIndicatorTrace(item);
+      const status = trace.ready ? "พร้อม" : (trace.hasActual ? "ต้องตรวจ Trace" : "PENDING");
+      const badgeClass = trace.ready ? "ok" : "warn";
+      const actual = R.isMeaningful(item.actual) ? item.actual : "PENDING";
+      const issues = trace.issues.length
+        ? trace.issues.map(x => `<div class="readiness-issue">${esc(x)}</div>`).join("")
+        : '<div class="readiness-issue" style="border-left-color:#20a47a;background:#f0fbf7;color:#087a5b">Evidence Trace ครบและยืนยันต้นฉบับแล้ว</div>';
+
+      return `
+        <details class="readiness-indicator">
+          <summary>
+            <div class="readiness-indicator-summary">
+              <span class="readiness-index">${index + 1}</span>
+              <div class="readiness-title">
+                <strong>${esc(item.title || "ยังไม่ได้ตั้งชื่อตัวชี้วัด")}</strong>
+                <small>TARGET ${esc(item.target || "—")} · ACTUAL ${esc(actual)}</small>
+              </div>
+              <span class="readiness-badge ${badgeClass}">${esc(status)}</span>
+            </div>
+          </summary>
+          <div class="readiness-indicator-body">
+            <div class="readiness-detail-grid">
+              <div class="readiness-detail"><span>ACTUAL TYPE</span><strong>${esc(ACTUAL_MODES.find(x=>x[0]===item.actualMode)?.[1] || item.actualMode || "—")}</strong></div>
+              <div class="readiness-detail"><span>EVIDENCE</span><strong>${esc(item.evidence || "PENDING")}</strong></div>
+              <div class="readiness-detail"><span>SOURCE</span><strong>${esc(item.sourceFile || "PENDING")}${item.sourcePage ? " · " + esc(item.sourcePage) : ""}</strong></div>
+              <div class="readiness-detail"><span>PERIOD</span><strong>${esc(item.period || "PENDING")}</strong></div>
+              <div class="readiness-detail"><span>POPULATION</span><strong>${esc(item.population || "PENDING")}</strong></div>
+              <div class="readiness-detail"><span>VERIFICATION</span><strong>${item.verification === "verified" ? "VERIFIED — ตรวจต้นฉบับแล้ว" : "UNVERIFIED — ยังไม่ได้ตรวจต้นฉบับ"}</strong></div>
+            </div>
+            <div class="readiness-issues">${issues}</div>
+            <button type="button" class="btn btn-secondary edit-indicator-btn" data-edit-indicator="${item.id}">แก้ไขตัวชี้วัดนี้ที่ STEP 3</button>
+          </div>
+        </details>`;
+    }).join("");
+
+    const generalMissing = r.missing.filter(label => !label.startsWith("ACTUAL ตัวชี้วัด"));
+    document.getElementById("missingList").innerHTML = generalMissing.length
+      ? "<h3>สิ่งอื่นที่ยังขาด / ต้องตรวจ</h3>" + [...new Set(generalMissing)].map(x => `<div class="missing-item">${esc(x)}</div>`).join("")
+      : '<div class="tip"><strong>ตัวชี้วัดดูรายละเอียดด้านบน:</strong> รายการ ACTUAL และ Evidence Trace แสดงแยกเป็นรายข้อแล้ว</div>';
+  }
+
+  function goToIndicatorInStep3(id) {
+    showStep(2);
+    window.requestAnimationFrame(() => {
+      const card = indicatorCards.querySelector(`[data-id="${CSS.escape(id)}"]`);
+      if (!card) return;
+      const trace = card.querySelector(".indicator-trace");
+      if (trace) trace.open = true;
+      card.classList.add("focus-pulse");
+      card.scrollIntoView({behavior:"smooth", block:"center"});
+      window.setTimeout(() => card.classList.remove("focus-pulse"), 1800);
+    });
   }
 
   function renderFileNames() {
