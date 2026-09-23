@@ -1,4 +1,4 @@
-# Web App — Phase 3.2
+# Web App — Phase 3.3
 
 Static web app สำหรับ Easy Mode ของ PA NotebookLM Presentation Toolkit
 
@@ -98,3 +98,18 @@ ACTUAL จะนับเป็น Final-ready เมื่อมี Evidence Tr
 - Context / Process / Systems ใช้ Smart Numbered List เพิ่ม/ลบรายการได้
 - เลิกใช้ blocking `window.alert()` และเปลี่ยนเป็น Toast Notification
 - การแก้ ACTUAL/Evidence/Trace หลัง VERIFIED จะเปลี่ยนกลับเป็น UNVERIFIED อัตโนมัติ
+
+
+## Phase 3.3 — Dashboard & Source Audit
+
+- STEP 7 มี **Project Dashboard** สรุป Draft, Verified ACTUAL, เอกสารใน session, Source links, Audit issues และรายการที่ยังต้องตรวจ
+- **Source-to-Page Navigation**: ถ้า Evidence Trace ระบุไฟล์/หน้าและไฟล์นั้นอยู่ใน Document Reader ระบบแสดง excerpt และเปิดกลับไปยัง Source ได้
+- **Document Audit** ตรวจ:
+  - exact duplicate
+  - near duplicate
+  - ชื่อไฟล์/เวอร์ชันใกล้กันแต่เนื้อหาต่างกัน
+  - เอกสารซ้ำที่ถูกกำหนด Role ต่างกัน
+  - Source file ของตัวชี้วัดที่ยังไม่โหลดใน session
+  - Source page ที่อยู่นอกช่วงเอกสาร
+- ผล Audit เป็นคำเตือนเพื่อให้ผู้ใช้ตรวจ ไม่เปลี่ยนข้อเท็จจริงหรือเลือกเอกสารแทนผู้ใช้
+- Source Manifest ที่ Generate ใน session จะบันทึก Document Audit summary ไว้ด้วย
