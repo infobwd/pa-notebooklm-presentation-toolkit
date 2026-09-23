@@ -7,7 +7,8 @@
   const VE = window.PAToolkitVisualEvidence;
   const OCR = window.PAToolkitOCR;
   const DI = window.PAToolkitDocumentIntelligence;
-  if (!R || !M || !DA || !VE || !OCR || !DI) throw new Error("Toolkit core modules failed to load");
+  const ER = window.PAToolkitEvidenceReview;
+  if (!R || !M || !DA || !VE || !OCR || !DI || !ER) throw new Error("Toolkit core modules failed to load");
 
   const STORAGE_KEY = "pa-notebooklm-toolkit-v1";
   const EVIDENCE_OPTIONS = [
@@ -144,6 +145,8 @@
   const documentSearchStatus = document.getElementById("documentSearchStatus");
   const documentSearchResults = document.getElementById("documentSearchResults");
   const documentSearchSuggestions = document.getElementById("documentSearchSuggestions");
+  const evidenceReviewStats = document.getElementById("evidenceReviewStats");
+  const evidenceReviewList = document.getElementById("evidenceReviewList");
   const documentTextPreview = document.getElementById("documentTextPreview");
   const aiJsonModal = document.getElementById("aiJsonModal");
   const aiPromptPreview = document.getElementById("aiPromptPreview");
@@ -176,6 +179,7 @@
   let extractedDocuments = [];
   let documentChunks = [];
   let documentSearchPageResults = [];
+  let evidenceReviewNotes = [];
   const documentFiles = new Map();
   let activeOcrJob = null;
   let externalSourceText = "";
