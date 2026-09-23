@@ -5,7 +5,8 @@
   const M = window.PAToolkitMigrations;
   const DA = window.PAToolkitDocumentAudit;
   const VE = window.PAToolkitVisualEvidence;
-  if (!R || !M || !DA || !VE) throw new Error("Toolkit core modules failed to load");
+  const OCR = window.PAToolkitOCR;
+  if (!R || !M || !DA || !VE || !OCR) throw new Error("Toolkit core modules failed to load");
 
   const STORAGE_KEY = "pa-notebooklm-toolkit-v1";
   const EVIDENCE_OPTIONS = [
@@ -166,6 +167,8 @@
   let activePreviewIndex = 0;
   let pendingSourceFiles = [];
   let extractedDocuments = [];
+  const documentFiles = new Map();
+  let activeOcrJob = null;
   let externalSourceText = "";
   let sourcePickerIndicatorId = "";
 
