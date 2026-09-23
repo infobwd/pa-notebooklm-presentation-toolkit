@@ -116,10 +116,9 @@ async function acceptance() {
     const firstCard = page.locator(".indicator-card").first();
     const sourceButton = firstCard.locator("[data-pick-source-file]");
 
-    const chooserPromise = page.waitForEvent("filechooser");
     await sourceButton.click();
-    const chooser = await chooserPromise;
-    await chooser.setFiles(path.join(__dirname, "fixtures", "source-sample.txt"));
+    await page.locator("#documentReaderModal").waitFor({ state: "visible" });
+    await page.locator("#sourceDocumentsInput").setInputFiles(path.join(__dirname, "fixtures", "source-sample.txt"));
 
     await page.locator("#extractDocumentsBtn").click();
     await page.locator(".document-item").first().waitFor({ state: "visible", timeout: 10000 });
