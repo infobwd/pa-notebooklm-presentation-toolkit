@@ -959,6 +959,21 @@
           <div class="review-guardrail">Review “ตรวจต้นฉบับแล้ว” ยังไม่เท่ากับ Evidence Trace VERIFIED · เมื่อส่งไป STEP 3 ระบบจะตั้ง UNVERIFIED เสมอ</div>
         </article>`;
     }).join("");
+
+    evidenceReviewList.querySelectorAll("[data-review-promote]").forEach(button => {
+      button.addEventListener("click", event => {
+        event.stopPropagation();
+        const card = button.closest("[data-review-id]");
+        const item = evidenceReviewNoteById(card?.dataset.reviewId);
+        if (!item) {
+          notify("ไม่พบ Evidence Review Note ที่ต้องการส่ง", "error", 5200);
+          return;
+        }
+        const indicatorSelect = card.querySelector("[data-review-indicator]");
+        item.linkedIndicatorId = indicatorSelect?.value || item.linkedIndicatorId || "";
+        promoteEvidenceReview(item);
+      });
+    });
   }
 
   function addEvidenceReviewFromSearch(result) {
@@ -3666,13 +3681,6 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
         return index >= 0 ? `ตัวชี้วัด ${index + 1} · ${indicators[index].title || "ยังไม่มีชื่อ"}` : "";
       }));
       notify("คัดลอก Evidence Review Note แล้ว", "success", 3200);
-      return;
-    }
-
-    if (e.target.closest("[data-review-promote]")) {
-      const indicatorSelect = card?.querySelector("[data-review-indicator]");
-      if (indicatorSelect?.value) item.linkedIndicatorId = indicatorSelect.value;
-      promoteEvidenceReview(item);
       return;
     }
 
