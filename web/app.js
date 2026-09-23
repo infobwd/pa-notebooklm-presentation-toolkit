@@ -661,6 +661,7 @@ JSON ที่ต้องตอบ:
       "title": "",
       "target": "",
       "actual": "",
+      "actualMode": "pending",
       "evidence": "",
       "actualNumerator": "",
       "actualDenominator": "",
@@ -702,6 +703,9 @@ JSON ที่ต้องตอบ:
 - evidenceTypes เลือกได้เฉพาะค่าที่เกี่ยวข้องจากรายการนี้:
   ${EVIDENCE_OPTIONS.map(x => '"'+x+'"').join(", ")}
 - contextNotes, processNotes และ systems ถ้ามีหลายรายการ ให้คั่นแต่ละรายการด้วยขึ้นบรรทัดใหม่
+- actualMode เลือกได้เฉพาะ "pending", "fraction", "percent", "score", "text"
+- ถ้ายังไม่มี ACTUAL ให้ actualMode = "pending" และ actual = "PENDING"
+- ถ้าเป็นจำนวน/ทั้งหมด เช่น 24/30 ให้ actualMode = "fraction" และใส่ actualNumerator/actualDenominator
 - ACTUAL ต้องมีหลักฐานรองรับ ถ้าพบตัวเลขแต่ยังระบุแหล่ง/ช่วงเวลา/กลุ่มไม่ได้ ให้ actual เป็น PENDING และอธิบายใน importNotes
 - อย่านำข้อมูลจากความรู้ทั่วไป บุคคลอื่น หรือไฟล์ตัวอย่างมาเติม
 
@@ -730,6 +734,7 @@ JSON ที่ต้องตอบ:
           title: "นักเรียนกลุ่มเป้าหมายผ่านเกณฑ์การอ่าน",
           target: "≥75%",
           actual: "24/30 = 80%",
+          actualMode: "fraction",
           evidence: "แบบประเมินปลายรอบ + ตารางสรุปผล",
           actualNumerator: "24",
           actualDenominator: "30",
@@ -744,6 +749,7 @@ JSON ที่ต้องตอบ:
           title: "ผู้เรียนที่ไม่ผ่านได้รับการซ่อมเสริม",
           target: "100%",
           actual: "6/6 = 100%",
+          actualMode: "fraction",
           evidence: "บันทึกการซ่อมเสริม",
           actualNumerator: "6",
           actualDenominator: "6",
@@ -2217,7 +2223,13 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
       result.warnings.length ? "มีคำเตือน: " + result.warnings.join(" · ") : "",
       result.importNotes ? "หมายเหตุจาก AI: " + result.importNotes : ""
     ].filter(Boolean).join("\n");
-    alert("Import JSON เข้าระบบเรียบร้อย" + (extra ? "\n\n" + extra : "") + "\n\nACTUAL จาก AI ยังเป็น UNVERIFIED จนกว่าคุณจะตรวจต้นฉบับและกดยืนยันใน Evidence Trace");
+    notify("Import JSON เข้าระบบเรียบร้อย" + (extra ? "\n" + extra : "") + "\nACTUAL จาก AI ยังเป็น UNVERIFIED จนกว่าคุณจะตรวจต้นฉบับใน STEP 3", "success", 7600);
+  });
+
+  readinessIndicatorList.addEventListener("click", e => {
+    const button = e.target.closest("[data-edit-indicator]");
+    if (!button) return;
+    goToIndicatorInStep3(button.dataset.editIndicator);
   });
 
   evidenceFiles.addEventListener("change", () => {
@@ -2291,15 +2303,17 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
     try {
       const data = JSON.parse(await file.text());
       applyState(data); save(); showStep(data.currentStep || 0);
-      alert("นำเข้าโปรเจกต์เรียบร้อย");
+      notify("นำเข้าโปรเจกต์เรียบร้อย", "success");
     } catch {
-      alert("ไม่สามารถอ่านไฟล์โปรเจกต์นี้ได้");
+      notify("ไม่สามารถอ่านไฟล์โปรเจกต์นี้ได้ กรุณาตรวจรูปแบบ JSON", "error", 6500);
     }
     e.target.value = "";
   });
 
+  initSmartEditors();
   load();
   injectFieldExamples();
+  syncSmartEditorsFromFields();
   aiPromptPreview.value = buildExternalAiPrompt();
   showStep(currentStep);
 })();
