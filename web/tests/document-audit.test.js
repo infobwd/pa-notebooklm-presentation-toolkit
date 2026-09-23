@@ -2,9 +2,9 @@ const assert = require("assert");
 const A = require("../js/document-audit.js");
 
 const docs = [
-  {id:"a",name:"results.pdf",status:"ready",role:"assessment_result",text:"TARGET การอ่าน 75% ผลจริง 80% นักเรียน 30 คน"},
-  {id:"b",name:"results (1).pdf",status:"ready",role:"assessment_result",text:"TARGET การอ่าน 75% ผลจริง 80% นักเรียน 30 คน"},
-  {id:"c",name:"results copy.pdf",status:"ready",role:"sar_context",text:"TARGET การอ่าน 70% ผลจริง 72% นักเรียน 30 คน"}
+  {id:"a",name:"results.pdf",status:"ready",role:"assessment_result",text:"TARGET การอ่าน 75% ผลจริง 80% นักเรียน 30 คน แบบประเมินปลายรอบ สรุปข้อมูลกลุ่มเป้าหมายและหลักฐานผลสัมฤทธิ์ทางการเรียน"},
+  {id:"b",name:"results (1).pdf",status:"ready",role:"assessment_result",text:"TARGET การอ่าน 75% ผลจริง 80% นักเรียน 30 คน แบบประเมินปลายรอบ สรุปข้อมูลกลุ่มเป้าหมายและหลักฐานผลสัมฤทธิ์ทางการเรียน"},
+  {id:"c",name:"results copy.pdf",status:"ready",role:"sar_context",text:"TARGET การอ่าน 70% ผลจริง 72% นักเรียน 30 คน รายงานบริบทอีกเวอร์ชันหนึ่งซึ่งมีค่าตัวเลขต่างจากไฟล์ผลการประเมิน"}
 ];
 
 const dup = A.detectDuplicates(docs);
