@@ -808,6 +808,69 @@
       const roleOptions = DOCUMENT_ROLES.map(([value,label]) =>
         `<option value="${value}" ${doc.role === value ? "selected" : ""}>${esc(label)}</option>`
       ).join("");
+
+      let ocrPanel = "";
+      if (doc.pages && Array.isArray(doc.pageTexts) && doc.status === "ready") {
+        const assessment = OCR.scanAssessment(doc.pageTexts.map(item => ({
+          ...item,
+          nativeText:item.extractionMode === "ocr" ? item.ocrText : item.nativeText
+        })));
+        const suggested = Array.isArray(doc.ocrSuggestedPages) && doc.ocrSuggestedPages.length
+          ? doc.ocrSuggestedPages
+          : assessment.candidatePages;
+        const suggestedSpec = OCR.compressPages(suggested.slice(0,12));
+        const pageSpec = doc.ocrPageSpec || suggestedSpec;
+        const isActive = activeOcrJob?.docId === doc.id;
+        const hasRawFile = documentFiles.has(doc.id);
+        const confidence = doc.ocrAverageConfidence != null
+          ? ` · confidence เฉลี่ย ${Number(doc.ocrAverageConfidence).toFixed(0)}%`
+          : "";
+        const scanBadge = assessment.hasAnyCandidate
+          ? `<span class="ocr-badge warn">${assessment.likelyScanned ? "มีแนวโน้มเป็น PDF สแกน" : "มีหน้าที่ text layer น้อย"} · แนะนำ ${assessment.candidateCount} หน้า</span>`
+          : '<span class="ocr-badge ok">text layer ดูเพียงพอ</span>';
+        const completedBadge = doc.ocrCompletedPages?.length
+          ? `<span class="ocr-badge info">OCR แล้ว: ${esc(OCR.compressPages(doc.ocrCompletedPages))}${confidence}</span>`
+          : "";
+
+        ocrPanel = `
+          <details class="document-ocr-panel" ${assessment.likelyScanned || doc.ocrState === "running" || doc.ocrState === "loading" ? "open" : ""}>
+            <summary>
+              <span>OCR PDF สแกน — เลือกใช้เอง</span>
+              <span class="ocr-summary-badges">${scanBadge}${completedBadge}</span>
+            </summary>
+            <div class="ocr-controls">
+              <div class="ocr-guide">
+                <strong>ทำงานเฉพาะหน้าที่คุณเลือก</strong>
+                <span>ระบบไม่ OCR อัตโนมัติ · สูงสุด 12 หน้าต่อรอบ · ข้อความ OCR ต้องเทียบกับต้นฉบับก่อนนำไปยืนยัน ACTUAL</span>
+              </div>
+              <label>หน้าที่ต้องการ OCR
+                <input data-ocr-pages value="${esc(pageSpec)}" placeholder="เช่น 1-3,5">
+                <small>${suggestedSpec ? "หน้าที่ระบบแนะนำ: " + esc(suggestedSpec) : "ไม่มีหน้าที่ระบบแนะนำเป็นพิเศษ — ระบุหน้าเองได้"}</small>
+              </label>
+              <label>ภาษา OCR
+                <select data-ocr-language>
+                  <option value="tha+eng" ${(doc.ocrLanguage || "tha+eng") === "tha+eng" ? "selected" : ""}>ไทย + English — แนะนำ</option>
+                  <option value="tha" ${doc.ocrLanguage === "tha" ? "selected" : ""}>ภาษาไทย</option>
+                  <option value="eng" ${doc.ocrLanguage === "eng" ? "selected" : ""}>English</option>
+                </select>
+              </label>
+              <div class="ocr-actions">
+                ${isActive
+                  ? `<button type="button" class="btn btn-danger" data-cancel-ocr="${doc.id}">ยกเลิก OCR</button>`
+                  : `<button type="button" class="btn btn-ai" data-start-ocr="${doc.id}" ${hasRawFile ? "" : "disabled"}>เริ่ม OCR หน้าที่เลือก</button>`}
+                ${suggestedSpec ? `<button type="button" class="btn btn-ghost" data-use-ocr-suggested="${doc.id}">ใช้หน้าที่แนะนำ</button>` : ""}
+              </div>
+              <div class="ocr-progress-wrap">
+                <div class="ocr-progress-track"><span data-ocr-progress-bar style="width:${Math.round((doc.ocrProgress || 0) * 100)}%"></span></div>
+                <span data-ocr-status>${esc(doc.ocrStatus || (hasRawFile ? "พร้อมทำ OCR เมื่อคุณกดเริ่ม" : "ไฟล์จริงไม่อยู่ใน session — เลือก PDF ใหม่ก่อน OCR"))}</span>
+              </div>
+              <div class="ocr-privacy">
+                OCR engine และ language model จะดาวน์โหลดจาก CDN เมื่อกดเริ่มครั้งแรก แต่ PDF/ภาพหน้ากระดาษไม่ถูกอัปโหลดโดย Toolkit
+              </div>
+            </div>
+          </details>`;
+      }
+
       return `
         <article class="document-item" data-doc-id="${doc.id}">
           <input type="checkbox" class="document-include" ${doc.include && doc.status === "ready" ? "checked" : ""} ${doc.status !== "ready" ? "disabled" : ""} aria-label="ใช้ ${esc(doc.name)} กับ AI">
@@ -825,6 +888,7 @@
                 <span class="page-error">${esc(doc.pageError || "")}</span>
               </label>` : ""}
             </div>
+            ${ocrPanel}
           </div>
           <div class="document-card-actions">
             ${sourcePickerIndicatorId && doc.status === "ready"
