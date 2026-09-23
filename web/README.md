@@ -221,3 +221,28 @@ Document Reader รองรับเอกสารยาว 50–100 หน้
   - คัดลอก excerpt เพื่อตรวจต่อ
 - OCR text สามารถเข้า search index ได้ แต่ผลจะติดป้าย OCR และยังต้องตรวจต้นฉบับ
 - การค้นหาไม่โหลด Tesseract และไม่เรียก AI API
+
+
+## Phase 4.2 — Evidence Review & Trace Handoff
+
+ต่อยอดจาก Search ใน Phase 4.1 ให้ผู้ใช้เก็บหน้าที่น่าสนใจไว้ตรวจอย่างเป็นระบบ:
+
+- จาก Search Result กด **เก็บเข้า Evidence Review**
+- Review Note เก็บ:
+  - Source file
+  - หน้า/ตำแหน่ง
+  - excerpt
+  - คำค้น
+  - section hint ที่พบในข้อความ
+  - classification: FACT / TARGET / ACTUAL / CONTEXT / PENDING
+  - ตัวชี้วัดที่เกี่ยวข้อง
+  - review status: รอตรวจ / ตรวจต้นฉบับแล้ว / ไม่ใช้
+  - บันทึกเหตุผล/สิ่งที่ต้องตรวจ
+- Review Notes บันทึกใน Project JSON และ localStorage
+- หลัง refresh Note ยังอยู่ แม้ raw document ต้องเลือกใหม่
+- สามารถ Export `evidence_review_notes.md`
+- Package Generator เพิ่ม `evidence_review_notes.md` เป็นไฟล์ที่ 7
+- ส่ง Review Note ไป STEP 3 Evidence Trace ได้โดยตรง
+- การส่งไป Evidence Trace จะตั้ง `verification = unverified` เสมอ
+- “ตรวจต้นฉบับแล้ว” ใน Evidence Review **ไม่ใช่** Evidence Trace VERIFIED
+- Source Manifest แสดง summary ของ Evidence Review
