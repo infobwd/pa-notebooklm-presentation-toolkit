@@ -125,6 +125,7 @@ async function acceptance() {
     // Assign the already-read document from STEP 3 without typing the filename.
     await clickStep(page, 2);
     const firstCard = page.locator(".indicator-card").first();
+    await firstCard.locator(".indicator-trace summary").click();
     await firstCard.locator("[data-pick-source-file]").waitFor({ state: "visible" });
     await firstCard.locator("[data-source-doc-select]").selectOption({ label: /source-sample\.txt/ });
 
