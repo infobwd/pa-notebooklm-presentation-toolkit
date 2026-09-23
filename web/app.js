@@ -859,6 +859,177 @@
     return documentSearchPageResults.find(item => item.key === key) || null;
   }
 
+  function evidenceReviewNoteById(id) {
+    return evidenceReviewNotes.find(item => item.id === id) || null;
+  }
+
+  function evidenceReviewClassificationOptions(current) {
+    const options = [
+      ["unclassified","ยังไม่จัดประเภท"],
+      ["fact","FACT"],
+      ["target","TARGET"],
+      ["actual","ACTUAL"],
+      ["context","CONTEXT"],
+      ["pending","PENDING"]
+    ];
+    return options.map(([value,label]) =>
+      `<option value="${value}" ${value === current ? "selected" : ""}>${label}</option>`
+    ).join("");
+  }
+
+  function evidenceReviewStatusOptions(current) {
+    const options = [
+      ["candidate","รอตรวจ"],
+      ["checked","ตรวจต้นฉบับแล้ว"],
+      ["rejected","ไม่ใช้"]
+    ];
+    return options.map(([value,label]) =>
+      `<option value="${value}" ${value === current ? "selected" : ""}>${label}</option>`
+    ).join("");
+  }
+
+  function evidenceReviewIndicatorOptions(current) {
+    return ['<option value="">ยังไม่ผูกตัวชี้วัด</option>']
+      .concat(indicators.map((item,index) =>
+        `<option value="${esc(item.id)}" ${item.id === current ? "selected" : ""}>ตัวชี้วัด ${index + 1} · ${esc(item.title || "ยังไม่มีชื่อ")}</option>`
+      )).join("");
+  }
+
+  function renderEvidenceReview() {
+    if (!evidenceReviewList || !evidenceReviewStats) return;
+    evidenceReviewNotes = evidenceReviewNotes.map(item => ({...ER.normalizeNote(item), id:item.id || cryptoId()}));
+    const counts = ER.counts(evidenceReviewNotes);
+    evidenceReviewStats.innerHTML = [
+      `<span class="document-stat">ทั้งหมด ${counts.total}</span>`,
+      `<span class="document-stat">รอตรวจ ${counts.candidate}</span>`,
+      `<span class="document-stat">ตรวจแล้ว ${counts.checked}</span>`,
+      counts.rejected ? `<span class="document-stat">ไม่ใช้ ${counts.rejected}</span>` : "",
+      counts.linked ? `<span class="document-stat">ผูกตัวชี้วัด ${counts.linked}</span>` : ""
+    ].join("");
+
+    if (!evidenceReviewNotes.length) {
+      evidenceReviewList.innerHTML = '<div class="empty-state">จากผลค้นหาในขั้นที่ 3 กด “เก็บเข้า Evidence Review” เพื่อสร้างรายการตรวจหลักฐาน</div>';
+      return;
+    }
+
+    evidenceReviewList.innerHTML = evidenceReviewNotes.map((item,index) => {
+      const indicator = indicators.find(ind => ind.id === item.linkedIndicatorId);
+      const loadedDoc = DA.findDocumentBySource(extractedDocuments,item.sourceFile);
+      const sourceState = loadedDoc
+        ? '<span class="review-badge loaded">Source อยู่ใน session</span>'
+        : '<span class="review-badge missing">Source ยังไม่โหลดใน session</span>';
+      const extraction = item.extractionMode === "ocr"
+        ? '<span class="review-badge ocr">OCR · ต้องตรวจต้นฉบับ</span>'
+        : '<span class="review-badge">Native text</span>';
+      return `
+        <article class="evidence-review-card" data-review-id="${item.id}">
+          <div class="evidence-review-head">
+            <span class="review-index">${index + 1}</span>
+            <div>
+              <strong>${esc(item.sourceFile || "Unknown source")}${item.sourcePage ? " · " + esc(item.sourcePage) : ""}</strong>
+              <small>คำค้น: ${esc(item.query || "—")}</small>
+            </div>
+            <div class="review-head-badges">${sourceState}${extraction}</div>
+          </div>
+
+          <div class="review-excerpt">${esc(item.excerpt || "ไม่มี excerpt")}</div>
+          ${item.sectionHint ? `<div class="review-section-hint"><strong>Section hint:</strong> ${esc(item.sectionHint)}</div>` : ""}
+
+          <div class="review-fields">
+            <label>จัดประเภท
+              <select data-review-classification>${evidenceReviewClassificationOptions(item.classification)}</select>
+            </label>
+            <label>สถานะ Review
+              <select data-review-status>${evidenceReviewStatusOptions(item.reviewStatus)}</select>
+            </label>
+            <label class="wide">ผูกกับตัวชี้วัด
+              <select data-review-indicator>${evidenceReviewIndicatorOptions(item.linkedIndicatorId)}</select>
+            </label>
+            <label class="wide">บันทึกเหตุผล / สิ่งที่ต้องตรวจ
+              <input data-review-note value="${esc(item.note)}" placeholder="เช่น ตรวจว่าตัวเลขเป็นรอบปัจจุบันและเป็นนักเรียนกลุ่มเดียวกัน">
+            </label>
+          </div>
+
+          <div class="review-actions">
+            <button type="button" class="btn btn-ghost" data-review-open-source>เปิด Source</button>
+            <button type="button" class="btn btn-secondary" data-review-copy>คัดลอก Note</button>
+            <button type="button" class="btn btn-primary" data-review-promote ${indicator ? "" : "disabled"}>ส่งไป Evidence Trace</button>
+            <button type="button" class="btn btn-ghost review-remove" data-review-remove>ลบ</button>
+          </div>
+          <div class="review-guardrail">Review “ตรวจต้นฉบับแล้ว” ยังไม่เท่ากับ Evidence Trace VERIFIED · เมื่อส่งไป STEP 3 ระบบจะตั้ง UNVERIFIED เสมอ</div>
+        </article>`;
+    }).join("");
+  }
+
+  function addEvidenceReviewFromSearch(result) {
+    if (!result) return;
+    const note = ER.createFromSearchResult(result,documentSearchInput?.value || "",cryptoId());
+    if (ER.isDuplicate(evidenceReviewNotes,note)) {
+      notify("รายการนี้อยู่ใน Evidence Review แล้ว", "info", 4200);
+      return;
+    }
+    evidenceReviewNotes.push(note);
+    renderEvidenceReview();
+    save();
+    notify(`เก็บ ${note.sourceFile}${note.sourcePage ? " " + note.sourcePage : ""} เข้า Evidence Review แล้ว`, "success", 4500);
+  }
+
+  function openEvidenceReviewSource(note) {
+    if (!note) return;
+    const doc = DA.findDocumentBySource(extractedDocuments,note.sourceFile);
+    if (!doc) {
+      notify("Source นี้ยังไม่อยู่ใน session กรุณาเลือกเอกสารต้นฉบับใหม่ก่อน", "warn", 6500);
+      return;
+    }
+    if (note.sourcePage && doc.pages) {
+      const pageSpec = DA.parseSourcePage(note.sourcePage);
+      if (pageSpec) {
+        const parsed = R.parsePageSpec(pageSpec,doc.pages);
+        if (!parsed.error) doc.pageSpec = pageSpec;
+      }
+    }
+    doc.include = true;
+    renderExtractedDocuments();
+    window.requestAnimationFrame(() => {
+      const card = documentList.querySelector(`[data-doc-id="${CSS.escape(doc.id)}"]`);
+      card?.classList.add("source-focus");
+      card?.scrollIntoView({behavior:"smooth",block:"center"});
+      setTimeout(() => card?.classList.remove("source-focus"),1800);
+    });
+  }
+
+  function promoteEvidenceReview(note) {
+    if (!note || !note.linkedIndicatorId) {
+      notify("กรุณาเลือกตัวชี้วัดก่อนส่งไป Evidence Trace", "warn", 5200);
+      return;
+    }
+    const item = indicators.find(ind => ind.id === note.linkedIndicatorId);
+    if (!item) {
+      notify("ไม่พบตัวชี้วัดที่ผูกไว้", "error", 5200);
+      return;
+    }
+    item.sourceFile = note.sourceFile;
+    item.sourcePage = note.sourcePage;
+    item.verification = "unverified";
+    if (!R.isMeaningful(item.evidence)) {
+      item.evidence = note.note || `Evidence Review — ${note.sourceFile}${note.sourcePage ? " " + note.sourcePage : ""}`;
+    }
+    renderIndicators();
+    save();
+    closeDocumentReaderModal();
+    showStep(2);
+    window.requestAnimationFrame(() => {
+      const card = indicatorCards.querySelector(`[data-id="${CSS.escape(item.id)}"]`);
+      if (!card) return;
+      const trace = card.querySelector(".indicator-trace");
+      if (trace) trace.open = true;
+      card.classList.add("focus-pulse");
+      card.scrollIntoView({behavior:"smooth",block:"center"});
+      setTimeout(() => card.classList.remove("focus-pulse"),1800);
+    });
+    notify("ส่ง Source ไป Evidence Trace แล้ว · สถานะยังเป็น UNVERIFIED จนกว่าคุณจะตรวจต้นฉบับใน STEP 3", "success", 7600);
+  }
+
   function renderDocumentSearchResults(query) {
     if (!documentSearchResults) return;
     if (!documentSearchPageResults.length) {
