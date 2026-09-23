@@ -228,9 +228,15 @@ async function acceptance() {
 
     // Handoff must populate Source but remain UNVERIFIED.
     await review.locator("[data-review-promote]").click();
-    await page.locator("#documentReaderModal").waitFor({ state:"hidden" });
+    await page.waitForTimeout(350);
     const firstIndicator = page.locator(".indicator-card").first();
-    const sourceFile = await firstIndicator.locator('[data-field="sourceFile"]').inputValue();
+    const sourceAfterClick = await firstIndicator.locator('[data-field="sourceFile"]').inputValue();
+    const modalHidden = await page.locator("#documentReaderModal").evaluate(el => el.classList.contains("hidden"));
+    if (!modalHidden) {
+      const toastText = await page.locator("#toastStack").innerText().catch(() => "");
+      throw new Error("Trace handoff did not close Reader; sourceAfterClick=" + sourceAfterClick + "; toasts=" + toastText);
+    }
+    const sourceFile = sourceAfterClick;
     const sourcePage = await firstIndicator.locator('[data-field="sourcePage"]').inputValue();
     const verification = await firstIndicator.locator('[data-field="verification"]').inputValue();
     if (sourceFile !== "long-report-55-pages.pdf") throw new Error("Evidence Trace sourceFile handoff failed: " + sourceFile);
