@@ -1204,6 +1204,16 @@ JSON ที่ต้องตอบ:
     });
     data.evidenceTypes = [...document.querySelectorAll('input[name="evidenceType"]:checked')].map(x => x.value);
     data.indicators = indicators.map(item => R.normalizeIndicator(item));
+    data.visualNamingPlan = VE.normalizePlan(visualNamingPlan);
+    data.visualAssets = visualAssets.map(asset => ({
+      id: asset.id,
+      originalName: asset.originalName,
+      canonicalName: asset.canonicalName,
+      slotId: asset.slotId,
+      evidenceType: asset.evidenceType,
+      mimeType: asset.mimeType,
+      size: asset.size
+    }));
     data.selectedFileNames = selectedFileNames;
     data.currentStep = currentStep;
     data.version = 3;
@@ -1215,7 +1225,7 @@ JSON ที่ต้องตอบ:
     if (!data || typeof data !== "object") return;
     data = M.migrateProject(data);
     Object.entries(data).forEach(([k,v]) => {
-      if (["evidenceTypes","indicators","selectedFileNames","currentStep","version","schema_version"].includes(k)) return;
+      if (["evidenceTypes","indicators","visualNamingPlan","visualAssets","selectedFileNames","currentStep","version","schema_version"].includes(k)) return;
       const el = form.elements[k];
       if (!el) return;
       if (el instanceof RadioNodeList) {
@@ -1228,7 +1238,29 @@ JSON ที่ต้องตอบ:
     indicators = Array.isArray(data.indicators) && data.indicators.length
       ? data.indicators.map(item => ({...R.normalizeIndicator(item), id:item.id || cryptoId()}))
       : defaultIndicators();
-    selectedFileNames = Array.isArray(data.selectedFileNames) ? data.selectedFileNames : [];
+    visualNamingPlan = data.visualNamingPlan ? VE.normalizePlan(data.visualNamingPlan) : VE.defaultPlan();
+    visualAssets = Array.isArray(data.visualAssets)
+      ? data.visualAssets.map(asset => ({
+          id: asset.id || cryptoId(),
+          originalName: String(asset.originalName || asset.canonicalName || ""),
+          canonicalName: String(asset.canonicalName || asset.originalName || ""),
+          slotId: String(asset.slotId || ""),
+          evidenceType: String(asset.evidenceType || ""),
+          mimeType: String(asset.mimeType || ""),
+          size: Number(asset.size) || 0
+        }))
+      : (Array.isArray(data.selectedFileNames)
+          ? data.selectedFileNames.map(name => ({
+              id: cryptoId(),
+              originalName: String(name),
+              canonicalName: String(name),
+              slotId: "",
+              evidenceType: "",
+              mimeType: "",
+              size: 0
+            }))
+          : []);
+    selectedFileNames = [];
     renderIndicators();
     renderEvidenceChecks(Array.isArray(data.evidenceTypes) ? data.evidenceTypes : []);
     renderFileNames();
