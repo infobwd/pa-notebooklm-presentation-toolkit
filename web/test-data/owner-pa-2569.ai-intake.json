@@ -27,7 +27,8 @@
       "period": "1 เม.ย. 2569 – 30 ก.ย. 2569",
       "population": "นักเรียนชั้น ป.3 กลุ่มเป้าหมาย",
       "cohortId": "PA2569-P3",
-      "verification": "unverified"
+      "verification": "unverified",
+      "actualMode": "pending"
     },
     {
       "title": "นักเรียนที่ไม่ผ่านเกณฑ์ได้รับการซ่อมเสริม",
@@ -41,7 +42,8 @@
       "period": "1 เม.ย. 2569 – 30 ก.ย. 2569",
       "population": "นักเรียนชั้น ป.3 กลุ่มเป้าหมาย",
       "cohortId": "PA2569-P3",
-      "verification": "unverified"
+      "verification": "unverified",
+      "actualMode": "pending"
     },
     {
       "title": "นักเรียนมีส่วนร่วมในกิจกรรม/โครงการเพื่อยกระดับผลสัมฤทธิ์",
@@ -55,7 +57,8 @@
       "period": "1 เม.ย. 2569 – 30 ก.ย. 2569",
       "population": "นักเรียนชั้น ป.3 กลุ่มเป้าหมาย",
       "cohortId": "PA2569-P3",
-      "verification": "unverified"
+      "verification": "unverified",
+      "actualMode": "pending"
     }
   ],
   "learnerOutcome": "PENDING — มีหลักฐานกระบวนการประเมินและซ่อมเสริม แต่ยังต้องเติมผล ACTUAL ของผู้เรียนในรอบเดียวกันก่อนใช้เป็นผลสำเร็จ PA",
