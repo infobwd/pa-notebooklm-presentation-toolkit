@@ -129,7 +129,9 @@
 
   function averageConfidence(pageTexts) {
     const values = (Array.isArray(pageTexts) ? pageTexts : [])
-      .map(item => Number(item && item.ocrConfidence))
+      .map(item => item && item.ocrConfidence)
+      .filter(value => value !== null && value !== undefined && value !== "")
+      .map(Number)
       .filter(Number.isFinite);
     if (!values.length) return null;
     return values.reduce((sum,value) => sum + value,0) / values.length;
