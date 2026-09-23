@@ -47,6 +47,10 @@ jobs:
           test -f web/js/document-audit.js
           test -f web/tests/document-audit.test.js
           test -f web/schema/project.schema.json
+          test -f package.json
+          test -f web/e2e/acceptance.test.js
+          test -f web/e2e/fixtures/source-sample.txt
+          test -f .github/workflows/browser-acceptance.yml
           grep -q 'fonts.googleapis.com/css2?family=Kanit' web/index.html
           grep -q 'family=Sarabun' web/index.html
           grep -q 'readinessIndicatorList' web/index.html
@@ -59,12 +63,14 @@ jobs:
           if grep -q 'id="importAiJsonBtn"[^>]*disabled' web/index.html; then echo "Import button must stay clickable before validation"; exit 1; fi
           grep -q 'document-audit.js' web/index.html
           grep -q 'toastStack' web/index.html
+          grep -q 'runtimeHealth' web/index.html
+          grep -q 'function setRuntimeHealth' web/app.js
           grep -q 'ACTUAL_MODES' web/app.js
           grep -q 'SMART_LIST_FIELDS' web/app.js
           grep -q 'function notify' web/app.js
           if grep -qE '\b(window\.)?alert\s*\(' web/app.js; then echo "window.alert is not allowed"; exit 1; fi
           grep -q 'data-fill-target="position"' web/index.html
-          grep -q 'Phase 3.4 Guided Import & Source Picker' web/index.html
+          grep -q 'Phase 3.5 Hardening & Acceptance' web/index.html
           grep -q 'openDocumentReaderBtn' web/index.html
           grep -q 'pdfjs-dist@3.11.174' web/app.js
           grep -q 'mammoth@1.8.0' web/app.js
