@@ -6,7 +6,8 @@
   const DA = window.PAToolkitDocumentAudit;
   const VE = window.PAToolkitVisualEvidence;
   const OCR = window.PAToolkitOCR;
-  if (!R || !M || !DA || !VE || !OCR) throw new Error("Toolkit core modules failed to load");
+  const DI = window.PAToolkitDocumentIntelligence;
+  if (!R || !M || !DA || !VE || !OCR || !DI) throw new Error("Toolkit core modules failed to load");
 
   const STORAGE_KEY = "pa-notebooklm-toolkit-v1";
   const EVIDENCE_OPTIONS = [
@@ -137,6 +138,12 @@
   const documentReaderStatus = document.getElementById("documentReaderStatus");
   const documentList = document.getElementById("documentList");
   const documentStats = document.getElementById("documentStats");
+  const documentChunkStats = document.getElementById("documentChunkStats");
+  const documentSearchInput = document.getElementById("documentSearchInput");
+  const documentSearchScope = document.getElementById("documentSearchScope");
+  const documentSearchStatus = document.getElementById("documentSearchStatus");
+  const documentSearchResults = document.getElementById("documentSearchResults");
+  const documentSearchSuggestions = document.getElementById("documentSearchSuggestions");
   const documentTextPreview = document.getElementById("documentTextPreview");
   const aiJsonModal = document.getElementById("aiJsonModal");
   const aiPromptPreview = document.getElementById("aiPromptPreview");
@@ -167,6 +174,8 @@
   let activePreviewIndex = 0;
   let pendingSourceFiles = [];
   let extractedDocuments = [];
+  let documentChunks = [];
+  let documentSearchPageResults = [];
   const documentFiles = new Map();
   let activeOcrJob = null;
   let externalSourceText = "";
