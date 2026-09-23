@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css?v=4.1">
+  <link rel="stylesheet" href="./styles.css?v=4.2">
 </head>
 <body>
   <header class="topbar">
@@ -496,10 +496,32 @@
           </div>
         </section>
 
-        <section>
+        <section class="evidence-review-section">
           <div class="document-section-head">
             <div>
               <span class="step-badge">4</span>
+              <strong>Evidence Review — เก็บหน้าที่สนใจไว้ตรวจหลักฐาน</strong>
+              <p>เก็บผลค้นหาที่น่าสนใจเป็น Review Note แล้วจัดประเภท/ผูกตัวชี้วัดก่อนส่งไป Evidence Trace</p>
+            </div>
+            <div id="evidenceReviewStats" class="document-stats"></div>
+          </div>
+
+          <div class="evidence-review-toolbar">
+            <button class="btn btn-secondary" id="downloadEvidenceReviewBtn" type="button">ดาวน์โหลด Review Notes .md</button>
+            <button class="btn btn-ghost" id="removeRejectedReviewBtn" type="button">ลบรายการ “ไม่ใช้”</button>
+          </div>
+
+          <div class="tip compact"><strong>สำคัญ:</strong> “ตรวจต้นฉบับแล้ว” ใน Evidence Review เป็นเพียงสถานะการทบทวนเอกสาร ไม่เท่ากับ VERIFIED ใน Evidence Trace และจะไม่ยืนยัน ACTUAL ให้อัตโนมัติ</div>
+
+          <div id="evidenceReviewList" class="evidence-review-list">
+            <div class="empty-state">จากผลค้นหาในขั้นที่ 3 กด “เก็บเข้า Evidence Review” เพื่อสร้างรายการตรวจหลักฐาน</div>
+          </div>
+        </section>
+
+        <section>
+          <div class="document-section-head">
+            <div>
+              <span class="step-badge">5</span>
               <strong>ตรวจข้อความรวม</strong>
             </div>
             <div class="document-preview-actions">
@@ -513,7 +535,7 @@
 
         <section class="document-to-ai">
           <div>
-            <span class="step-badge">5</span>
+            <span class="step-badge">6</span>
             <strong>ใช้กับ AI ภายนอก</strong>
             <p>เลือกเฉพาะเอกสารที่ต้องการ แล้วคัดลอก Prompt + ข้อความเอกสารไปยัง AI ภายนอก เพื่อให้ตอบกลับเป็น JSON สำหรับ Import</p>
           </div>
@@ -665,16 +687,17 @@
   <div id="toastStack" class="toast-stack" aria-live="polite" aria-atomic="false"></div>
 
   <footer>
-    <span>PA NotebookLM Presentation Toolkit · Phase 4.1 Document Intelligence · Search & Relevance</span>
+    <span>PA NotebookLM Presentation Toolkit · Phase 4.2 Evidence Review & Trace Handoff</span>
     <span id="runtimeHealth">พร้อมใช้งาน · ข้อมูลฟอร์มบันทึกใน localStorage ของเบราว์เซอร์</span>
   </footer>
 
-  <script src="./js/reliability.js?v=4.1"></script>
-  <script src="./js/migrations.js?v=4.1"></script>
-  <script src="./js/document-audit.js?v=4.1"></script>
-  <script src="./js/visual-evidence.js?v=4.1"></script>
-  <script src="./js/ocr-intelligence.js?v=4.1"></script>
-  <script src="./js/document-intelligence.js?v=4.1"></script>
-  <script src="./app.js?v=4.1"></script>
+  <script src="./js/reliability.js?v=4.2"></script>
+  <script src="./js/migrations.js?v=4.2"></script>
+  <script src="./js/document-audit.js?v=4.2"></script>
+  <script src="./js/visual-evidence.js?v=4.2"></script>
+  <script src="./js/ocr-intelligence.js?v=4.2"></script>
+  <script src="./js/document-intelligence.js?v=4.2"></script>
+  <script src="./js/evidence-review.js?v=4.2"></script>
+  <script src="./app.js?v=4.2"></script>
 </body>
 </html>
