@@ -1050,6 +1050,11 @@
       const sourceAction = sourcePickerIndicatorId
         ? `<button type="button" class="btn btn-primary" data-use-search-source="${esc(item.key)}">ใช้${item.page != null ? "หน้านี้" : "เอกสารนี้"}เป็น Source</button>`
         : "";
+      const candidateNote = ER.createFromSearchResult(item,query,"");
+      const saved = ER.isDuplicate(evidenceReviewNotes,candidateNote);
+      const reviewAction = saved
+        ? '<button type="button" class="btn btn-ghost" disabled>อยู่ใน Evidence Review แล้ว</button>'
+        : `<button type="button" class="btn btn-secondary" data-save-search-review="${esc(item.key)}">เก็บเข้า Evidence Review</button>`;
       return `
         <article class="document-search-result" data-search-key="${esc(item.key)}">
           <div class="search-result-rank">${index + 1}</div>
@@ -1067,6 +1072,7 @@
             ${item.page != null
               ? `<button type="button" class="btn btn-secondary" data-use-search-page="${esc(item.key)}">เพิ่มหน้านี้เข้า AI</button>`
               : `<button type="button" class="btn btn-secondary" data-use-search-document="${esc(item.key)}">ใช้เอกสารนี้กับ AI</button>`}
+            ${reviewAction}
             ${sourceAction}
             <button type="button" class="btn btn-ghost" data-copy-search-result="${esc(item.key)}">คัดลอกข้อความ</button>
           </div>
