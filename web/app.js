@@ -714,6 +714,7 @@
       doc.warning = doc.ocrSuggestedPages.length
         ? `OCR แล้ว ${results.length} หน้า · ยังมีหน้าที่ข้อความน้อย: ${OCR.compressPages(doc.ocrSuggestedPages.slice(0,12))}`
         : `OCR แล้ว ${results.length} หน้า · ข้อความ OCR ต้องตรวจทานกับต้นฉบับ`;
+      rebuildDocumentIntelligenceIndex({rerunSearch:true});
 
       notify(`OCR ${doc.name} เสร็จ ${results.length} หน้า${doc.ocrAverageConfidence != null ? " · confidence เฉลี่ย " + doc.ocrAverageConfidence.toFixed(0) + "%" : ""}`, "success", 7500);
     } catch (err) {
@@ -1005,10 +1006,12 @@
     }
 
     documentList.innerHTML = extractedDocuments.map(doc => {
+      const chunkCount = chunkCountForDocument(doc.id);
       const meta = [
         formatBytes(doc.size),
         doc.pages ? doc.pages + " หน้า" : "",
-        doc.status === "ready" ? doc.text.length.toLocaleString() + " ตัวอักษร" : ""
+        doc.status === "ready" ? doc.text.length.toLocaleString() + " ตัวอักษร" : "",
+        chunkCount ? chunkCount.toLocaleString() + " chunks" : ""
       ].filter(Boolean).join(" · ");
       const noteClass = doc.status === "error" ? "document-error" : doc.warning ? "document-warning" : "";
       const note = doc.status === "error" ? doc.error : doc.warning;
@@ -1147,6 +1150,7 @@
     extractedDocuments = docs;
     pendingSourceFiles = [];
     sourceDocumentsInput.value = "";
+    rebuildDocumentIntelligenceIndex({rerunSearch:false});
     renderExtractedDocuments();
     syncIndicatorsFromDom();
     renderIndicators();
@@ -3207,6 +3211,10 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
     pendingSourceFiles = accepted;
     extractedDocuments = [];
     documentFiles.clear();
+    documentChunks = [];
+    documentSearchPageResults = [];
+    if (documentSearchInput) documentSearchInput.value = "";
+    rebuildDocumentIntelligenceIndex({rerunSearch:false});
     renderExtractedDocuments();
     document.getElementById("extractDocumentsBtn").disabled = !accepted.length;
     documentReaderStatus.className = "json-status " + (files.length > 10 ? "warn" : "neutral");
@@ -3230,6 +3238,7 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
       doc.role = role.value;
       const badge = card.querySelector(".document-role-badge");
       if (badge) badge.textContent = documentRoleLabel(doc.role);
+      rebuildDocumentIntelligenceIndex({rerunSearch:true});
     }
 
     const ocrLanguage = e.target.closest("[data-ocr-language]");
@@ -3309,6 +3318,7 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
     }
     documentFiles.delete(docId);
     extractedDocuments = extractedDocuments.filter(x => x.id !== docId);
+    rebuildDocumentIntelligenceIndex({rerunSearch:true});
     renderExtractedDocuments();
     syncIndicatorsFromDom();
     renderIndicators();
@@ -3364,10 +3374,14 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
     pendingSourceFiles = [];
     extractedDocuments = [];
     documentFiles.clear();
+    documentChunks = [];
+    documentSearchPageResults = [];
+    if (documentSearchInput) documentSearchInput.value = "";
     externalSourceText = "";
     sourceDocumentsInput.value = "";
     documentReaderStatus.className = "json-status neutral";
     documentReaderStatus.textContent = "ล้างเอกสารแล้ว";
+    rebuildDocumentIntelligenceIndex({rerunSearch:false});
     renderExtractedDocuments();
     syncIndicatorsFromDom();
     renderIndicators();
