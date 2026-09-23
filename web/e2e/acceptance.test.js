@@ -183,7 +183,19 @@ async function acceptance() {
     if (evidenceType !== "ภาพกิจกรรมจริง") throw new Error("visual evidence type did not follow naming plan");
 
     const summary = await page.locator("#visualFileSummary").innerText();
-    if (!summary.includes("1")) throw new Error("visual summary did not update");
+    if (!summary.includes("1 / 1")) throw new Error("visual slot progress did not update");
+
+    const progress = await page.locator("#visualProgressLabel").innerText();
+    if (progress.trim() !== "1 / 1") throw new Error("visual progress label expected 1 / 1, got " + progress);
+
+    const planSource = await page.locator("#visualNamingPlanSource").innerText();
+    if (!planSource.includes("Imported")) throw new Error("imported naming plan status was not shown");
+
+    const slotChip = page.locator("[data-visual-slot-chip]").first();
+    if (!(await slotChip.getAttribute("class")).includes("filled")) throw new Error("visual slot chip was not marked filled");
+
+    const missing = await page.locator("#visualMissingSummary").innerText();
+    if (!missing.includes("ครบ 1 Slots")) throw new Error("visual completion summary was not shown");
   });
 
   await withPage("localStorage persists project form", { width: 1280, height: 900 }, async page => {
@@ -200,7 +212,7 @@ async function acceptance() {
     console.error("\nAcceptance failures:", failures);
     process.exit(1);
   }
-  console.log("\nPhase 3.5 browser acceptance: PASS");
+  console.log("\nPhase 3.6 browser acceptance: PASS");
 }
 
 acceptance().catch(err => {
