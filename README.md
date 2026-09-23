@@ -27,6 +27,7 @@ Expected GitHub Pages URL:
 - ตรวจ Draft / Final readiness
 - สร้าง Markdown Package 6 ไฟล์ใน Browser
 - **Phase 2 Preview Studio:** เปิดดูและแก้ไข Markdown ก่อนดาวน์โหลด
+- **Phase 4.0 Document Intelligence:** OCR แบบ opt-in สำหรับ PDF สแกน, Thai+English, page selection, progress/cancel และ OCR review guardrails
 - **Phase 3.5.2 Visual Evidence Organizer:** Preview ภาพใน STEP 6, configurable naming plan, standardized filenames และดาวน์โหลดสำเนาชื่อมาตรฐาน
 - **Phase 3.5.1 UX Polish:** Step 2 multiline fields, responsive External AI Bridge, TARGET ≥/≤/=/ % helper
 - **Phase 3.5 Hardening & Acceptance:** Browser E2E acceptance, Desktop/Tablet/Mobile regression, runtime/localStorage hardening
@@ -35,6 +36,7 @@ Expected GitHub Pages URL:
 - **Phase 3.2 UX & Evidence Review:** ACTUAL แบบเลือกชนิด, Smart Editors, STEP 7 drill-down, Sarabun ในช่องข้อมูล และ Toast Notification
 - **Phase 3.1 Evidence & Reliability:** ผูก ACTUAL กับ Source/Page/Period/Population, ตรวจ conflict, Pre-Import Review และยืนยันต้นฉบับก่อน Final
 - **Phase 3 Local Document Reader:** อ่าน PDF/DOCX/TXT/MD ใน Browser → ระบุบทบาท/เลือกหน้า → Preview → Copy Prompt + Sources → AI JSON → Import
+- **Phase 4 OCR:** เมื่อ PDF ไม่มี text layer ให้ผู้ใช้เลือก OCR เฉพาะหน้าเอง โดยยังคง local-first และต้องตรวจทานก่อนใช้
 - **Phase 2.2 External AI JSON Bridge:** Copy Prompt → ให้ AI ภายนอกตอบ JSON → Validate → Import เข้าฟอร์ม
 - มีตัวอย่างประกอบทุกช่องสำคัญเพื่อช่วยผู้ใช้กรอกข้อมูล
 - ประมาณจำนวนคำ/เวลา Script และดาวน์โหลด Bundle สำรอง
