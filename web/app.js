@@ -4,7 +4,8 @@
   const R = window.PAToolkitReliability;
   const M = window.PAToolkitMigrations;
   const DA = window.PAToolkitDocumentAudit;
-  if (!R || !M || !DA) throw new Error("Toolkit core modules failed to load");
+  const VE = window.PAToolkitVisualEvidence;
+  if (!R || !M || !DA || !VE) throw new Error("Toolkit core modules failed to load");
 
   const STORAGE_KEY = "pa-notebooklm-toolkit-v1";
   const EVIDENCE_OPTIONS = [
@@ -127,6 +128,9 @@
   const evidenceChecks = document.getElementById("evidenceChecks");
   const evidenceFiles = document.getElementById("evidenceFiles");
   const selectedFileList = document.getElementById("selectedFileList");
+  const visualFileSummary = document.getElementById("visualFileSummary");
+  const visualNamingPlanStatus = document.getElementById("visualNamingPlanStatus");
+  const visualNamingPlanInput = document.getElementById("visualNamingPlanInput");
   const documentReaderModal = document.getElementById("documentReaderModal");
   const sourceDocumentsInput = document.getElementById("sourceDocumentsInput");
   const documentReaderStatus = document.getElementById("documentReaderStatus");
@@ -154,6 +158,10 @@
   let currentStep = 0;
   let indicators = [];
   let selectedFileNames = [];
+  let visualNamingPlan = VE.defaultPlan();
+  let visualAssets = [];
+  const visualAssetFiles = new Map();
+  const visualPreviewUrls = new Map();
   let generatedCache = [];
   let activePreviewIndex = 0;
   let pendingSourceFiles = [];
