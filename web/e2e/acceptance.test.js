@@ -107,26 +107,30 @@ async function acceptance() {
   await withPage("Source Picker TXT workflow", { width: 1280, height: 900 }, async page => {
     await page.locator("#openAiJsonBtn").click();
     await page.locator("#loadOwnerTestDataBtn").click();
+    await page.locator("#aiJsonStatus").filter({hasText:"โหลด Owner Test Data แล้ว"}).waitFor({ state:"visible", timeout:10000 });
     await page.locator("#importAiJsonBtn").click();
     await page.locator("#aiImportReview").waitFor({ state: "visible" });
     await page.locator("#importAiJsonBtn").click();
     await page.locator("#aiJsonModal").waitFor({ state: "hidden" });
 
-    await clickStep(page, 2);
-    const firstCard = page.locator(".indicator-card").first();
-    const sourceButton = firstCard.locator("[data-pick-source-file]");
-
-    await sourceButton.click();
+    // Load a real local fixture through Document Reader first.
+    await page.locator("#openDocumentReaderBtn").click();
     await page.locator("#documentReaderModal").waitFor({ state: "visible" });
     await page.locator("#sourceDocumentsInput").setInputFiles(path.join(__dirname, "fixtures", "source-sample.txt"));
-
     await page.locator("#extractDocumentsBtn").click();
     await page.locator(".document-item").first().waitFor({ state: "visible", timeout: 10000 });
-    await page.locator(".use-as-source-btn").first().click();
+    await page.locator("#closeDocumentReaderBtn").click();
+    await page.locator("#documentReaderModal").waitFor({ state: "hidden" });
 
-    const sourceFile = await firstCard.locator('[data-field="sourceFile"]').inputValue();
+    // Assign the already-read document from STEP 3 without typing the filename.
+    await clickStep(page, 2);
+    const firstCard = page.locator(".indicator-card").first();
+    await firstCard.locator("[data-pick-source-file]").waitFor({ state: "visible" });
+    await firstCard.locator("[data-source-doc-select]").selectOption({ label: /source-sample\.txt/ });
+
+    const sourceFile = await page.locator(".indicator-card").first().locator('[data-field="sourceFile"]').inputValue();
     if (sourceFile !== "source-sample.txt") throw new Error("source file was not assigned to indicator");
-    const verification = await firstCard.locator('[data-field="verification"]').inputValue();
+    const verification = await page.locator(".indicator-card").first().locator('[data-field="verification"]').inputValue();
     if (verification !== "unverified") throw new Error("choosing source must not auto-verify evidence");
   });
 
