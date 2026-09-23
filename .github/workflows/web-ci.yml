@@ -82,7 +82,7 @@ jobs:
           grep -q 'function notify' web/app.js
           if grep -qE '\b(window\.)?alert\s*\(' web/app.js; then echo "window.alert is not allowed"; exit 1; fi
           grep -q 'data-fill-target="position"' web/index.html
-          grep -q 'Phase 3.5.2 Visual Evidence Organizer' web/index.html
+          grep -q 'Phase 3.6 Visual Evidence Manager' web/index.html
           grep -q 'openDocumentReaderBtn' web/index.html
           grep -q 'pdfjs-dist@3.11.174' web/app.js
           grep -q 'mammoth@1.8.0' web/app.js
