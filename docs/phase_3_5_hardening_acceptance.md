@@ -65,3 +65,13 @@ Phase 3 ถือว่าปิดได้เมื่อ:
 - ไม่มี regression สำคัญจาก Phase 3.1–3.4
 
 หลังจากนี้ roadmap หลักคือ Phase 4 — Document Intelligence
+
+
+## Phase 3.5.1 UX Polish
+
+หลัง Acceptance Test ผ่าน ได้ปรับ usability เพิ่มโดยไม่เปลี่ยน Evidence Governance:
+- managementModel รองรับ multiline
+- baselineSource เป็น multi-item input
+- TARGET มี symbol helper สำหรับ ≥ / ≤ / = / %
+- External AI Bridge ปรับ responsive breakpoint และ mobile layout เพื่อลดการล้นจอ
+- Browser acceptance เพิ่ม test สำหรับ multiline, modal overflow และ TARGET helper
