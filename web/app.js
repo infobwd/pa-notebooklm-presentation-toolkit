@@ -33,7 +33,7 @@
     ["text", "ข้อความผลจริง"]
   ];
 
-  const SMART_LIST_FIELDS = new Set(["contextNotes","processNotes","systems"]);
+  const SMART_LIST_FIELDS = new Set(["baselineSource","contextNotes","processNotes","systems"]);
 
   const DOCUMENT_ROLES = [
     ["pa_agreement", "PA Agreement / ข้อตกลง"],
@@ -1111,7 +1111,14 @@ JSON ที่ต้องตอบ:
           </label>
           <label class="wide">TARGET
             <input data-field="target" value="${esc(item.target)}" placeholder="เช่น ≥70%">
-            <small class="field-example">≥75% หรือ 100% ของผู้ที่ไม่ผ่านได้รับการซ่อมเสริม</small>
+            <div class="target-helper" aria-label="ตัวช่วยใส่เครื่องหมาย TARGET">
+              <span>ใส่เครื่องหมายง่าย ๆ:</span>
+              <button type="button" data-target-prefix="≥" title="ไม่น้อยกว่า">≥ <small>ไม่น้อยกว่า</small></button>
+              <button type="button" data-target-prefix="≤" title="ไม่เกิน">≤ <small>ไม่เกิน</small></button>
+              <button type="button" data-target-prefix="=" title="เท่ากับ">= <small>เท่ากับ</small></button>
+              <button type="button" data-target-suffix="%" title="ร้อยละ">% <small>ร้อยละ</small></button>
+            </div>
+            <small class="field-example">ตัวอย่าง: กด ≥ → พิมพ์ 70 → กด % จะได้ ≥70%</small>
           </label>
 
           <div class="actual-mode-wrap">
@@ -2209,6 +2216,34 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
       return;
     }
 
+    const targetPrefix = e.target.closest("[data-target-prefix]");
+    if (targetPrefix) {
+      const card = targetPrefix.closest(".indicator-card");
+      const input = card?.querySelector('[data-field="target"]');
+      if (!input) return;
+      const symbol = targetPrefix.dataset.targetPrefix;
+      const body = input.value.replace(/^\s*(?:≥|≤|>|<|=)\s*/, "").trimStart();
+      input.value = symbol + body;
+      refreshIndicatorCard(card, "target");
+      save();
+      input.focus();
+      return;
+    }
+
+    const targetSuffix = e.target.closest("[data-target-suffix]");
+    if (targetSuffix) {
+      const card = targetSuffix.closest(".indicator-card");
+      const input = card?.querySelector('[data-field="target"]');
+      if (!input) return;
+      const suffix = targetSuffix.dataset.targetSuffix;
+      const trimmed = input.value.trimEnd();
+      input.value = trimmed.endsWith(suffix) ? trimmed : trimmed + suffix;
+      refreshIndicatorCard(card, "target");
+      save();
+      input.focus();
+      return;
+    }
+
     const sourcePick = e.target.closest("[data-pick-source-file]");
     if (sourcePick) {
       syncIndicatorsFromDom();
@@ -2336,11 +2371,30 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
     if (!pick) return;
     const target = form.elements[pick.dataset.fillTarget];
     if (!target) return;
-    target.value = pick.dataset.fillValue || "";
+
+    const incoming = pick.dataset.fillValue || "";
+    if (pick.dataset.fillMode === "append") {
+      const existing = String(target.value || "").split(/\r?\n/).map(x => x.trim()).filter(Boolean);
+      if (incoming && !existing.includes(incoming)) existing.push(incoming);
+      target.value = existing.join("\n");
+    } else {
+      target.value = incoming;
+    }
+
     target.dispatchEvent(new Event("input", {bubbles:true}));
+    syncSmartEditorsFromFields();
+
     document.querySelectorAll(`.quick-pick[data-fill-target="${CSS.escape(pick.dataset.fillTarget)}"]`)
       .forEach(btn => btn.classList.toggle("selected", btn === pick));
-    target.focus();
+
+    const smartShell = document.querySelector(`[data-smart-field="${CSS.escape(pick.dataset.fillTarget)}"]`);
+    if (smartShell?.classList.contains("smart-list-shell")) {
+      smartShell.querySelector(".smart-list-input:last-of-type")?.focus();
+    } else if (smartShell) {
+      smartShell.querySelector(".rich-editor")?.focus();
+    } else {
+      target.focus();
+    }
   });
 
   document.getElementById("openDocumentReaderBtn").addEventListener("click", openDocumentReader);
