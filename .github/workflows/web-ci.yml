@@ -31,6 +31,7 @@ jobs:
           node --check web/js/document-audit.js
           node --check web/js/visual-evidence.js
           node --check web/js/ocr-intelligence.js
+          node --check web/js/document-intelligence.js
           node --check web/app.js
 
       - name: Run reliability tests
@@ -39,6 +40,7 @@ jobs:
           node web/tests/document-audit.test.js
           node web/tests/visual-evidence.test.js
           node web/tests/ocr-intelligence.test.js
+          node web/tests/document-intelligence.test.js
 
       - name: Verify required web files
         run: |
@@ -50,8 +52,10 @@ jobs:
           test -f web/tests/reliability.test.js
           test -f web/js/document-audit.js
           test -f web/js/ocr-intelligence.js
+          test -f web/js/document-intelligence.js
           test -f web/tests/document-audit.test.js
           test -f web/tests/ocr-intelligence.test.js
+          test -f web/tests/document-intelligence.test.js
           test -f web/schema/project.schema.json
           test -f package.json
           test -f web/e2e/acceptance.test.js
@@ -86,7 +90,12 @@ jobs:
           grep -q 'function notify' web/app.js
           if grep -qE '\b(window\.)?alert\s*\(' web/app.js; then echo "window.alert is not allowed"; exit 1; fi
           grep -q 'data-fill-target="position"' web/index.html
-          grep -q 'Phase 4.0 Document Intelligence · OCR opt-in' web/index.html
+          grep -q 'Phase 4.1 Document Intelligence · Search & Relevance' web/index.html
+          grep -q 'document-intelligence.js' web/index.html
+          grep -q 'documentSearchInput' web/index.html
+          grep -q 'documentSearchResults' web/index.html
+          grep -q 'function rebuildDocumentIntelligenceIndex' web/app.js
+          grep -q 'function runDocumentSearch' web/app.js
           grep -q 'ocr-intelligence.js' web/index.html
           grep -q 'function ensureTesseract' web/app.js
           grep -q 'tesseract.js@7.0.0' web/app.js
