@@ -131,6 +131,69 @@
     return originalExt ? baseName(canonical) + "." + originalExt : canonical;
   }
 
+  function assignmentSummary(plan, assets) {
+    const normalized = normalizePlan(plan);
+    const slotIds = new Set(normalized.slots.map(slot => slot.id));
+    const counts = new Map(normalized.slots.map(slot => [slot.id, 0]));
+    const invalidSlotIds = [];
+    (Array.isArray(assets) ? assets : []).forEach(asset => {
+      const id = clean(asset && asset.slotId);
+      if (!id) return;
+      if (!slotIds.has(id)) {
+        invalidSlotIds.push(id);
+        return;
+      }
+      counts.set(id, (counts.get(id) || 0) + 1);
+    });
+    const duplicateSlotIds = [...counts.entries()].filter(([,count]) => count > 1).map(([id]) => id);
+    const assignedSlotIds = [...counts.entries()].filter(([,count]) => count > 0).map(([id]) => id);
+    const missingSlotIds = normalized.slots.filter(slot => !assignedSlotIds.includes(slot.id)).map(slot => slot.id);
+    return {
+      totalSlots: normalized.slots.length,
+      assignedUnique: assignedSlotIds.length,
+      missingSlotIds,
+      duplicateSlotIds,
+      invalidSlotIds
+    };
+  }
+
+  function autoAssignAssets(plan, assets) {
+    const normalized = normalizePlan(plan);
+    const slotMap = new Map(normalized.slots.map(slot => [slot.id, slot]));
+    const input = (Array.isArray(assets) ? assets : []).map(asset => ({...asset}));
+    const occupied = new Set();
+    const pending = [];
+
+    input.forEach(asset => {
+      const current = clean(asset.slotId);
+      if (current && slotMap.has(current) && !occupied.has(current)) {
+        occupied.add(current);
+        const slot = slotMap.get(current);
+        asset.canonicalName = slot.filename;
+        if (slot.evidenceType) asset.evidenceType = slot.evidenceType;
+      } else {
+        asset.slotId = "";
+        pending.push(asset);
+      }
+    });
+
+    const free = normalized.slots.filter(slot => !occupied.has(slot.id));
+    pending.forEach((asset,index) => {
+      const slot = free[index] || null;
+      if (!slot) {
+        asset.slotId = "";
+        asset.canonicalName = asset.originalName || asset.canonicalName || "";
+        return;
+      }
+      asset.slotId = slot.id;
+      asset.canonicalName = slot.filename;
+      if (slot.evidenceType) asset.evidenceType = slot.evidenceType;
+      occupied.add(slot.id);
+    });
+
+    return input;
+  }
+
   return {
     defaultPlan,
     normalizePlan,
@@ -142,6 +205,8 @@
     fileExtMatches,
     nextFreeSlot,
     matchSlotByFilename,
-    resolvedDownloadName
+    resolvedDownloadName,
+    assignmentSummary,
+    autoAssignAssets
   };
 });
