@@ -159,6 +159,7 @@
   let pendingSourceFiles = [];
   let extractedDocuments = [];
   let externalSourceText = "";
+  let sourcePickerIndicatorId = "";
 
   const defaultIndicators = () => [1,2,3].map(() => R.normalizeIndicator({
     id: cryptoId(),
@@ -557,7 +558,12 @@
               </label>` : ""}
             </div>
           </div>
-          <button type="button" class="document-remove" aria-label="ลบเอกสาร">ลบ</button>
+          <div class="document-card-actions">
+            ${sourcePickerIndicatorId && doc.status === "ready"
+              ? `<button type="button" class="btn btn-primary use-as-source-btn" data-use-as-source="${doc.id}">ใช้เป็น Source</button>`
+              : ""}
+            <button type="button" class="document-remove" aria-label="ลบเอกสาร">ลบ</button>
+          </div>
         </article>`;
     }).join("");
     updateDocumentPreview();
@@ -982,6 +988,39 @@ JSON ที่ต้องตอบ:
     }).join("");
   }
 
+  function readySourceDocuments() {
+    return extractedDocuments.filter(doc => doc.status === "ready" && doc.text);
+  }
+
+  function sourceDocumentOptions(currentFile) {
+    const docs = readySourceDocuments();
+    const current = String(currentFile || "").trim();
+    const options = ['<option value="">เลือกจาก Document Reader...</option>'];
+    docs.forEach(doc => {
+      options.push(`<option value="${esc(doc.name)}" ${doc.name === current ? "selected" : ""}>${esc(doc.name)} · ${esc(documentRoleLabel(doc.role))}</option>`);
+    });
+    if (current && !docs.some(doc => doc.name === current)) {
+      options.push(`<option value="${esc(current)}" selected>${esc(current)} · ยังไม่ได้โหลดใน session</option>`);
+    }
+    return options.join("");
+  }
+
+  function sourcePageOptions(sourceFile, currentPage) {
+    const doc = DA.findDocumentBySource(extractedDocuments, sourceFile);
+    if (!doc || !doc.pages) return "";
+    const current = DA.parseSourcePage(currentPage);
+    const max = Math.min(doc.pages, 300);
+    const options = ['<option value="">เลือกหน้าอย่างรวดเร็ว...</option>'];
+    for (let page = 1; page <= max; page += 1) {
+      options.push(`<option value="${page}" ${String(page) === current ? "selected" : ""}>หน้า ${page}</option>`);
+    }
+    return `
+      <select class="source-page-select" data-source-page-select>
+        ${options.join("")}
+      </select>
+      <small class="source-picker-help">ไฟล์นี้มี ${doc.pages} หน้า · เลือกหน้าได้ หรือพิมพ์ “ตาราง 2 / ภาคผนวก ก” เอง</small>`;
+  }
+
   function indicatorCard(item, index) {
     item = {...R.normalizeIndicator(item), id:item.id || cryptoId()};
     const trace = R.validateIndicatorTrace(item);
@@ -1070,11 +1109,21 @@ JSON ที่ต้องตอบ:
         <details class="indicator-trace" ${R.isMeaningful(item.actual) ? "open" : ""}>
           <summary>Evidence Trace — กดเพื่อระบุที่มา / หน้า / ช่วงเวลา / กลุ่มเป้าหมาย / การยืนยัน</summary>
           <div class="trace-grid">
-            <label>ไฟล์ต้นทาง
-              <input data-field="sourceFile" value="${esc(item.sourceFile)}" placeholder="เช่น results.pdf">
-            </label>
+            <div class="trace-source-picker">
+              <label>ไฟล์ต้นทาง
+                <input data-field="sourceFile" value="${esc(item.sourceFile)}" placeholder="เช่น results.pdf">
+              </label>
+              <div class="source-picker-tools">
+                <select data-source-doc-select aria-label="เลือกไฟล์ต้นทางจาก Document Reader">
+                  ${sourceDocumentOptions(item.sourceFile)}
+                </select>
+                <button type="button" class="btn btn-secondary source-pick-btn" data-pick-source-file>เลือกไฟล์ต้นทาง</button>
+              </div>
+              <small class="source-picker-help">เลือกไฟล์จากเครื่องผ่าน Document Reader หรือเลือกจากไฟล์ที่อ่านแล้วใน session นี้</small>
+            </div>
             <label>หน้า / ตำแหน่ง
               <input data-field="sourcePage" value="${esc(item.sourcePage)}" placeholder="เช่น หน้า 4 หรือ ตาราง 2">
+              ${sourcePageOptions(item.sourceFile, item.sourcePage)}
             </label>
             <label>ช่วงเวลา
               <input data-field="period" value="${esc(item.period)}" placeholder="เช่น 1 เม.ย. – 30 ก.ย. 2570">
@@ -1405,6 +1454,33 @@ JSON ที่ต้องตอบ:
       card.scrollIntoView({behavior:"smooth", block:"center"});
       window.setTimeout(() => card.classList.remove("source-focus"), 1900);
     });
+  }
+
+  function assignDocumentToIndicator(docId) {
+    const doc = extractedDocuments.find(item => item.id === docId);
+    const item = indicators.find(indicator => indicator.id === sourcePickerIndicatorId);
+    if (!doc || !item) return;
+
+    item.sourceFile = doc.name;
+    item.sourcePage = "";
+    item.verification = "unverified";
+    sourcePickerIndicatorId = "";
+
+    closeDocumentReaderModal();
+    renderIndicators();
+    save();
+
+    window.requestAnimationFrame(() => {
+      const card = indicatorCards.querySelector(`[data-id="${CSS.escape(item.id)}"]`);
+      if (!card) return;
+      const trace = card.querySelector(".indicator-trace");
+      if (trace) trace.open = true;
+      card.classList.add("focus-pulse");
+      card.scrollIntoView({behavior:"smooth", block:"center"});
+      window.setTimeout(() => card.classList.remove("focus-pulse"), 1800);
+    });
+
+    notify(`เลือก ${doc.name} เป็น Source แล้ว${doc.pages ? " · เลือกหน้าที่มีหลักฐานต่อได้ใน Evidence Trace" : ""}`, "success", 6500);
   }
 
   function openAuditDocuments(ids) {
@@ -2101,6 +2177,19 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
       return;
     }
 
+    const sourcePick = e.target.closest("[data-pick-source-file]");
+    if (sourcePick) {
+      syncIndicatorsFromDom();
+      const card = sourcePick.closest(".indicator-card");
+      sourcePickerIndicatorId = card?.dataset.id || "";
+      openDocumentReader();
+      notify("เลือกไฟล์ต้นทาง: ถ้ายังไม่มีไฟล์ ให้เลือกไฟล์แล้วกด “อ่านข้อความ” จากนั้นกด “ใช้เป็น Source”", "info", 7000);
+      if (!readySourceDocuments().length) {
+        window.setTimeout(() => sourceDocumentsInput.click(), 80);
+      }
+      return;
+    }
+
     const modeBtn = e.target.closest("[data-actual-mode]");
     if (modeBtn) {
       syncIndicatorsFromDom();
@@ -2177,8 +2266,31 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
   });
 
   indicatorCards.addEventListener("change", e => {
-    const field = e.target.closest("[data-field]");
     const card = e.target.closest(".indicator-card");
+    if (!card) return;
+
+    const sourceSelect = e.target.closest("[data-source-doc-select]");
+    if (sourceSelect) {
+      const item = indicators.find(x => x.id === card.dataset.id);
+      if (!item) return;
+      item.sourceFile = sourceSelect.value;
+      item.sourcePage = "";
+      item.verification = "unverified";
+      renderIndicators();
+      save();
+      return;
+    }
+
+    const pageSelect = e.target.closest("[data-source-page-select]");
+    if (pageSelect) {
+      const pageInput = card.querySelector('[data-field="sourcePage"]');
+      if (pageInput) pageInput.value = pageSelect.value ? "หน้า " + pageSelect.value : "";
+      refreshIndicatorCard(card, "sourcePage");
+      save();
+      return;
+    }
+
+    const field = e.target.closest("[data-field]");
     refreshIndicatorCard(card, field?.dataset.field || "");
     save();
   });
@@ -2262,11 +2374,19 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
   });
 
   documentList.addEventListener("click", e => {
+    const use = e.target.closest("[data-use-as-source]");
+    if (use) {
+      assignDocumentToIndicator(use.dataset.useAsSource);
+      return;
+    }
+
     const remove = e.target.closest(".document-remove");
     if (!remove) return;
     const card = remove.closest("[data-doc-id]");
     extractedDocuments = extractedDocuments.filter(x => x.id !== card?.dataset.docId);
     renderExtractedDocuments();
+    syncIndicatorsFromDom();
+    renderIndicators();
   });
 
   documentTextPreview.addEventListener("input", () => {
