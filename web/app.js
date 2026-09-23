@@ -1217,6 +1217,7 @@ JSON ที่ต้องตอบ:
       originalName: asset.originalName,
       canonicalName: asset.canonicalName,
       slotId: asset.slotId,
+      sequence: Number(asset.sequence) || 1,
       evidenceType: asset.evidenceType,
       mimeType: asset.mimeType,
       size: asset.size
@@ -1255,6 +1256,7 @@ JSON ที่ต้องตอบ:
           originalName: String(asset.originalName || asset.canonicalName || ""),
           canonicalName: String(asset.canonicalName || asset.originalName || ""),
           slotId: String(asset.slotId || ""),
+          sequence: Number(asset.sequence) || 1,
           evidenceType: String(asset.evidenceType || ""),
           mimeType: String(asset.mimeType || ""),
           size: Number(asset.size) || 0
@@ -1265,6 +1267,7 @@ JSON ที่ต้องตอบ:
               originalName: String(name),
               canonicalName: String(name),
               slotId: "",
+              sequence: 1,
               evidenceType: "",
               mimeType: "",
               size: 0
