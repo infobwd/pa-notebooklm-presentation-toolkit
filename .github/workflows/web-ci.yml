@@ -52,6 +52,11 @@ jobs:
           grep -q 'readinessIndicatorList' web/index.html
           grep -q 'projectDashboardGrid' web/index.html
           grep -q 'sourceAuditList' web/index.html
+          grep -q 'step3-source-tip' web/index.html
+          grep -q 'data-pick-source-file' web/app.js
+          grep -q 'data-use-as-source' web/app.js
+          grep -q 'validateAiJsonBtn").click()' web/app.js
+          if grep -q 'id="importAiJsonBtn"[^>]*disabled' web/index.html; then echo "Import button must stay clickable before validation"; exit 1; fi
           grep -q 'document-audit.js' web/index.html
           grep -q 'toastStack' web/index.html
           grep -q 'ACTUAL_MODES' web/app.js
@@ -59,7 +64,7 @@ jobs:
           grep -q 'function notify' web/app.js
           if grep -qE '\b(window\.)?alert\s*\(' web/app.js; then echo "window.alert is not allowed"; exit 1; fi
           grep -q 'data-fill-target="position"' web/index.html
-          grep -q 'Phase 3.3 Dashboard & Source Audit' web/index.html
+          grep -q 'Phase 3.4 Guided Import & Source Picker' web/index.html
           grep -q 'openDocumentReaderBtn' web/index.html
           grep -q 'pdfjs-dist@3.11.174' web/app.js
           grep -q 'mammoth@1.8.0' web/app.js
