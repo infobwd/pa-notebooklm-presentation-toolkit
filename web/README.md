@@ -1,4 +1,4 @@
-# Web App — Phase 3.4
+# Web App — Phase 3.5
 
 Static web app สำหรับ Easy Mode ของ PA NotebookLM Presentation Toolkit
 
@@ -134,3 +134,22 @@ Evidence Trace ไม่ต้องพิมพ์ชื่อไฟล์เ�
 - ถ้า Source เป็น PDF ระบบแสดง dropdown เลือกหน้าอย่างรวดเร็ว
 - ยังพิมพ์ “หน้า 4 / ตาราง 2 / ภาคผนวก ก” เองได้
 - Source file/page คือเอกสารจริงที่รองรับ ACTUAL ไม่ใช่ Visual Evidence
+
+
+## Phase 3.5 — Hardening & Acceptance
+
+เพิ่ม quality gate สำหรับ critical workflow:
+- Browser acceptance ด้วย Playwright + Chromium
+- Desktop / Tablet / Mobile viewport
+- Owner Test Data → auto-validate → Pre-Import Review → Import
+- Owner fixture ต้องยังเป็น DRAFT และ Verified ACTUAL = 0/3
+- invalid JSON ต้องมี visible error + Toast
+- STEP 3 Source Picker ด้วยไฟล์ TXT จริงใน browser test
+- เลือก Source แล้วต้องยัง UNVERIFIED
+- localStorage persistence หลัง reload
+- ตรวจ console/page runtime errors
+- failure เก็บ screenshot/error artifact ใน GitHub Actions
+
+เพิ่ม runtime hardening:
+- localStorage save/load มี error handling
+- runtime error / unhandled promise rejection แสดงสถานะและ Toast แทนการล้มเงียบ
