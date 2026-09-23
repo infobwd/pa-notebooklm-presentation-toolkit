@@ -1,4 +1,4 @@
-# Web App — Phase 3.3
+# Web App — Phase 3.4
 
 Static web app สำหรับ Easy Mode ของ PA NotebookLM Presentation Toolkit
 
@@ -113,3 +113,24 @@ ACTUAL จะนับเป็น Final-ready เมื่อมี Evidence Tr
   - Source page ที่อยู่นอกช่วงเอกสาร
 - ผล Audit เป็นคำเตือนเพื่อให้ผู้ใช้ตรวจ ไม่เปลี่ยนข้อเท็จจริงหรือเลือกเอกสารแทนผู้ใช้
 - Source Manifest ที่ Generate ใน session จะบันทึก Document Audit summary ไว้ด้วย
+
+
+## Phase 3.4 — Guided Import & Source Picker
+
+แก้ pain point ด้าน UX สองจุด:
+
+### Import JSON
+- ปุ่ม **Import เข้าระบบ** กดได้ตลอด
+- ถ้ายังไม่กด **ตรวจ JSON** ระบบจะตรวจให้ก่อนอัตโนมัติ
+- ถ้า JSON ผิด จะแสดง Error + Toast และไม่ Import
+- ถ้า JSON ผ่าน จะแสดง Pre-Import Review และแจ้งให้ผู้ใช้ตรวจแล้วกด Import อีกครั้ง
+- ไม่มี silent no-op จากปุ่ม disabled
+
+### Source file / page ใน STEP 3
+Evidence Trace ไม่ต้องพิมพ์ชื่อไฟล์เองอย่างเดียวอีกต่อไป:
+- เลือกจากไฟล์ที่อ่านอยู่ใน Document Reader
+- กด **เลือกไฟล์ต้นทาง** เพื่อเปิด Document Reader และเลือกไฟล์จากเครื่อง
+- หลังอ่านข้อความ แต่ละเอกสารมีปุ่ม **ใช้เป็น Source**
+- ถ้า Source เป็น PDF ระบบแสดง dropdown เลือกหน้าอย่างรวดเร็ว
+- ยังพิมพ์ “หน้า 4 / ตาราง 2 / ภาคผนวก ก” เองได้
+- Source file/page คือเอกสารจริงที่รองรับ ACTUAL ไม่ใช่ Visual Evidence
