@@ -1,10 +1,10 @@
 {
   "name": "pa-notebooklm-presentation-toolkit",
   "private": true,
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "Acceptance, evidence governance and local-first Document Intelligence for the PA NotebookLM Presentation Toolkit",
   "scripts": {
-    "test:unit": "node web/tests/reliability.test.js && node web/tests/document-audit.test.js && node web/tests/visual-evidence.test.js && node web/tests/ocr-intelligence.test.js && node web/tests/document-intelligence.test.js",
+    "test:unit": "node web/tests/reliability.test.js && node web/tests/document-audit.test.js && node web/tests/visual-evidence.test.js && node web/tests/ocr-intelligence.test.js && node web/tests/document-intelligence.test.js && node web/tests/evidence-review.test.js",
     "test:e2e": "node web/e2e/acceptance.test.js"
   },
   "devDependencies": {
