@@ -1877,13 +1877,17 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
       const item = indicators.find(x => x.id === card?.dataset.id);
       if (!item) return;
       item.actualMode = modeBtn.dataset.actualMode;
+      item.verification = "unverified";
       if (item.actualMode === "pending") {
         item.actual = "PENDING";
         item.actualNumerator = "";
         item.actualDenominator = "";
-        item.verification = "unverified";
-      } else if (item.actualMode !== "fraction" && R.isPending(item.actual)) {
-        item.actual = "";
+      } else {
+        if (item.actualMode !== "fraction") {
+          item.actualNumerator = "";
+          item.actualDenominator = "";
+        }
+        if (R.isPending(item.actual)) item.actual = "";
       }
       renderIndicators();
       save();
@@ -1912,6 +1916,16 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
     }
 
     if (item.actualMode === "pending") item.actual = "PENDING";
+
+    const traceSensitiveFields = new Set([
+      "actual","actualPercent","actualNumerator","actualDenominator","evidence",
+      "sourceFile","sourcePage","period","population","cohortId"
+    ]);
+    if (traceSensitiveFields.has(changedField) && item.verification === "verified") {
+      item.verification = "unverified";
+      const verificationSelect = card.querySelector('[data-field="verification"]');
+      if (verificationSelect) verificationSelect.value = "unverified";
+    }
 
     const trace = R.validateIndicatorTrace(item);
     const status = card.querySelector("[data-trace-status]");
