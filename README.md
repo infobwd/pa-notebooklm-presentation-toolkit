@@ -25,8 +25,9 @@ Expected GitHub Pages URL:
 - บันทึกอัตโนมัติใน Browser
 - Import / Export Project JSON
 - ตรวจ Draft / Final readiness
-- สร้าง Markdown Package 6 ไฟล์ใน Browser
+- สร้าง Markdown Package 7 ไฟล์ใน Browser
 - **Phase 2 Preview Studio:** เปิดดูและแก้ไข Markdown ก่อนดาวน์โหลด
+- **Phase 4.2 Evidence Review & Trace Handoff:** เก็บหน้าที่สนใจเป็น Review Notes, จัด FACT/TARGET/ACTUAL/CONTEXT/PENDING, ผูกตัวชี้วัด และส่ง Source ไป Evidence Trace แบบ UNVERIFIED
 - **Phase 4.1 Long-document Search & Relevance:** chunking เอกสารยาว, full-text search, page relevance และ one-click Source selection
 - **Phase 4.0 Document Intelligence:** OCR แบบ opt-in สำหรับ PDF สแกน, Thai+English, page selection, progress/cancel และ OCR review guardrails
 - **Phase 3.5.2 Visual Evidence Organizer:** Preview ภาพใน STEP 6, configurable naming plan, standardized filenames และดาวน์โหลดสำเนาชื่อมาตรฐาน
