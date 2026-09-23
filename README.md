@@ -27,6 +27,7 @@ Expected GitHub Pages URL:
 - ตรวจ Draft / Final readiness
 - สร้าง Markdown Package 6 ไฟล์ใน Browser
 - **Phase 2 Preview Studio:** เปิดดูและแก้ไข Markdown ก่อนดาวน์โหลด
+- **Phase 4.1 Long-document Search & Relevance:** chunking เอกสารยาว, full-text search, page relevance และ one-click Source selection
 - **Phase 4.0 Document Intelligence:** OCR แบบ opt-in สำหรับ PDF สแกน, Thai+English, page selection, progress/cancel และ OCR review guardrails
 - **Phase 3.5.2 Visual Evidence Organizer:** Preview ภาพใน STEP 6, configurable naming plan, standardized filenames และดาวน์โหลดสำเนาชื่อมาตรฐาน
 - **Phase 3.5.1 UX Polish:** Step 2 multiline fields, responsive External AI Bridge, TARGET ≥/≤/=/ % helper
