@@ -208,6 +208,41 @@ async function acceptance() {
 
     const tesseractLoaded = await page.evaluate(() => [...document.scripts].some(s => s.src.includes("tesseract.js@7.0.0")));
     if (tesseractLoaded) throw new Error("long-document search must not trigger OCR engine");
+
+    // Phase 4.2: save the relevant page into Evidence Review.
+    await result.locator("[data-save-search-review]").click();
+    const review = page.locator(".evidence-review-card").first();
+    await review.waitFor({ state:"visible" });
+    const reviewText = await review.innerText();
+    if (!reviewText.includes("long-report-55-pages.pdf") || !reviewText.includes("หน้า 42")) {
+      throw new Error("Evidence Review did not preserve source file/page: " + reviewText);
+    }
+
+    await review.locator("[data-review-classification]").selectOption("actual");
+    await review.locator("[data-review-status]").selectOption("checked");
+    await review.locator("[data-review-indicator]").selectOption({index:1});
+    await review.locator("[data-review-note]").fill("ตรวจ period / population กับต้นฉบับแล้ว");
+
+    const stats = await page.locator("#evidenceReviewStats").innerText();
+    if (!stats.includes("ตรวจแล้ว 1")) throw new Error("Evidence Review checked count did not update: " + stats);
+
+    // Handoff must populate Source but remain UNVERIFIED.
+    await review.locator("[data-review-promote]").click();
+    await page.locator("#documentReaderModal").waitFor({ state:"hidden" });
+    const firstIndicator = page.locator(".indicator-card").first();
+    const sourceFile = await firstIndicator.locator('[data-field="sourceFile"]').inputValue();
+    const sourcePage = await firstIndicator.locator('[data-field="sourcePage"]').inputValue();
+    const verification = await firstIndicator.locator('[data-field="verification"]').inputValue();
+    if (sourceFile !== "long-report-55-pages.pdf") throw new Error("Evidence Trace sourceFile handoff failed: " + sourceFile);
+    if (sourcePage !== "หน้า 42") throw new Error("Evidence Trace sourcePage handoff failed: " + sourcePage);
+    if (verification !== "unverified") throw new Error("Evidence Review handoff must remain UNVERIFIED");
+
+    await page.reload({waitUntil:"domcontentloaded"});
+    await page.locator("#openDocumentReaderBtn").click();
+    await page.locator(".evidence-review-card").first().waitFor({state:"visible"});
+    const persistedReview = await page.locator(".evidence-review-card").first().innerText();
+    if (!persistedReview.includes("long-report-55-pages.pdf")) throw new Error("Evidence Review note did not persist across reload");
+    if (!persistedReview.includes("Source ยังไม่โหลดใน session")) throw new Error("review should disclose missing raw source after reload");
   });
 
   await withPage("Step 2 multiline fields and Step 3 TARGET helper", { width: 1280, height: 900 }, async page => {
@@ -332,7 +367,7 @@ async function acceptance() {
     console.error("\nAcceptance failures:", failures);
     process.exit(1);
   }
-  console.log("\nPhase 4 browser acceptance: PASS");
+  console.log("\nPhase 4.2 browser acceptance: PASS");
 }
 
 acceptance().catch(err => {
