@@ -1801,16 +1801,38 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
 
   document.getElementById("addIndicatorBtn").addEventListener("click", () => {
     syncIndicatorsFromDom();
-    indicators.push({id:cryptoId(), title:"", target:"", actual:"", evidence:""});
+    indicators.push({...R.normalizeIndicator({id:cryptoId(), actualMode:"pending", actual:"PENDING"}), id:cryptoId()});
     renderIndicators(); save();
   });
 
   indicatorCards.addEventListener("click", e => {
-    if (!e.target.classList.contains("remove-indicator")) return;
-    syncIndicatorsFromDom();
-    const id = e.target.closest(".indicator-card").dataset.id;
-    indicators = indicators.filter(x => x.id !== id);
-    renderIndicators(); save();
+    const remove = e.target.closest(".remove-indicator");
+    if (remove) {
+      syncIndicatorsFromDom();
+      const id = remove.closest(".indicator-card").dataset.id;
+      indicators = indicators.filter(x => x.id !== id);
+      renderIndicators(); save();
+      return;
+    }
+
+    const modeBtn = e.target.closest("[data-actual-mode]");
+    if (modeBtn) {
+      syncIndicatorsFromDom();
+      const card = modeBtn.closest(".indicator-card");
+      const item = indicators.find(x => x.id === card?.dataset.id);
+      if (!item) return;
+      item.actualMode = modeBtn.dataset.actualMode;
+      if (item.actualMode === "pending") {
+        item.actual = "PENDING";
+        item.actualNumerator = "";
+        item.actualDenominator = "";
+        item.verification = "unverified";
+      } else if (item.actualMode !== "fraction" && R.isPending(item.actual)) {
+        item.actual = "";
+      }
+      renderIndicators();
+      save();
+    }
   });
 
   function refreshIndicatorCard(card, changedField = "") {
@@ -1819,20 +1841,22 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
     if (!item) return;
     card.querySelectorAll("[data-field]").forEach(el => item[el.dataset.field] = el.value.trim());
 
-    if (["actualNumerator","actualDenominator"].includes(changedField)) {
+    const percentInput = card.querySelector("[data-actual-percent]");
+    if (percentInput) {
+      const raw = percentInput.value.trim().replace("%","");
+      item.actual = raw ? raw + "%" : "";
+    }
+
+    if (item.actualMode === "fraction" && ["actualNumerator","actualDenominator"].includes(changedField)) {
       const calculated = R.formatCalculatedActual(item.actualNumerator, item.actualDenominator, 2);
       const actualInput = card.querySelector('[data-field="actual"]');
-      if (calculated) {
-        const currentActual = String(item.actual || "").trim();
-        const looksCalculated = /^\s*\d+(?:\.\d+)?\s*\/\s*\d+(?:\.\d+)?\s*=/.test(currentActual);
-        if (!R.isMeaningful(currentActual) || looksCalculated) {
-          item.actual = calculated;
-          if (actualInput) actualInput.value = calculated;
-        }
-      }
+      item.actual = calculated || "";
+      if (actualInput) actualInput.value = item.actual;
       const output = card.querySelector("[data-calc-output]");
-      if (output) output.textContent = calculated || "ยังไม่คำนวณ";
+      if (output) output.textContent = calculated || "รอคำนวณ";
     }
+
+    if (item.actualMode === "pending") item.actual = "PENDING";
 
     const trace = R.validateIndicatorTrace(item);
     const status = card.querySelector("[data-trace-status]");
@@ -1846,8 +1870,9 @@ ${missing.length ? missing.map(x=>"- [ ] "+x).join("\n") : "- ไม่มีร
 
   indicatorCards.addEventListener("input", e => {
     const field = e.target.closest("[data-field]");
+    const percent = e.target.closest("[data-actual-percent]");
     const card = e.target.closest(".indicator-card");
-    refreshIndicatorCard(card, field?.dataset.field || "");
+    refreshIndicatorCard(card, field?.dataset.field || (percent ? "actualPercent" : ""));
     save();
   });
 
